@@ -38,6 +38,20 @@ create policy "read all days" on public.days
 create policy "write own days" on public.days
   for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+-- the whole local history, so an account can restore a wiped or replaced phone
+create table if not exists public.backups (
+  user_id    uuid primary key references auth.users on delete cascade,
+  data       jsonb not null,
+  sessions   int  not null default 0,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.backups enable row level security;
+
+drop policy if exists "own backup" on public.backups;
+create policy "own backup" on public.backups
+  for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 -- the leaderboard itself: minutes per person over a date range
 create or replace function public.leaderboard(p_from date, p_to date)
 returns table (name text, minutes bigint, days_active bigint)

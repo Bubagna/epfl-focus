@@ -444,7 +444,7 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
    so any incremental counter would be wrong.
    ========================================================================= */
 
-const BUILD = 9;                            /* bump with sw.js CACHE */
+const BUILD = 10;                            /* bump with sw.js CACHE */
 const STORE = 'epflfocus.v3';
 const COIN_PER_MIN = 1;
 const MATURE_BONUS = 150;
@@ -1512,7 +1512,11 @@ let DB = blank();
       DB.grove = (old.grove || []).map(g => ({...g, sp: remap[g.sub] || 'ot_bonsai'}));
       DB.prefs.minutes = (old.prefs && old.prefs.minutes) || 45;
     }
-  } catch (e) { DB = blank(); }
+  } catch (e) {
+    /* never lose the bytes: keep whatever could not be parsed */
+    try { localStorage.setItem(STORE + '.corrupt', localStorage.getItem(STORE) || ''); } catch (e2) {}
+    DB = blank();
+  }
 })();
 DB.prefs.minutes = clamp(Math.round(DB.prefs.minutes/STEP_MINUTES)*STEP_MINUTES, MIN_MINUTES, MAX_MINUTES);
 if (DB.prefs.strict !== undefined){                 /* migrate the old on/off switch */
@@ -1524,7 +1528,14 @@ const AWAY_MODES = {
   pause: 'Pauses the clock',
   kill:  'Kills the specimen',
 };
-function save(){ try { localStorage.setItem(STORE, JSON.stringify(DB)); } catch (e) {} }
+/* A blank in-memory DB must never overwrite a stored history: whatever goes
+   wrong upstream, the bytes on disk survive it. */
+let knownSessions = DB.sessions.length;
+function save(allowEmpty){
+  if (!allowEmpty && DB.sessions.length === 0 && knownSessions > 0) return;
+  knownSessions = DB.sessions.length;
+  try { localStorage.setItem(STORE, JSON.stringify(DB)); } catch (e) {}
+}
 
 const isUnlocked = id => SP[id].cost === 0 || !!DB.unlocked[id];
 const growthMs = id => SP[id].growth * 60000;
@@ -2268,7 +2279,7 @@ function openSettings(){
   };
   $('#setReset').onclick = e => {
     const t = e.currentTarget;
-    if (t.dataset.sure){ DB = blank(); save(); closeSheet(); previewOrg = null; show('home'); return; }
+    if (t.dataset.sure){ DB = blank(); save(true); closeSheet(); previewOrg = null; show('home'); return; }
     t.dataset.sure = '1'; t.textContent = 'Sure?';
   };
 }
@@ -2544,13 +2555,53 @@ async function syncUp(){
     rows.push({user_id:SESSION.user_id, day, minutes:Math.min(1440, r.minutes),
                completed:r.completed, lost:r.lost, _sig:sig});
   }
-  if (!rows.length) return true;
+  if (!rows.length){ await pushBackup(); return true; }
   await sb('/rest/v1/days', {method:'POST',
     headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
     body: rows.map(({_sig, ...r}) => r)});
   rows.forEach(r => { DB.pushed[r.day] = r._sig; });
   DB.syncedAt = Date.now();
   save();
+  await pushBackup();
+  return true;
+}
+
+/* The account is the backup: the phone can be wiped, replaced or have its
+   storage evicted, and the history comes back on the next sign-in. */
+function backupPayload(){
+  const out = {};
+  for (const k of Object.keys(DB)) if (k !== 'board') out[k] = DB[k];
+  out.active = null;
+  return out;
+}
+async function pushBackup(){
+  if (!SESSION) return;
+  try {
+    await sb('/rest/v1/backups', {method:'POST',
+      headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
+      body:[{user_id:SESSION.user_id, data:backupPayload(),
+             sessions:DB.sessions.length, updated_at:new Date().toISOString()}]});
+  } catch (e) { /* table not created yet, or offline: the app carries on */ }
+}
+async function restoreIfBehind(){
+  if (!SESSION) return false;
+  let row = null;
+  try {
+    const rows = await sb('/rest/v1/backups?select=data,sessions&user_id=eq.' + SESSION.user_id);
+    row = rows && rows[0];
+  } catch (e) { return false; }
+  if (!row || !row.data) return false;
+  const remote = row.data, rn = (remote.sessions || []).length;
+  if (rn <= DB.sessions.length) return false;
+  const keepSp = DB.prefs && DB.prefs.sp;
+  DB = Object.assign(blank(), remote);
+  DB.prefs = Object.assign(blank().prefs, DB.prefs || {});
+  if (keepSp && SP[keepSp]) DB.prefs.sp = keepSp;
+  DB.active = null;
+  knownSessions = DB.sessions.length;
+  save(true);
+  previewOrg = null;
+  flashOk(`Restored ${rn} sessions from your account`);
   return true;
 }
 
@@ -2636,6 +2687,7 @@ async function refreshRank(){
   if (note) note.textContent = 'updating…';
   try {
     await ensureProfile();
+    if (await restoreIfBehind()) renderStats();
     await syncUp();
     await loadBoard();
     if (currentView === 'rank') renderRank();
