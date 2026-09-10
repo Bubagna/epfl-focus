@@ -1899,9 +1899,10 @@ function endSession(status, at, studied, awayMs){
   if (SESSION) syncUp().catch(() => {});      /* fire and forget: offline is fine */
 }
 
+let tickId = 0, lastDrawP = -1, lastDrawA = -1, lastDrawAt = 0;
 function loop(){
   stopLoop();
-  const step = () => {
+  const tick = () => {
     const a = DB.active;
     if (!a) return;
     const now = Date.now();
@@ -1917,16 +1918,26 @@ function loop(){
     $('#sesState').innerHTML = grown >= gm
       ? 'Complete · extra minutes go to the next one'
       : `stage ${st.index+1}/${st.total} · <b>${st.name}</b>` +
-        (a.pausedMs > 30000 ? ` · ${fmtDur(a.pausedMs)} paused` :
-         a.hiddenMs > 30000 ? ` · ${fmtDur(a.hiddenMs)} screen off` : '');
-    drawOrganism($('#organism'), ORG, clamp(grown/gm, 0, 1),
-      {alpha: 0.3 + 0.7*clamp(studied/a.plannedMs, 0, 1)});
-    if (now - (a.seen || 0) > 5000){ a.seen = now; save(); }   /* survives a hard kill */
-    rafId = requestAnimationFrame(step);
+        (a.pausedMs > 30000 ? ` · ${fmtDur(a.pausedMs)} paused` : '');
+
+    /* between one second and the next the drawing changes by an amount nobody
+       can see, so it is repainted on a real change, not on every frame */
+    const p = clamp(grown/gm, 0, 1);
+    const alpha = 0.3 + 0.7*clamp(studied/a.plannedMs, 0, 1);
+    if (Math.abs(p - lastDrawP) > 0.0012 || Math.abs(alpha - lastDrawA) > 0.02 || now - lastDrawAt > 8000){
+      drawOrganism($('#organism'), ORG, p, {alpha});
+      lastDrawP = p; lastDrawA = alpha; lastDrawAt = now;
+    }
+    if (now - (a.seen || 0) > 15000){ a.seen = now; save(); }  /* heartbeat: survives a hard kill */
   };
-  step();
+  lastDrawP = lastDrawA = -1; lastDrawAt = 0;
+  tick();
+  tickId = setInterval(tick, 1000);
 }
-function stopLoop(){ cancelAnimationFrame(rafId); rafId = 0; }
+function stopLoop(){
+  clearInterval(tickId); tickId = 0;
+  cancelAnimationFrame(rafId); rafId = 0;
+}
 
 function showResult(o){
   const sp = SP[o.sp], gm = growthMs(o.sp);
@@ -1944,7 +1955,6 @@ function showResult(o){
   $('#resSub').textContent = o.matured
     ? 'Fully built. It goes to the collection and a new one starts.'
     : ok ? (o.pausedMs > 30000 ? `Done, with ${fmtDur(o.pausedMs)} paused along the way.`
-          : o.hiddenMs > 30000 ? `Done — ${fmtDur(o.hiddenMs)} of it with the screen off.`
                                 : 'You stayed here the whole time.')
     : o.status === 'abandoned' ? 'You ended it yourself: the specimen is lost.'
     : `You were out of the app for more than ${DB.prefs.grace} seconds.`;
@@ -1972,9 +1982,17 @@ function showResult(o){
 
 /* leaving the app: record the timestamp, never the event */
 document.addEventListener('visibilitychange', () => {
-  if (!DB.active) return;
-  if (document.hidden){ DB.active.awayAt = Date.now(); save(); }
-  else handleReturn();
+  if (document.hidden){
+    /* iOS keeps a page alive in the background for as long as its audio session
+       is live, and a live page keeps burning battery. Put it all to sleep. */
+    stopLoop();
+    releaseWakeLock();
+    try { if (AC && AC.state === 'running') AC.suspend(); } catch (e) {}
+    if (DB.active){ DB.active.awayAt = Date.now(); save(); }
+    return;
+  }
+  try { if (AC && AC.state === 'suspended') AC.resume(); } catch (e) {}
+  if (DB.active) handleReturn();
 });
 window.addEventListener('pagehide', () => {
   if (DB.active && DB.active.awayAt == null){ DB.active.awayAt = Date.now(); save(); }
@@ -1994,9 +2012,7 @@ function handleReturn(){
 
   const after = resolve(a, now, DB.prefs.grace*1000, mode);
   if (after.kind === 'done'){ save(); beep('done'); endSession('done', after.at, after.studied, away); return; }
-  if (away > 2000)
-    flash(mode === 'count' ? `Screen off ${fmtDur(away)} · still counted`
-                           : `Paused ${fmtDur(away)} · not counted`, true);
+  if (mode === 'pause' && away > 2000) flash(`Paused ${fmtDur(away)} · not counted`, true);
   save(); requestWakeLock(); loop();
 }
 
@@ -2017,7 +2033,7 @@ function unlockAudio(){
   if (!DB.prefs.sound) return;
   try {
     if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
-    if (AC.state === 'suspended') AC.resume();
+    if (AC.state === 'suspended' && !document.hidden) AC.resume();
   } catch (e) {}
 }
 function beep(kind){
@@ -2187,8 +2203,7 @@ function openSettings(){
     <div class="help">A web page on iOS is told only that it is <b>hidden</b>. A dark screen and a
       different app look identical from in here, and no API separates them — so the setting above is
       a choice. With Guided Access on the question disappears: you cannot leave the app, so hidden
-      can only mean the screen went dark, and <b>Keeps counting</b> is exactly right.
-      Either way the time off screen is recorded and shown at the end.</div>
+      can only mean the screen went dark, and <b>Keeps counting</b> is exactly right.</div>
     <div class="help">A specimen grows across <b>several sessions</b>. When every part is built it
       goes to the collection, pays a <b>${MATURE_BONUS} coin</b> bonus, and a new one starts.</div>
     <div class="help">No sound with the screen off, no notifications, no haptics: it is a web app,
@@ -2665,9 +2680,7 @@ document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('touchend', unlockAudio, {once:true, passive:true});
 new ResizeObserver(() => {
   if (currentView === 'home') paintPreview();
-  else if (currentView === 'session' && ORG && DB.active)
-    drawOrganism($('#organism'), ORG,
-      clamp((DB.active.baseMs + Date.now() - DB.active.startAt)/growthMs(DB.active.sp), 0, 1), {});
+  else if (currentView === 'session') lastDrawP = -1;   /* let the next tick repaint at the new size */
 }).observe($('#app'));
 
 /* labels are drawn on canvas, so wait for the webfont before the first paint */
