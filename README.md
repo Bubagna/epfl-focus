@@ -31,10 +31,19 @@ For the app to actually stop you leaving, turn on **Guided Access**
 (Settings → Accessibility → Guided Access), then triple-click the side button once the session
 has started. No app on iOS can block another one by itself.
 
+## Leaderboard
+
+The Ranking tab is optional. Create an account with an email and a password, confirm the address,
+and your **daily minutes** join a shared board — today, this week, all time. Nothing else leaves
+the phone: sessions, specimens and the collection stay local.
+
+Backed by Supabase; `supabase/schema.sql` is the whole server side. Row level security means a
+signed-in user can read everyone's totals and write only their own rows.
+
 ## What it stores
 
-Everything lives in `localStorage` on your phone and never leaves it. There is no account, no
-analytics and no server. Settings → Backup copies the whole thing as JSON.
+Sessions, specimens, coins and settings live in `localStorage` on your phone. Only the per-day
+minute totals are uploaded, and only if you sign in. Settings → Backup copies everything as JSON.
 
 ## Hacking on it
 

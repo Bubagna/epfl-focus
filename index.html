@@ -227,10 +227,47 @@ main{flex:1;display:flex;flex-direction:column;min-height:0}
 .empty{color:var(--ink-3);font-size:13.5px;text-align:center;padding:50px 20px;line-height:1.7}
 
 /* ---------------- nav ---------------- */
-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:14px;padding:3px;
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:14px;padding:3px;
   background:var(--well);border-radius:999px}
-nav button{padding:10px 4px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-3)}
+nav button{padding:10px 2px;border-radius:999px;font-size:12px;font-weight:600;color:var(--ink-3)}
 nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+
+/* ---------------- ranking ---------------- */
+.auth{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:18px 16px;box-shadow:var(--shadow)}
+.auth h3{font-family:var(--fd);font-size:19px;font-weight:600;
+  font-variation-settings:'SOFT' 50,'WONK' 1;margin:0 0 4px}
+.auth p{margin:0 0 16px;font-size:12.5px;color:var(--ink-3);line-height:1.55}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:4px}
+.field input{width:100%;padding:12px 13px;border-radius:10px;border:1px solid var(--line);
+  background:var(--paper);color:var(--ink);font-family:var(--fs);font-size:16px;
+  -webkit-user-select:text;user-select:text}
+.field input:focus{outline:2px solid var(--sub);outline-offset:1px}
+.authbtn{width:100%;margin-top:6px;padding:14px;border-radius:11px;background:var(--sub);
+  color:#fff;font-size:15px;font-weight:700}
+.authbtn:disabled{opacity:.5}
+.authswap{margin-top:12px;font-size:12.5px;color:var(--ink-3);text-align:center}
+.authswap button{color:var(--sub);font-weight:700;text-decoration:underline}
+.authmsg{margin-top:12px;font-size:12.5px;line-height:1.55;padding:10px 12px;border-radius:9px}
+.authmsg.err{background:rgba(191,83,78,.12);color:var(--bad)}
+.authmsg.ok{background:rgba(60,141,89,.14);color:var(--ink-2)}
+.whoami{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.whoami .n{font-size:13.5px;font-weight:700}
+.whoami .n small{display:block;font-size:11.5px;font-weight:400;color:var(--ink-3);margin-top:1px}
+.lbrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+.lbrow .pos{font-size:12.5px;font-weight:700;color:var(--ink-3);width:24px;flex:none;
+  font-variant-numeric:tabular-nums}
+.lbrow .nm{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbrow .mn{font-size:13px;font-weight:700;margin-left:auto;font-variant-numeric:tabular-nums;flex:none}
+.lbrow .dy{font-size:11px;color:var(--ink-3);flex:none}
+.lbrow.me{background:var(--card);border-radius:10px;padding-inline:10px;
+  border-top-color:transparent;box-shadow:var(--shadow)}
+.lbrow.me .pos,.lbrow.me .nm{color:var(--sub)}
+.lbbar{height:6px;background:var(--well);border-radius:999px;overflow:hidden;margin-top:3px}
+.lbbar i{display:block;height:100%;background:var(--sub);border-radius:999px}
+.lbcell{flex:1;min-width:0}
+.synced{margin-top:18px;font-size:11.5px;color:var(--ink-3);text-align:center}
 
 /* ---------------- sheet ---------------- */
 .backdrop{position:fixed;inset:0;background:rgba(20,30,22,.45);z-index:50;opacity:0;
@@ -372,12 +409,16 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
 
     <!-- ===================== COLLECTION ===================== -->
     <section class="view" id="v-grove"><div id="groveBody"></div></section>
+
+    <!-- ===================== RANKING ===================== -->
+    <section class="view" id="v-rank"><div id="rankBody"></div></section>
   </main>
 
   <nav id="nav">
     <button data-view="home" aria-selected="true">Timer</button>
     <button data-view="stats" aria-selected="false">Stats</button>
     <button data-view="grove" aria-selected="false">Collection</button>
+    <button data-view="rank" aria-selected="false">Ranking</button>
   </nav>
 </div>
 
@@ -1843,6 +1884,7 @@ function endSession(status, at, studied, awayMs){
   stopLoop();
   previewOrg = null;
   showResult(out);
+  if (SESSION) syncUp().catch(() => {});      /* fire and forget: offline is fine */
 }
 
 function loop(){
@@ -1985,16 +2027,18 @@ let currentView = 'home';
 function show(v){
   currentView = v;
   $('#coins').textContent = DB.coins;
-  ['home','session','result','stats','grove'].forEach(k => $('#v-'+k).classList.toggle('on', k === v));
+  ['home','session','result','stats','grove','rank'].forEach(k => $('#v-'+k).classList.toggle('on', k === v));
   const locked = v === 'session' || v === 'result';
   $('#nav').style.display = locked ? 'none' : '';
   $('#bar').style.display = v === 'session' ? 'none' : 'flex';
   $('#openSettings').style.visibility = locked ? 'hidden' : 'visible';
   document.querySelectorAll('#nav button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.view === v)));
-  $('#barTitle').textContent = v === 'stats' ? 'Stats' : v === 'grove' ? 'Collection' : 'EPFL Focus';
+  $('#barTitle').textContent = v === 'stats' ? 'Stats' : v === 'grove' ? 'Collection'
+    : v === 'rank' ? 'Ranking' : 'EPFL Focus';
   if (v === 'home'){ paintDial(); paintPreview(); }
   if (v === 'stats') renderStats();
   if (v === 'grove') renderGrove();
+  if (v === 'rank'){ renderRank(); refreshRank(); }
   if (!locked) stopLoop();
 }
 
@@ -2338,6 +2382,229 @@ function renderGrove(){
   }
   $('#groveBody').innerHTML = html;
   paintMinis($('#groveBody'));
+}
+
+/* ============================================================== LEADERBOARD
+   Supabase: email + password with a confirmation mail, and one row per user
+   per day. The publishable key and the URL are meant to ship in the page —
+   the row level security policies are what protect the data.
+   Everything here fails soft: with no network the app carries on offline.
+   ========================================================================= */
+const SB_URL = 'https://dbksmoqcanofzruszwpk.supabase.co';
+const SB_KEY = 'sb_publishable_Nc5Q1U87DHL2mhl_29U9Bg_N-XOPrk3';
+const SESSION_KEY = 'epflfocus.session';
+
+let SESSION = null;
+try { SESSION = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) {}
+function saveSession(v){
+  SESSION = v;
+  try { v ? localStorage.setItem(SESSION_KEY, JSON.stringify(v)) : localStorage.removeItem(SESSION_KEY); } catch (e) {}
+}
+function mkSession(d){
+  const meta = (d.user && d.user.user_metadata) || {};
+  return {access_token:d.access_token, refresh_token:d.refresh_token,
+          expires_at: Date.now() + (d.expires_in || 3600)*1000,
+          user_id: d.user && d.user.id, email: d.user && d.user.email,
+          name: meta.name || ''};
+}
+
+async function sb(path, opt){
+  opt = opt || {};
+  const h = Object.assign({apikey:SB_KEY, 'Content-Type':'application/json'}, opt.headers || {});
+  if (opt.auth !== false && SESSION) h.Authorization = 'Bearer ' + SESSION.access_token;
+  const res = await fetch(SB_URL + path, {
+    method: opt.method || 'GET', headers: h,
+    body: opt.body != null ? JSON.stringify(opt.body) : undefined,
+  });
+  const txt = await res.text();
+  let data = null;
+  try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = txt; }
+  if (!res.ok){
+    const msg = (data && (data.msg || data.message || data.error_description)) || ('HTTP ' + res.status);
+    throw Object.assign(new Error(msg), {code: data && (data.error_code || data.code), status: res.status});
+  }
+  return data;
+}
+
+async function freshSession(){
+  if (!SESSION) return false;
+  if (SESSION.expires_at && Date.now() < SESSION.expires_at - 60000) return true;
+  try {
+    saveSession(mkSession(await sb('/auth/v1/token?grant_type=refresh_token',
+      {method:'POST', auth:false, body:{refresh_token:SESSION.refresh_token}})));
+    return true;
+  } catch (e) {
+    if (e.status >= 400 && e.status < 500) saveSession(null);   /* token really is dead */
+    return false;
+  }
+}
+
+async function ensureProfile(){
+  if (!SESSION) return;
+  await sb('/rest/v1/profiles', {method:'POST',
+    headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
+    body:[{id:SESSION.user_id, name:(SESSION.name || 'anon').slice(0,24)}]});
+}
+
+function dayTotals(){
+  const by = {};
+  DB.sessions.forEach(s => {
+    const k = dayKey(s.startAt);
+    const r = by[k] || (by[k] = {minutes:0, completed:0, lost:0});
+    r.minutes += Math.round(s.actualMs/60000);
+    if (s.status === 'done') r.completed++; else r.lost++;
+  });
+  return by;
+}
+
+/* push only the days whose totals changed since last time */
+async function syncUp(){
+  if (!SESSION || !(await freshSession())) return false;
+  const agg = dayTotals();
+  DB.pushed = DB.pushed || {};
+  const rows = [];
+  for (const day of Object.keys(agg)){
+    const r = agg[day], sig = r.minutes + '/' + r.completed + '/' + r.lost;
+    if (DB.pushed[day] === sig) continue;
+    rows.push({user_id:SESSION.user_id, day, minutes:Math.min(1440, r.minutes),
+               completed:r.completed, lost:r.lost, _sig:sig});
+  }
+  if (!rows.length) return true;
+  await sb('/rest/v1/days', {method:'POST',
+    headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
+    body: rows.map(({_sig, ...r}) => r)});
+  rows.forEach(r => { DB.pushed[r.day] = r._sig; });
+  DB.syncedAt = Date.now();
+  save();
+  return true;
+}
+
+const RANK_PERIODS = {
+  today: {label:'Today',  from:() => dayKey(Date.now())},
+  week:  {label:'Week',   from:() => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return dayKey(d.getTime()); }},
+  all:   {label:'All time', from:() => '2000-01-01'},
+};
+let rankPeriod = 'week', rankBusy = false, authMode = 'in';
+
+async function loadBoard(){
+  if (!(await freshSession())) return null;
+  const rows = await sb('/rest/v1/rpc/leaderboard', {method:'POST',
+    body:{p_from: RANK_PERIODS[rankPeriod].from(), p_to: dayKey(Date.now())}});
+  DB.board = DB.board || {};
+  DB.board[rankPeriod] = {at:Date.now(), rows};
+  save();
+  return rows;
+}
+
+function renderRank(){
+  applySubjectColor(null);
+  const box = $('#rankBody');
+
+  if (!SESSION){
+    const isUp = authMode === 'up';
+    box.innerHTML = `<div class="auth">
+      <h3>${isUp ? 'Create an account' : 'Sign in'}</h3>
+      <p>${isUp
+        ? 'Your minutes join a shared leaderboard. We send a confirmation mail first — click the link, then sign in.'
+        : 'Same account on every device. Your specimens stay on this phone; only daily minutes are shared.'}</p>
+      ${isUp ? `<div class="field"><label for="au-name">Name on the board</label>
+        <input id="au-name" type="text" autocomplete="nickname" maxlength="24" placeholder="Luigi"></div>` : ''}
+      <div class="field"><label for="au-mail">Email</label>
+        <input id="au-mail" type="email" autocomplete="email" inputmode="email" placeholder="you@epfl.ch"></div>
+      <div class="field"><label for="au-pass">Password</label>
+        <input id="au-pass" type="password" autocomplete="${isUp ? 'new-password' : 'current-password'}" placeholder="at least 6 characters"></div>
+      <button class="authbtn" id="au-go">${isUp ? 'Create account' : 'Sign in'}</button>
+      <div class="authswap">${isUp ? 'Already have one?' : 'No account yet?'}
+        <button id="au-swap">${isUp ? 'Sign in' : 'Create one'}</button></div>
+      <div id="au-msg"></div>
+    </div>`;
+    $('#au-swap').onclick = () => { authMode = isUp ? 'in' : 'up'; renderRank(); };
+    $('#au-go').onclick = () => doAuth(isUp);
+    box.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doAuth(isUp);
+    }));
+    return;
+  }
+
+  const cached = (DB.board && DB.board[rankPeriod]) || null;
+  const rows = cached ? cached.rows : [];
+  const max = Math.max(1, ...rows.map(r => r.minutes));
+  const me = (SESSION.name || '').toLowerCase();
+  box.innerHTML = `
+    <div class="whoami">
+      <div class="n">${SESSION.name || SESSION.email}<small>${SESSION.email}</small></div>
+      <button class="mini" id="rk-out">Sign out</button>
+    </div>
+    <div class="scope" id="rk-scope">${Object.keys(RANK_PERIODS).map(k =>
+      `<button data-p="${k}" aria-selected="${k === rankPeriod}">${RANK_PERIODS[k].label}</button>`).join('')}</div>
+    ${rows.length ? rows.map((r, i) => `
+      <div class="lbrow ${r.name.toLowerCase() === me ? 'me' : ''}">
+        <span class="pos">${i+1}</span>
+        <span class="lbcell"><span class="nm">${r.name}</span>
+          <span class="lbbar"><i style="width:${r.minutes/max*100}%"></i></span></span>
+        <span class="mn">${fmtDur(r.minutes*60000)}</span>
+      </div>`).join('')
+      : `<div class="empty">${rankBusy ? 'Loading…' : 'Nobody has studied in this period yet.'}</div>`}
+    <div class="synced" id="rk-sync">${cached
+      ? 'updated ' + new Date(cached.at).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'})
+      : 'not loaded yet'}</div>`;
+  $('#rk-out').onclick = () => { saveSession(null); renderRank(); };
+  box.querySelectorAll('#rk-scope button').forEach(b => b.onclick = () => {
+    rankPeriod = b.dataset.p; renderRank(); refreshRank();
+  });
+}
+
+async function refreshRank(){
+  if (!SESSION || rankBusy) return;
+  rankBusy = true;
+  const note = $('#rk-sync');
+  if (note) note.textContent = 'updating…';
+  try {
+    await ensureProfile();
+    await syncUp();
+    await loadBoard();
+    if (currentView === 'rank') renderRank();
+  } catch (e) {
+    if (currentView === 'rank'){
+      const n = $('#rk-sync');
+      if (n) n.textContent = navigator.onLine ? 'could not update: ' + e.message : 'offline — showing the last list';
+    }
+  } finally { rankBusy = false; }
+}
+
+async function doAuth(isUp){
+  const btn = $('#au-go'), msg = $('#au-msg');
+  const email = ($('#au-mail').value || '').trim();
+  const pass = $('#au-pass').value || '';
+  const name = isUp ? ($('#au-name').value || '').trim() : '';
+  const fail = t => { msg.className = 'authmsg err'; msg.textContent = t; };
+  if (isUp && (name.length < 2 || name.length > 24)) return fail('Pick a name between 2 and 24 characters.');
+  if (!/^\S+@\S+\.\S+$/.test(email)) return fail('That does not look like an email address.');
+  if (pass.length < 6) return fail('The password needs at least 6 characters.');
+
+  btn.disabled = true;
+  msg.className = ''; msg.textContent = '';
+  try {
+    if (isUp){
+      const back = encodeURIComponent(location.origin + location.pathname);
+      await sb('/auth/v1/signup?redirect_to=' + back, {method:'POST', auth:false,
+        body:{email, password:pass, data:{name}}});
+      msg.className = 'authmsg ok';
+      msg.textContent = 'Check your mail: click the link, then come back and sign in.';
+      authMode = 'in';
+    } else {
+      saveSession(mkSession(await sb('/auth/v1/token?grant_type=password',
+        {method:'POST', auth:false, body:{email, password:pass}})));
+      renderRank();
+      refreshRank();
+      return;
+    }
+  } catch (e) {
+    fail(e.code === 'email_not_confirmed' ? 'Confirm the address first: the link is in your mail.'
+       : e.code === 'invalid_credentials' ? 'Wrong email or password.'
+       : e.code === 'user_already_exists' || /already/i.test(e.message) ? 'That address already has an account — sign in instead.'
+       : navigator.onLine ? e.message : 'No connection.');
+  } finally { btn.disabled = false; }
 }
 
 /* ==================================================================== BOOT */
