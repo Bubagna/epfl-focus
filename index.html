@@ -2393,6 +2393,14 @@ function renderGrove(){
 const SB_URL = 'https://dbksmoqcanofzruszwpk.supabase.co';
 const SB_KEY = 'sb_publishable_Nc5Q1U87DHL2mhl_29U9Bg_N-XOPrk3';
 const SESSION_KEY = 'epflfocus.session';
+/* Accounts are name + surname. Supabase needs an address, so one is derived from
+   the name in the reserved .invalid TLD: nothing is ever sent to it, and the
+   project must have "Confirm email" switched off. */
+const MAIL_DOMAIN = 'epflfocus.invalid';
+const slug = t => (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]/g, '');
+const tidy = t => (t || '').trim().replace(/\s+/g, ' ');
+const addressFor = (first, last) => slug(first) + '.' + slug(last) + '@' + MAIL_DOMAIN;
 
 let SESSION = null;
 try { SESSION = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) {}
@@ -2505,12 +2513,12 @@ function renderRank(){
     box.innerHTML = `<div class="auth">
       <h3>${isUp ? 'Create an account' : 'Sign in'}</h3>
       <p>${isUp
-        ? 'Your minutes join a shared leaderboard. We send a confirmation mail first — click the link, then sign in.'
-        : 'Same account on every device. Your specimens stay on this phone; only daily minutes are shared.'}</p>
-      ${isUp ? `<div class="field"><label for="au-name">Name on the board</label>
-        <input id="au-name" type="text" autocomplete="nickname" maxlength="24" placeholder="Luigi"></div>` : ''}
-      <div class="field"><label for="au-mail">Email</label>
-        <input id="au-mail" type="email" autocomplete="email" inputmode="email" placeholder="you@epfl.ch"></div>
+        ? 'Your name and a password, nothing else — no email, no confirmation. Your daily minutes join a shared board; everything else stays on this phone.'
+        : 'The same name and password you signed up with. Works on any device.'}</p>
+      <div class="field"><label for="au-first">First name</label>
+        <input id="au-first" type="text" autocomplete="given-name" maxlength="20" placeholder="Luigi"></div>
+      <div class="field"><label for="au-last">Last name</label>
+        <input id="au-last" type="text" autocomplete="family-name" maxlength="20" placeholder="Colella"></div>
       <div class="field"><label for="au-pass">Password</label>
         <input id="au-pass" type="password" autocomplete="${isUp ? 'new-password' : 'current-password'}" placeholder="at least 6 characters"></div>
       <button class="authbtn" id="au-go">${isUp ? 'Create account' : 'Sign in'}</button>
@@ -2574,43 +2582,43 @@ async function refreshRank(){
 
 async function doAuth(isUp){
   const btn = $('#au-go'), msg = $('#au-msg');
-  const email = ($('#au-mail').value || '').trim();
+  const first = tidy($('#au-first').value), last = tidy($('#au-last').value);
   const pass = $('#au-pass').value || '';
-  const name = isUp ? ($('#au-name').value || '').trim() : '';
   const fail = t => { msg.className = 'authmsg err'; msg.textContent = t; };
-  if (isUp && (name.length < 2 || name.length > 24)) return fail('Pick a name between 2 and 24 characters.');
-  if (!/^\S+@\S+\.\S+$/.test(email)) return fail('That does not look like an email address.');
+  if (slug(first).length < 2) return fail('Type your first name.');
+  if (slug(last).length < 2) return fail('Type your last name.');
+  const name = (first + ' ' + last).slice(0, 24);
+  const email = addressFor(first, last);
   if (pass.length < 6) return fail('The password needs at least 6 characters.');
 
   btn.disabled = true;
   msg.className = ''; msg.textContent = '';
   try {
     if (isUp){
-      const back = encodeURIComponent(location.origin + location.pathname);
-      const d = await sb('/auth/v1/signup?redirect_to=' + back, {method:'POST', auth:false,
+      const d = await sb('/auth/v1/signup', {method:'POST', auth:false,
         body:{email, password:pass, data:{name}}});
-      if (d && d.access_token){          /* project has email confirmation off: straight in */
-        saveSession(mkSession(d));
-        renderRank();
-        refreshRank();
+      if (!d || !d.access_token){
+        msg.className = 'authmsg err';
+        msg.textContent = 'The account exists but the project is still waiting for a mail confirmation it can never receive. Turn off "Confirm email" in Supabase, then sign in.';
+        authMode = 'in';
         return;
       }
-      msg.className = 'authmsg ok';
-      msg.textContent = 'Check your mail: click the link, then come back and sign in.';
-      authMode = 'in';
+      saveSession(mkSession(d));
     } else {
       saveSession(mkSession(await sb('/auth/v1/token?grant_type=password',
         {method:'POST', auth:false, body:{email, password:pass}})));
-      renderRank();
-      refreshRank();
-      return;
     }
+    renderRank();
+    refreshRank();
+    return;
   } catch (e) {
-    fail(e.code === 'email_not_confirmed' ? 'Confirm the address first: the link is in your mail.'
-       : e.code === 'invalid_credentials' ? 'Wrong email or password.'
-       : e.code === 'user_already_exists' || /already/i.test(e.message) ? 'That address already has an account — sign in instead.'
+    fail(e.code === 'email_not_confirmed'
+         ? 'This project still requires a mail confirmation. Turn off "Confirm email" in Supabase.'
+       : e.code === 'invalid_credentials' ? 'No account with that name, or the password is wrong.'
+       : e.code === 'user_already_exists' || /already/i.test(e.message)
+         ? 'Someone already signed up with that exact name. Add a middle name, or sign in if it was you.'
        : e.code === 'over_email_send_rate_limit' || /rate limit/i.test(e.message)
-         ? 'Too many confirmation mails from this project in the last hour. Wait an hour, or ask Luigi to plug in a real mail provider.'
+         ? 'Supabase is still trying to send confirmation mails. Turn off "Confirm email" in the project and try again.'
        : e.code === 'weak_password' ? 'That password is too weak.'
        : navigator.onLine ? e.message : 'No connection.');
   } finally { btn.disabled = false; }

@@ -33,9 +33,9 @@ has started. No app on iOS can block another one by itself.
 
 ## Leaderboard
 
-The Ranking tab is optional. Create an account with an email and a password, confirm the address,
-and your **daily minutes** join a shared board — today, this week, all time. Nothing else leaves
-the phone: sessions, specimens and the collection stay local.
+The Ranking tab is optional. Sign up with your **name, surname and a password** — no email, no
+confirmation link — and your **daily minutes** join a shared board: today, this week, all time.
+Nothing else leaves the phone: sessions, specimens and the collection stay local.
 
 Backed by Supabase; `supabase/schema.sql` is the whole server side. Row level security means a
 signed-in user can read everyone's totals and write only their own rows.

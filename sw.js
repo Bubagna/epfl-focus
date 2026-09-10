@@ -1,7 +1,7 @@
 /* Service worker: the app must open with no network at all.
    Bump CACHE on every file change, otherwise the phone keeps
    serving the old version. */
-const CACHE = 'epflfocus-v4-2';
+const CACHE = 'epflfocus-v4-3';
 const ASSETS = [
   './',
   './index.html',
