@@ -1483,7 +1483,7 @@ const SP = Object.fromEntries(SPECIES.map(s => [s.id, s]));
 /* ------------------------------------------------------------- storage */
 const blank = () => ({
   v:3, coins:0, unlocked:{}, growing:{}, grove:[], sessions:[], active:null,
-  prefs:{sp:null, minutes:45, sound:true, grace:15, strict:false},
+  prefs:{sp:null, minutes:45, sound:true, grace:15, away:'pause'},
 });
 let DB = blank();
 (function load(){
@@ -1506,6 +1506,15 @@ let DB = blank();
   } catch (e) { DB = blank(); }
 })();
 DB.prefs.minutes = clamp(Math.round(DB.prefs.minutes/STEP_MINUTES)*STEP_MINUTES, MIN_MINUTES, MAX_MINUTES);
+if (DB.prefs.strict !== undefined){                 /* migrate the old on/off switch */
+  DB.prefs.away = DB.prefs.strict ? 'kill' : 'pause';
+  delete DB.prefs.strict;
+}
+const AWAY_MODES = {
+  count: 'Keeps counting',
+  pause: 'Pauses the clock',
+  kill:  'Kills the specimen',
+};
 function save(){ try { localStorage.setItem(STORE, JSON.stringify(DB)); } catch (e) {} }
 
 const isUnlocked = id => SP[id].cost === 0 || !!DB.unlocked[id];
@@ -1812,22 +1821,25 @@ function paintPreview(){
 }
 
 /* =============================================================== SESSION */
-/* iOS cannot tell a locked screen from another app: both are just "hidden".
-   So hidden time never counts as studied — the clock pauses. In strict mode it
-   also kills the specimen after the grace period. */
+/* iOS cannot tell a locked screen from another app: both are just "hidden",
+   and no API separates them. So it is a choice, not a detection:
+     count — hidden time still counts (right when Guided Access is on, because
+             then the only way to hide the page is the power button)
+     pause — hidden time is not studied, the clock stops
+     kill  — hidden longer than the grace period and the specimen dies       */
 function studiedOf(a, now){
-  const away = a.awayAt != null ? now - a.awayAt : 0;
-  return clamp(now - a.startAt - a.pausedMs - away, 0, a.plannedMs);
+  const live = a.awayAt != null && DB.prefs.away !== 'count' ? now - a.awayAt : 0;
+  return clamp(now - a.startAt - (a.pausedMs || 0) - live, 0, a.plannedMs);
 }
-function resolve(a, now, graceMs, strict){
-  if (a.awayAt != null){
-    if (strict && now - a.awayAt >= graceMs)
+function resolve(a, now, graceMs, mode){
+  if (a.awayAt != null && mode !== 'count'){
+    if (mode === 'kill' && now - a.awayAt >= graceMs)
       return {kind:'dead', at: a.awayAt + graceMs,
-              studied: clamp(a.awayAt - a.startAt - a.pausedMs, 0, a.plannedMs)};
+              studied: clamp(a.awayAt - a.startAt - (a.pausedMs || 0), 0, a.plannedMs)};
     return {kind:'paused'};
   }
-  if (now - a.startAt - a.pausedMs >= a.plannedMs)
-    return {kind:'done', at: a.startAt + a.plannedMs + a.pausedMs, studied: a.plannedMs};
+  if (studiedOf(a, now) >= a.plannedMs)
+    return {kind:'done', at: a.startAt + a.plannedMs + (a.pausedMs || 0), studied: a.plannedMs};
   return {kind:'running'};
 }
 
@@ -1838,7 +1850,7 @@ function startSession(){
   unlockAudio();
   const id = DB.prefs.sp, spec = specimen(id), now = Date.now();
   DB.active = {sp:id, subject:SP[id].sub, startAt:now, plannedMs:Math.round(DB.prefs.minutes)*60000,
-    seed:spec.seed, baseMs:spec.ms, awayAt:null, pausedMs:0, seen:now, escapes:0};
+    seed:spec.seed, baseMs:spec.ms, awayAt:null, pausedMs:0, hiddenMs:0, seen:now, escapes:0};
   save();
   ORG = buildOrganism(id, spec.seed);
   applySubjectColor(SP[id].sub);
@@ -1857,7 +1869,7 @@ function endSession(status, at, studied, awayMs){
   const ok = status === 'done';
   const out = {status, actual, coins: ok ? Math.round(actual/60000)*COIN_PER_MIN : 0,
     matured:false, deadAt:0, sp:a.sp, seed:a.seed, awayMs, baseMs:a.baseMs,
-    pausedMs:a.pausedMs || 0};
+    pausedMs:a.pausedMs || 0, hiddenMs:a.hiddenMs || 0};
 
   if (ok){
     spec.ms += actual;
@@ -1876,8 +1888,8 @@ function endSession(status, at, studied, awayMs){
   }
 
   DB.sessions.push({id:a.startAt, subject:a.subject, sp:a.sp, startAt:a.startAt, endAt:at,
-    plannedMs:a.plannedMs, actualMs:actual, pausedMs:a.pausedMs || 0, status,
-    coins:out.coins, escapes:a.escapes});
+    plannedMs:a.plannedMs, actualMs:actual, pausedMs:a.pausedMs || 0,
+    hiddenMs:a.hiddenMs || 0, status, coins:out.coins, escapes:a.escapes});
   DB.active = null;
   save();
   releaseWakeLock();
@@ -1893,7 +1905,7 @@ function loop(){
     const a = DB.active;
     if (!a) return;
     const now = Date.now();
-    const r = resolve(a, now, DB.prefs.grace*1000, DB.prefs.strict);
+    const r = resolve(a, now, DB.prefs.grace*1000, DB.prefs.away);
     if (r.kind === 'dead'){ beep('dead'); endSession('escaped', r.at, r.studied, DB.prefs.grace*1000); return; }
     if (r.kind === 'done'){ beep('done'); endSession('done', r.at, r.studied, 0); return; }
 
@@ -1905,7 +1917,8 @@ function loop(){
     $('#sesState').innerHTML = grown >= gm
       ? 'Complete · extra minutes go to the next one'
       : `stage ${st.index+1}/${st.total} · <b>${st.name}</b>` +
-        (a.pausedMs > 30000 ? ` · ${fmtDur(a.pausedMs)} paused` : '');
+        (a.pausedMs > 30000 ? ` · ${fmtDur(a.pausedMs)} paused` :
+         a.hiddenMs > 30000 ? ` · ${fmtDur(a.hiddenMs)} screen off` : '');
     drawOrganism($('#organism'), ORG, clamp(grown/gm, 0, 1),
       {alpha: 0.3 + 0.7*clamp(studied/a.plannedMs, 0, 1)});
     if (now - (a.seen || 0) > 5000){ a.seen = now; save(); }   /* survives a hard kill */
@@ -1931,6 +1944,7 @@ function showResult(o){
   $('#resSub').textContent = o.matured
     ? 'Fully built. It goes to the collection and a new one starts.'
     : ok ? (o.pausedMs > 30000 ? `Done, with ${fmtDur(o.pausedMs)} paused along the way.`
+          : o.hiddenMs > 30000 ? `Done — ${fmtDur(o.hiddenMs)} of it with the screen off.`
                                 : 'You stayed here the whole time.')
     : o.status === 'abandoned' ? 'You ended it yourself: the specimen is lost.'
     : `You were out of the app for more than ${DB.prefs.grace} seconds.`;
@@ -1969,13 +1983,20 @@ window.addEventListener('pagehide', () => {
 function handleReturn(){
   const a = DB.active;
   if (!a || a.awayAt == null) return;
-  const now = Date.now(), away = now - a.awayAt;
-  const r = resolve(a, now, DB.prefs.grace*1000, DB.prefs.strict);
+  const now = Date.now(), away = now - a.awayAt, mode = DB.prefs.away;
+  const r = resolve(a, now, DB.prefs.grace*1000, mode);
   if (r.kind === 'dead'){ save(); beep('dead'); endSession('escaped', r.at, r.studied, away); return; }
-  a.pausedMs = (a.pausedMs || 0) + away;
+
+  a.hiddenMs = (a.hiddenMs || 0) + away;
+  if (mode === 'pause') a.pausedMs = (a.pausedMs || 0) + away;
   a.awayAt = null;
   a.seen = now;
-  if (away > 2000) flash(`Paused ${fmtDur(away)} · not counted`, true);
+
+  const after = resolve(a, now, DB.prefs.grace*1000, mode);
+  if (after.kind === 'done'){ save(); beep('done'); endSession('done', after.at, after.studied, away); return; }
+  if (away > 2000)
+    flash(mode === 'count' ? `Screen off ${fmtDur(away)} · still counted`
+                           : `Paused ${fmtDur(away)} · not counted`, true);
   save(); requestWakeLock(); loop();
 }
 
@@ -2125,13 +2146,14 @@ function openSettings(){
   const curOrg = cur ? (ORG_CACHE[cur.id] || (ORG_CACHE[cur.id] = buildOrganism(cur.id, 1))) : null;
   openSheet(`<h2>Settings</h2><p class="sub">The rules of the game, explained once.</p>
     <div class="setrow">
-      <div><div class="k">Leaving kills the specimen</div><div class="d">Off: the clock just pauses while
-        the app is not on screen. On: after the grace period the specimen dies — but the phone cannot
-        tell a locked screen from another app, so turning the screen off kills it too.</div></div>
-      <div class="ctl"><button class="sw" id="setStrict" aria-pressed="${!!DB.prefs.strict}" aria-label="Strict mode"><i></i></button></div>
+      <div><div class="k">When the app is off screen</div><div class="d">iOS reports a dark screen and
+        another app exactly the same way, so this is your call, not a detection.
+        <b>Keeps counting</b> is the right one with Guided Access on — you cannot leave the app,
+        so the only way to hide it is the power button.</div></div>
+      <div class="ctl"><button class="mini" id="setAway">${AWAY_MODES[DB.prefs.away]}</button></div>
     </div>
     <div class="setrow">
-      <div><div class="k">Grace period</div><div class="d">How long you can be away before it dies. Only used when the switch above is on.</div></div>
+      <div><div class="k">Grace period</div><div class="d">How long you can be away before it dies. Only used by "Kills the specimen".</div></div>
       <div class="ctl"><button class="mini" id="setGrace">${DB.prefs.grace} s</button></div>
     </div>
     <div class="setrow">
@@ -2162,10 +2184,11 @@ function openSettings(){
       Camera Control below it, which just opens the camera. Turn the feature on first in
       <b>Settings → Accessibility → Guided Access</b>: set a passcode, set Display Auto-Lock to Never,
       and under Accessibility Shortcut tick Guided Access only, so the triple-click goes straight in.</div>
-    <div class="help">Whenever the app is not on screen — home screen, another app, or the screen
-      simply off — <b>the clock stops</b>. Time away is never counted as study, so there is nothing
-      to gain by leaving. With Guided Access on you cannot leave at all, so the only pause is the
-      screen going dark.</div>
+    <div class="help">A web page on iOS is told only that it is <b>hidden</b>. A dark screen and a
+      different app look identical from in here, and no API separates them — so the setting above is
+      a choice. With Guided Access on the question disappears: you cannot leave the app, so hidden
+      can only mean the screen went dark, and <b>Keeps counting</b> is exactly right.
+      Either way the time off screen is recorded and shown at the end.</div>
     <div class="help">A specimen grows across <b>several sessions</b>. When every part is built it
       goes to the collection, pays a <b>${MATURE_BONUS} coin</b> bonus, and a new one starts.</div>
     <div class="help">No sound with the screen off, no notifications, no haptics: it is a web app,
@@ -2176,9 +2199,10 @@ function openSettings(){
     DB.prefs.grace = opts[(opts.indexOf(DB.prefs.grace) + 1) % opts.length];
     save(); e.currentTarget.textContent = DB.prefs.grace + ' s';
   };
-  $('#setStrict').onclick = e => {
-    DB.prefs.strict = !DB.prefs.strict; save();
-    e.currentTarget.setAttribute('aria-pressed', String(DB.prefs.strict));
+  $('#setAway').onclick = e => {
+    const keys = Object.keys(AWAY_MODES);
+    DB.prefs.away = keys[(keys.indexOf(DB.prefs.away) + 1) % keys.length];
+    save(); e.currentTarget.textContent = AWAY_MODES[DB.prefs.away];
   };
   $('#setSound').onclick = e => {
     DB.prefs.sound = !DB.prefs.sound; save();
@@ -2656,16 +2680,23 @@ if (DB.active && SP[DB.active.sp]){
   a.pausedMs = a.pausedMs || 0;
   /* cold restart: everything since the last heartbeat was time off the app */
   if (a.awayAt == null) a.awayAt = a.seen || now;
-  const r = resolve(a, now, DB.prefs.grace*1000, DB.prefs.strict);
+  const r = resolve(a, now, DB.prefs.grace*1000, DB.prefs.away);
   applySubjectColor(a.subject);
   $('#sesCode').textContent = SUB[a.subject].code;
   $('#sesName').textContent = SP[a.sp].name;
   if (r.kind === 'dead') endSession('escaped', r.at, r.studied, now - a.awayAt);
   else {
-    a.pausedMs += now - a.awayAt;
-    a.awayAt = null; a.seen = now; save();
-    ORG = buildOrganism(a.sp, a.seed);
-    show('session'); requestWakeLock(); loop();
+    const gap = now - a.awayAt;
+    a.hiddenMs = (a.hiddenMs || 0) + gap;
+    if (DB.prefs.away === 'pause') a.pausedMs = (a.pausedMs || 0) + gap;
+    a.awayAt = null; a.seen = now;
+    const after = resolve(a, now, DB.prefs.grace*1000, DB.prefs.away);
+    if (after.kind === 'done'){ save(); endSession('done', after.at, after.studied, gap); }
+    else {
+      save();
+      ORG = buildOrganism(a.sp, a.seed);
+      show('session'); requestWakeLock(); loop();
+    }
   }
 } else {
   DB.active = null;
