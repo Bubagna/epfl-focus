@@ -234,6 +234,22 @@ main{flex:1;display:flex;flex-direction:column;min-height:0}
   text-overflow:ellipsis;white-space:nowrap}
 .spec.dead{opacity:.85;box-shadow:none;background:transparent;border-style:dashed}
 .spec.dead .n{color:var(--bad)}
+.kpis.two{grid-template-columns:repeat(2,1fr)}
+.gsec{font-size:11.5px;font-weight:700;color:var(--ink-3);margin:0 0 10px;
+  letter-spacing:.05em;text-transform:uppercase}
+.spcard{display:flex;width:100%;gap:12px;align-items:center;text-align:left;margin-bottom:9px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:9px 12px 10px;box-shadow:var(--shadow)}
+.spcard canvas{width:62px;height:62px;flex:none}
+.spcard .body{flex:1;min-width:0;display:block}
+.spcard .n{display:block;font-size:13.5px;font-weight:700;line-height:1.25}
+.spcard .c{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ink-3);margin-top:3px}
+.spcard .figs{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.spcard .fig{font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink-2);
+  background:var(--well);border-radius:999px;padding:3px 8px}
+.spcard .fig b{font-weight:700;color:var(--ink)}
+.spcard .fig.bad,.spcard .fig.bad b{color:var(--bad)}
+.spcard.gone canvas{opacity:.75}
 .empty{color:var(--ink-3);font-size:13.5px;text-align:center;padding:50px 20px;line-height:1.7}
 
 /* ---------------- nav ---------------- */
@@ -413,6 +429,7 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
     <section class="view" id="v-stats">
       <div class="scope" id="scope">
         <button data-scope="day" aria-selected="true">Day</button>
+        <button data-scope="week" aria-selected="false">Week</button>
         <button data-scope="month" aria-selected="false">Month</button>
         <button data-scope="year" aria-selected="false">Year</button>
       </div>
@@ -456,7 +473,7 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
    so any incremental counter would be wrong.
    ========================================================================= */
 
-const BUILD = 12;                            /* bump with sw.js CACHE */
+const BUILD = 13;                            /* bump with sw.js CACHE */
 const STORE = 'epflfocus.v3';
 const COIN_PER_MIN = 1;
 const MATURE_BONUS = 150;
@@ -482,6 +499,7 @@ const SUB = Object.fromEntries(SUBJECTS.map(s => [s.id, s]));
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MON3 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAY3 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];   /* weeks start on Monday */
 
 /* ========================================================== DRAWING MODEL
    A species is a builder that emits primitives tagged with the stage they
@@ -2413,11 +2431,24 @@ $('#openSettings').onclick = openSettings;
 /* =================================================================== STATS */
 let scope = 'day', anchor = new Date();
 
+/* midnight on the Monday of that date — built from calendar fields, never
+   from a subtraction, so the two DST weekends stay whole */
+function weekStart(x){
+  const d = new Date(x.getFullYear(), x.getMonth(), x.getDate());
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d;
+}
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+
 function periodRange(){
   const d = anchor;
   if (scope === 'day'){
     const a = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    return [a.getTime(), a.getTime() + 86400000];
+    return [a.getTime(), addDays(a, 1).getTime()];
+  }
+  if (scope === 'week'){
+    const a = weekStart(d);
+    return [a.getTime(), addDays(a, 7).getTime()];
   }
   if (scope === 'month')
     return [new Date(d.getFullYear(), d.getMonth(), 1).getTime(),
@@ -2431,12 +2462,20 @@ function periodLabel(){
     if (dayKey(d.getTime()) === dayKey(n.getTime() - 86400000)) return 'Yesterday';
     return d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
   }
+  if (scope === 'week'){
+    const a = weekStart(d), b = addDays(a, 6);
+    const back = Math.round((weekStart(n).getTime() - a.getTime())/86400000);
+    if (back === 0) return 'This week';
+    if (back === 7) return 'Last week';
+    return `${a.getDate()} ${MON3[a.getMonth()]} – ${b.getDate()} ${MON3[b.getMonth()]}`;
+  }
   if (scope === 'month') return MONTHS[d.getMonth()] + ' ' + d.getFullYear();
   return String(d.getFullYear());
 }
 function shift(dir){
   const d = new Date(anchor);
   if (scope === 'day') d.setDate(d.getDate() + dir);
+  else if (scope === 'week') d.setDate(d.getDate() + dir*7);
   else if (scope === 'month') d.setMonth(d.getMonth() + dir);
   else d.setFullYear(d.getFullYear() + dir);
   anchor = d;
@@ -2445,6 +2484,7 @@ function shift(dir){
 function isFuture(){
   const d = anchor, n = new Date();
   if (scope === 'day') return dayKey(d.getTime()) >= dayKey(n.getTime());
+  if (scope === 'week') return weekStart(d).getTime() >= weekStart(n).getTime();
   if (scope === 'month') return d.getFullYear() > n.getFullYear() ||
     (d.getFullYear() === n.getFullYear() && d.getMonth() >= n.getMonth());
   return d.getFullYear() >= n.getFullYear();
@@ -2528,6 +2568,12 @@ function renderStats(){
         <span class="len">${fmtDur(s.actualMs)}</span></div>`;
     });
     html += `</div>`;
+  } else if (scope === 'week'){
+    const a = weekStart(anchor);
+    values = Array(7).fill(0);
+    labels = DAY3.map((n,i) => `${n} ${addDays(a, i).getDate()}`);
+    list.forEach(s => { values[(new Date(s.startAt).getDay() + 6) % 7] += s.actualMs; });
+    html += barChart(values, labels, ['Mon','Thu','Sun'], 'Minutes per day') + subjectSplit(list);
   } else if (scope === 'month'){
     const y = anchor.getFullYear(), m = anchor.getMonth(), days = new Date(y, m+1, 0).getDate();
     values = Array(days).fill(0);
@@ -2553,38 +2599,96 @@ $('#prev').onclick = () => shift(-1);
 $('#next').onclick = () => shift(1);
 
 /* ============================================================== COLLECTION */
+/* Grouped by species, not by month: the question the collection answers is
+   "how much of this have I actually grown". The same reading works on the
+   losses — dead time is quoted as the fraction of a specimen it would have
+   been worth, which is the only honest way to feel it. */
 function renderGrove(){
   applySubjectColor(null);
-  const all = [...DB.grove].filter(g => SP[g.sp]).sort((a,b) => b.at - a.at);
-  if (!all.length){
+  const rowOf = new Map();
+  const row = id => {
+    if (!rowOf.has(id)) rowOf.set(id, {id, ok:0, okMs:0, lost:0, lostMs:0, live:0, seed:7, at:0});
+    return rowOf.get(id);
+  };
+  DB.grove.filter(g => SP[g.sp]).forEach(g => {
+    const r = row(g.sp);
+    if (g.dead){ r.lost++; r.lostMs += g.ms; }
+    else { r.ok++; r.okMs += g.ms; if (g.at >= r.at){ r.at = g.at; r.seed = g.seed; } }
+  });
+  for (const id of Object.keys(DB.growing || {}))
+    if (SP[id] && DB.growing[id].ms > 0){ const r = row(id); r.live = DB.growing[id].ms; }
+
+  const rows = [...rowOf.values()].sort((a,b) => (b.okMs + b.lostMs + b.live) - (a.okMs + a.lostMs + a.live));
+  if (!rows.length){
     $('#groveBody').innerHTML = `<div class="empty">The collection is empty.<br>
       A specimen lands here when every part is built —<br>or when it dies, and then the gap shows.</div>`;
     return;
   }
-  const groups = new Map();
-  all.forEach(g => {
-    const d = new Date(g.at), k = d.getFullYear()*12 + d.getMonth();
-    if (!groups.has(k)) groups.set(k, []);
-    groups.get(k).push(g);
+  const sum = k => rows.reduce((n,r) => n + r[k], 0);
+  const okN = sum('ok'), lostN = sum('lost'), lostMs = sum('lostMs');
+
+  let html = `<div class="kpis two">
+      <div class="kpi"><div class="v">${okN}</div><div class="k">grown · ${fmtDur(sum('okMs'))}</div></div>
+      <div class="kpi ${lostN ? 'bad' : ''}"><div class="v">${lostN}</div><div class="k">lost · ${fmtDur(lostMs)}</div></div>
+    </div>
+    <div class="gsec">${rows.length} specimen${rows.length > 1 ? 's' : ''}</div>`;
+
+  rows.forEach(r => {
+    const sp = SP[r.id], gm = growthMs(r.id);
+    const worth = ms => (Math.round(ms/gm*10)/10).toFixed(1).replace(/\.0$/, '');
+    html += `<button class="spcard ${r.ok ? '' : 'gone'}" data-id="${r.id}">
+      <canvas data-sp="${r.id}" data-seed="${r.seed}" data-p="1"
+        data-dead="${r.ok ? 0 : 1}"></canvas>
+      <span class="body">
+        <span class="n">${sp.name}</span>
+        <span class="c"><i class="dotc" style="background:${hueOf(sp.sub)}"></i>${SUB[sp.sub].code}
+          · ${sp.stages} parts · ${sp.growth} min each</span>
+        <span class="figs">
+          <span class="fig"><b>×${r.ok}</b> · ${fmtDur(r.okMs)}</span>
+          ${r.lost ? `<span class="fig bad"><b>${fmtDur(r.lostMs)}</b> lost · ${worth(r.lostMs)}×</span>` : ''}
+          ${r.live ? `<span class="fig">growing · ${fmtDur(r.live)}</span>` : ''}
+        </span>
+      </span></button>`;
   });
-  let html = '';
-  for (const [k, list] of groups){
-    const y = Math.floor(k/12), m = k%12, ok = list.filter(g => !g.dead).length, lost = list.length - ok;
-    const parts = [];
-    if (ok) parts.push(ok + (ok === 1 ? ' complete' : ' complete'));
-    if (lost) parts.push(lost + ' lost');
-    html += `<div class="month"><h3>${MONTHS[m]} ${y} · ${parts.join(', ')}</h3><div class="grid">`;
-    list.forEach(g => {
-      const sp = SP[g.sp];
-      const p = g.dead ? clamp(g.ms/growthMs(g.sp), .12, 1) : 1;
-      html += `<div class="spec ${g.dead ? 'dead' : ''}" title="${sp.name} · ${fmtDur(g.ms)}">
-        <canvas data-sp="${g.sp}" data-seed="${g.seed}" data-p="${p}" data-dead="${g.dead ? 1 : 0}"></canvas>
-        <div class="n">${g.dead ? Math.round(g.ms/60000) + ' min' : sp.name}</div></div>`;
-    });
-    html += `</div></div>`;
-  }
+  html += `<div class="foot">One named part every ${STAGE_MIN} minutes of study.
+    ${lostN ? `The multiplier reads lost time as the specimen it would have finished:
+      ${worth0(rows)} thrown away.` : 'Nothing lost so far.'}</div>`;
+
   $('#groveBody').innerHTML = html;
   paintMinis($('#groveBody'));
+  $('#groveBody').querySelectorAll('.spcard').forEach(b =>
+    b.onclick = () => openSpecimens(b.dataset.id));
+}
+/* lost time across species has no single growth time: quote it in whole
+   specimens of the species it was actually lost on */
+function worth0(rows){
+  const n = rows.reduce((t,r) => t + r.lostMs/growthMs(r.id), 0);
+  return (Math.round(n*10)/10) + ' specimen' + (Math.round(n*10)/10 === 1 ? '' : 's');
+}
+
+function openSpecimens(id){
+  const sp = SP[id], gm = growthMs(id);
+  const list = DB.grove.filter(g => g.sp === id).sort((a,b) => b.at - a.at);
+  const live = DB.growing[id] && DB.growing[id].ms > 0 ? DB.growing[id] : null;
+  let html = `<h2>${sp.name}</h2>
+    <p class="sub">${SUB[sp.sub].code} · one new part every ${STAGE_MIN} minutes,
+      ${sp.stages} parts and ${sp.growth} minutes to finish one.</p>`;
+  if (live){
+    const st = stageInfo(id, live.ms);
+    html += `<div class="readbox"><span>Growing now · stage ${st.index+1}/${sp.stages} · ${st.name}</span>
+      <b>${fmtDur(live.ms)}</b></div>`;
+  }
+  html += list.length
+    ? `<div class="grid" style="margin-top:16px">` + list.map(g => `
+        <div class="spec ${g.dead ? 'dead' : ''}">
+          <canvas data-sp="${g.sp}" data-seed="${g.seed}" data-dead="${g.dead ? 1 : 0}"
+            data-p="${g.dead ? clamp(g.ms/gm, .12, 1) : 1}"></canvas>
+          <div class="n">${new Date(g.at).toLocaleDateString('en-GB', {day:'numeric', month:'short'})}${
+            g.dead ? ' · ' + Math.round(g.ms/60000) + 'm' : ''}</div>
+        </div>`).join('') + `</div>`
+    : `<div class="empty">Nothing finished yet — the first one lands here at ${sp.growth} minutes.</div>`;
+  openSheet(html);
+  paintMinis($('#sheetBody'));
 }
 
 /* ============================================================== LEADERBOARD
@@ -2613,14 +2717,31 @@ function saveSession(v){
 }
 function mkSession(d){
   const meta = (d.user && d.user.user_metadata) || {};
-  return {access_token:d.access_token, refresh_token:d.refresh_token,
+  const had = SESSION || {};
+  return {access_token:d.access_token, refresh_token:d.refresh_token || had.refresh_token,
           expires_at: Date.now() + (d.expires_in || 3600)*1000,
-          user_id: d.user && d.user.id, email: d.user && d.user.email,
-          name: meta.name || ''};
+          user_id: (d.user && d.user.id) || had.user_id,
+          email: (d.user && d.user.email) || had.email,
+          name: meta.name || had.name || ''};
 }
 
+/* Every request goes through here, so the token is renewed here: an access
+   token lasts an hour and the app sits idle for far longer than that. */
 async function sb(path, opt){
   opt = opt || {};
+  const authed = opt.auth !== false && !!SESSION;
+  if (authed && !(await freshSession()))
+    throw Object.assign(new Error('your session expired — sign in again'), {status:401});
+  try { return await sbRaw(path, opt); }
+  catch (e) {
+    if (!authed || !expiredErr(e) || !(await freshSession(true))) throw e;
+    return await sbRaw(path, opt);          /* the clock was off: one retry */
+  }
+}
+const expiredErr = e => e.status === 401 || e.code === 'PGRST301' ||
+  /jwt expired|invalid jwt|token is expired/i.test(e.message || '');
+
+async function sbRaw(path, opt){
   const h = Object.assign({apikey:SB_KEY, 'Content-Type':'application/json'}, opt.headers || {});
   if (opt.auth !== false && SESSION) h.Authorization = 'Bearer ' + SESSION.access_token;
   const res = await fetch(SB_URL + path, {
@@ -2637,17 +2758,24 @@ async function sb(path, opt){
   return data;
 }
 
-async function freshSession(){
-  if (!SESSION) return false;
-  if (SESSION.expires_at && Date.now() < SESSION.expires_at - 60000) return true;
-  try {
-    saveSession(mkSession(await sb('/auth/v1/token?grant_type=refresh_token',
-      {method:'POST', auth:false, body:{refresh_token:SESSION.refresh_token}})));
-    return true;
-  } catch (e) {
-    if (e.status >= 400 && e.status < 500) saveSession(null);   /* token really is dead */
-    return false;
-  }
+/* One refresh at a time: several calls can find the token stale together. */
+let refreshing = null;
+function freshSession(force){
+  if (!SESSION) return Promise.resolve(false);
+  if (!force && SESSION.expires_at && Date.now() < SESSION.expires_at - 120000)
+    return Promise.resolve(true);
+  if (!SESSION.refresh_token){ saveSession(null); return Promise.resolve(false); }
+  if (!refreshing) refreshing = (async () => {
+    try {
+      saveSession(mkSession(await sbRaw('/auth/v1/token?grant_type=refresh_token',
+        {method:'POST', auth:false, body:{refresh_token:SESSION.refresh_token}})));
+      return true;
+    } catch (e) {
+      if (e.status >= 400 && e.status < 500) saveSession(null);   /* token really is dead */
+      return false;
+    } finally { refreshing = null; }
+  })();
+  return refreshing;
 }
 
 async function ensureProfile(){
@@ -2817,10 +2945,11 @@ async function refreshRank(){
     await loadBoard();
     if (currentView === 'rank') renderRank();
   } catch (e) {
-    if (currentView === 'rank'){
-      const n = $('#rk-sync');
-      if (n) n.textContent = navigator.onLine ? 'could not update: ' + e.message : 'offline — showing the last list';
-    }
+    rankBusy = false;
+    if (currentView !== 'rank') return;
+    if (!SESSION){ renderRank(); return; }        /* signed out mid-flight */
+    const n = $('#rk-sync');
+    if (n) n.textContent = navigator.onLine ? 'could not update: ' + e.message : 'offline — showing the last list';
   } finally { rankBusy = false; }
 }
 
