@@ -275,9 +275,12 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
 .synced{margin-top:18px;font-size:11.5px;color:var(--ink-3);text-align:center}
 
 /* ---------------- sheet ---------------- */
-.backdrop{position:fixed;inset:0;background:rgba(20,30,22,.45);z-index:50;opacity:0;
-  pointer-events:none;transition:opacity .22s}
-.backdrop.on{opacity:1;pointer-events:auto}
+/* the backdrop deliberately starts below the status bar: iOS paints that strip
+   itself and keeps whatever colour is composited over it */
+.backdrop{position:fixed;left:0;right:0;bottom:0;top:env(safe-area-inset-top);
+  background:rgba(20,30,22,.45);z-index:50;opacity:0;visibility:hidden;
+  pointer-events:none;transition:opacity .22s, visibility 0s .22s}
+.backdrop.on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .22s}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;max-height:88dvh;overflow-y:auto;
   background:var(--paper);border-radius:22px 22px 0 0;border-top:1px solid var(--line);
   padding:8px 20px calc(env(safe-area-inset-bottom) + 24px);
@@ -441,6 +444,7 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
    so any incremental counter would be wrong.
    ========================================================================= */
 
+const BUILD = 9;                            /* bump with sw.js CACHE */
 const STORE = 'epflfocus.v3';
 const COIN_PER_MIN = 1;
 const MATURE_BONUS = 150;
@@ -1534,18 +1538,16 @@ function specimen(id){
 const $ = s => document.querySelector(s);
 /* iOS paints the notch strip with theme-color: keep it identical to the paper
    the page is actually using, or the top of the screen reads as a darker band */
-const SCRIM = [20, 30, 22], SCRIM_A = 0.45;      /* must match .backdrop */
-function syncStatusBar(dimmed){
+/* iOS paints the strip above the page with theme-color and keeps it, so it has
+   to stay exactly the paper the page is using. Nothing is allowed to cover it. */
+function syncStatusBar(){
   const paper = (getComputedStyle(document.documentElement).getPropertyValue('--paper') || '').trim() || '#e9ede3';
-  /* The sheet's backdrop covers the notch strip too, and iOS keeps whatever
-     colour ended up there. So the strip is dimmed and undimmed on purpose —
-     writing the same value back would be a no-op and change nothing. */
-  const c = dimmed
-    ? '#' + mixc(paper, SCRIM, SCRIM_A).map(v => v.toString(16).padStart(2, '0')).join('')
-    : paper;
   const light = document.querySelector('#themeColor'), dark = document.querySelector('#themeColorDark');
   if (dark) dark.remove();
-  if (light){ light.removeAttribute('media'); light.setAttribute('content', c); }
+  if (light && light.getAttribute('content') !== paper){
+    light.removeAttribute('media');
+    light.setAttribute('content', paper);
+  }
 }
 function clamp(v,a,b){ return v < a ? a : v > b ? b : v; }
 const pad2 = n => String(n).padStart(2,'0');
@@ -2127,12 +2129,13 @@ function openSheet(html){
   $('#sheet').classList.add('on');
   $('#backdrop').classList.add('on');
   $('#sheet').scrollTop = 0;
-  syncStatusBar(true);
+  $('#backdrop').style.visibility = 'visible';
 }
 function closeSheet(){
   $('#sheet').classList.remove('on');
   $('#backdrop').classList.remove('on');
-  setTimeout(() => syncStatusBar(false), 230);   /* once the backdrop has faded */
+  /* drop the compositing layer once faded, so nothing of it can linger */
+  setTimeout(() => { if (!$('#backdrop').classList.contains('on')) $('#backdrop').style.visibility = 'hidden'; }, 240);
 }
 $('#backdrop').onclick = closeSheet;
 
@@ -2230,7 +2233,8 @@ function openSettings(){
     <div class="help">A specimen grows across <b>several sessions</b>. When every part is built it
       goes to the collection, pays a <b>${MATURE_BONUS} coin</b> bonus, and a new one starts.</div>
     <div class="help">No sound with the screen off, no notifications, no haptics: it is a web app,
-      not an alarm clock. Keep the phone in sight.</div>`);
+      not an alarm clock. Keep the phone in sight.</div>
+    <div class="synced">build ${BUILD}</div>`);
 
   $('#setGrace').onclick = e => {
     const opts = [10, 15, 30, 60];
@@ -2742,8 +2746,15 @@ if (DB.active && SP[DB.active.sp]){
   show('home');
 }
 
-if ('serviceWorker' in navigator)
+if ('serviceWorker' in navigator){
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading || DB.active) return;      /* never yank the page mid-session */
+    reloading = true;
+    location.reload();
+  });
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
 </script>
 </body>
 </html>
