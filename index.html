@@ -2587,8 +2587,14 @@ async function doAuth(isUp){
   try {
     if (isUp){
       const back = encodeURIComponent(location.origin + location.pathname);
-      await sb('/auth/v1/signup?redirect_to=' + back, {method:'POST', auth:false,
+      const d = await sb('/auth/v1/signup?redirect_to=' + back, {method:'POST', auth:false,
         body:{email, password:pass, data:{name}}});
+      if (d && d.access_token){          /* project has email confirmation off: straight in */
+        saveSession(mkSession(d));
+        renderRank();
+        refreshRank();
+        return;
+      }
       msg.className = 'authmsg ok';
       msg.textContent = 'Check your mail: click the link, then come back and sign in.';
       authMode = 'in';
@@ -2603,6 +2609,9 @@ async function doAuth(isUp){
     fail(e.code === 'email_not_confirmed' ? 'Confirm the address first: the link is in your mail.'
        : e.code === 'invalid_credentials' ? 'Wrong email or password.'
        : e.code === 'user_already_exists' || /already/i.test(e.message) ? 'That address already has an account — sign in instead.'
+       : e.code === 'over_email_send_rate_limit' || /rate limit/i.test(e.message)
+         ? 'Too many confirmation mails from this project in the last hour. Wait an hour, or ask Luigi to plug in a real mail provider.'
+       : e.code === 'weak_password' ? 'That password is too weak.'
        : navigator.onLine ? e.message : 'No connection.');
   } finally { btn.disabled = false; }
 }
