@@ -1,0 +1,2395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="EPFL Focus">
+<meta name="theme-color" content="#e9ede3">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<title>EPFL Focus</title>
+<style>
+/* ==========================================================================
+   EPFL Focus — lab paper: pale green ground with a millimetre grid, dark
+   green ink, and the course colour as the only accent.
+   ========================================================================== */
+@font-face{
+  font-family:'Fraunces';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url('fonts/fraunces-latin.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Karla';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url('fonts/karla-latin.woff2') format('woff2');
+}
+
+:root{
+  --paper:#e9ede3;
+  --card:#f4f7ef;
+  --well:#dee5d5;
+  --line:#ccd6c2;
+  --grid:rgba(53,84,55,.055);
+  --ink:#1e2a21;
+  --ink-2:#54655a;
+  --ink-3:#87968a;
+  --coin:#c08528;
+  --bad:#bf534e;
+  --shadow:0 1px 0 rgba(30,42,33,.05), 0 6px 18px -10px rgba(30,42,33,.35);
+  --sub:#a86b16;
+  --r:14px;
+  --fd:'Fraunces', Georgia, 'Times New Roman', serif;
+  --fs:'Karla', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#161b17; --card:#1e251f; --well:#131813; --line:#2e372f;
+    --grid:rgba(174,214,178,.05);
+    --ink:#e7eee5; --ink-2:#a3b1a5; --ink-3:#76857a;
+    --coin:#dda94e; --bad:#d97b76;
+    --shadow:0 1px 0 rgba(0,0,0,.2), 0 8px 22px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#161b17; --card:#1e251f; --well:#131813; --line:#2e372f;
+  --grid:rgba(174,214,178,.05);
+  --ink:#e7eee5; --ink-2:#a3b1a5; --ink-3:#76857a;
+  --coin:#dda94e; --bad:#d97b76;
+  --shadow:0 1px 0 rgba(0,0,0,.2), 0 8px 22px -12px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:22px 22px;
+  color:var(--ink);
+  font-family:var(--fs);font-size:15px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--sub);outline-offset:3px;border-radius:6px}
+
+#app{
+  display:flex;flex-direction:column;min-height:100dvh;
+  max-width:520px;margin:0 auto;padding-inline:20px;
+  padding-top:calc(env(safe-area-inset-top) + 10px);
+  padding-bottom:calc(env(safe-area-inset-bottom) + 10px);
+}
+main{flex:1;display:flex;flex-direction:column;min-height:0}
+.view{display:none;flex:1;flex-direction:column;min-height:0}
+.view.on{display:flex}
+
+/* ---------------- top bar ---------------- */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;min-height:38px}
+.coins{display:flex;align-items:center;gap:7px;padding:6px 13px 6px 8px;
+  background:var(--card);border:1px solid var(--line);border-radius:999px;
+  font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.coins svg{width:17px;height:17px;flex:none}
+.icobtn{width:38px;height:38px;border-radius:999px;display:grid;place-items:center;
+  background:var(--card);border:1px solid var(--line)}
+.icobtn svg{width:19px;height:19px}
+.title{font-family:var(--fd);font-size:18px;font-weight:600;
+  font-variation-settings:'SOFT' 40,'WONK' 1;letter-spacing:-.01em}
+
+/* ---------------- dial ---------------- */
+.dialwrap{position:relative;width:100%;max-width:330px;margin:auto auto 0;aspect-ratio:1;flex:none;touch-action:none}
+.dialwrap svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.dialwrap canvas{position:absolute;left:11.5%;top:11.5%;width:77%;height:77%;display:block}
+.track{fill:none;stroke:var(--well);stroke-width:11;stroke-linecap:round}
+.arc{fill:none;stroke:var(--sub);stroke-width:11;stroke-linecap:round}
+.handle{fill:var(--card);stroke:var(--sub);stroke-width:3.5}
+.handle-dot{fill:var(--sub)}
+.pickcenter{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:58%;padding:18px 10px;border-radius:999px;background:var(--card);
+  border:1px dashed var(--line);color:var(--ink-2);font-size:14px;font-weight:700;line-height:1.35}
+
+.readout{text-align:center;margin:4px 0 auto}
+.minutes{font-family:var(--fd);font-size:46px;font-weight:600;line-height:1;
+  font-variation-settings:'SOFT' 70,'WONK' 1,'opsz' 90;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.minutes small{font-family:var(--fs);font-size:14px;font-weight:500;color:var(--ink-3);margin-left:6px}
+.species{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:7px 14px;
+  background:var(--card);border:1px solid var(--line);border-radius:999px;font-size:13.5px;font-weight:600}
+.species .code{color:var(--sub);font-weight:700}
+.species .chev{color:var(--ink-3);font-size:11px}
+.growline{margin-top:10px;font-size:12.5px;color:var(--ink-3)}
+.growline b{color:var(--ink-2);font-weight:700;font-variant-numeric:tabular-nums}
+.stagename{margin-top:3px;font-size:12.5px;color:var(--sub);font-weight:700}
+
+.plant{width:100%;margin-top:14px;padding:17px;border-radius:var(--r);
+  background:var(--sub);color:#fff;font-size:16px;font-weight:700;box-shadow:var(--shadow)}
+.plant:active{transform:translateY(1px)}
+.plant:disabled{background:var(--well);color:var(--ink-3);box-shadow:none}
+
+/* ---------------- session ---------------- */
+.session-top{display:flex;justify-content:center;padding-block:6px 0;margin-bottom:auto}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;
+  background:var(--card);border:1px solid var(--line);font-size:12.5px;font-weight:600}
+.chip .code{color:var(--sub);font-weight:700}
+.clock{font-family:var(--fd);font-size:clamp(50px,17vw,72px);font-weight:600;line-height:1;
+  font-variation-settings:'SOFT' 70,'WONK' 1,'opsz' 120;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;text-align:center;margin-top:8px}
+.substate{text-align:center;margin:10px 0 auto;font-size:12.5px;color:var(--ink-3)}
+.substate b{color:var(--sub);font-weight:700}
+.hold{position:relative;overflow:hidden;width:100%;padding:15px;
+  border-radius:var(--r);background:var(--card);border:1px solid var(--line);
+  font-size:13px;color:var(--ink-3);text-align:center}
+.hold i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--bad);opacity:.2}
+.hold span{position:relative}
+
+.flash{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 10px);
+  z-index:60;padding:11px 16px;border-radius:999px;background:var(--bad);color:#fff;
+  font-size:13px;font-weight:700;box-shadow:var(--shadow);opacity:0;pointer-events:none;
+  transition:opacity .25s;max-width:88vw;text-align:center}
+.flash.on{opacity:1}
+
+/* ---------------- outcome ---------------- */
+.result{text-align:center}
+.result h2{font-family:var(--fd);font-size:27px;font-weight:600;
+  font-variation-settings:'SOFT' 60,'WONK' 1;margin:0 0 6px;letter-spacing:-.02em}
+.result p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.6}
+.gain{display:flex;justify-content:center;gap:8px;margin:16px 0 6px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;
+  background:var(--card);border:1px solid var(--line);font-size:13.5px;font-weight:700;
+  font-variant-numeric:tabular-nums}
+.pill svg{width:14px;height:14px}
+.pbar{height:9px;background:var(--well);border-radius:999px;overflow:hidden;margin:18px 0 10px}
+.pbar i{display:block;height:100%;background:var(--sub);border-radius:999px}
+.again{width:100%;margin-top:20px;padding:16px;border-radius:var(--r);
+  background:var(--sub);color:#fff;font-size:15px;font-weight:700}
+
+/* ---------------- stats ---------------- */
+.scope{display:flex;gap:3px;padding:3px;background:var(--well);border-radius:999px;margin-bottom:14px}
+.scope button{flex:1;padding:8px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.scope button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.period{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.period .label{font-size:14px;font-weight:700}
+.period button{width:34px;height:34px;border-radius:999px;background:var(--card);
+  border:1px solid var(--line);color:var(--ink-2)}
+.period button:disabled{opacity:.35}
+.hero{display:flex;align-items:baseline;gap:10px}
+.hero .v{font-family:var(--fd);font-size:46px;font-weight:600;line-height:1;
+  font-variation-settings:'SOFT' 70,'WONK' 1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.hero .u{font-size:13px;color:var(--ink-3)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 24px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+.kpi .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.kpi .k{font-size:11px;color:var(--ink-3);margin-top:2px}
+.kpi.bad .v{color:var(--bad)}
+.chart .cap{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.chart .cap .t{font-size:13px;font-weight:700}
+.chart .cap .m{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.bars{display:flex;align-items:flex-end;gap:2px;height:120px;border-bottom:1px solid var(--line)}
+.bars button{flex:1;min-width:0;height:100%;display:flex;align-items:flex-end}
+.bars i{display:block;width:100%;background:var(--sub);border-radius:4px 4px 0 0}
+.bars i.zero{background:var(--line);height:2px!important;border-radius:2px}
+.bars button[aria-pressed="true"] i{outline:2px solid var(--ink);outline-offset:1px}
+.axis{display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:var(--ink-3)}
+.readbox{margin-top:12px;padding:10px 13px;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;font-size:12.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:10px}
+.readbox b{color:var(--ink);font-variant-numeric:tabular-nums}
+.split{margin-top:26px}
+.split h3,.slist h3{font-size:13px;font-weight:700;margin:0 0 12px}
+.srow{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.srow .code{font-size:11.5px;font-weight:700;width:60px;flex:none;color:var(--ink-2)}
+.srow .track2{flex:1;height:9px;background:var(--well);border-radius:999px;overflow:hidden}
+.srow .track2 i{display:block;height:100%;border-radius:999px}
+.srow .v{font-size:11.5px;color:var(--ink-3);width:58px;text-align:right;font-variant-numeric:tabular-nums}
+.dotc{width:9px;height:9px;border-radius:999px;flex:none}
+.slist{margin-top:26px}
+.sess{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+.sess .when{font-size:12px;color:var(--ink-3);width:44px;flex:none;font-variant-numeric:tabular-nums}
+.sess .code{font-size:12px;font-weight:700;width:58px;flex:none}
+.sess .len{font-size:13px;font-weight:700;margin-left:auto;font-variant-numeric:tabular-nums}
+.sess.ko .len{color:var(--bad)}
+.sess .tag{font-size:11px;color:var(--bad)}
+.foot{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--ink-3);text-align:center}
+
+/* ---------------- collection ---------------- */
+.month{margin-bottom:24px}
+.month h3{font-size:11.5px;font-weight:700;color:var(--ink-3);margin:0 0 10px;
+  letter-spacing:.05em;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px}
+.spec{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:7px 5px 8px;text-align:center;box-shadow:var(--shadow)}
+.spec canvas{width:100%;aspect-ratio:1;display:block}
+.spec .n{font-size:10.5px;color:var(--ink-3);margin-top:2px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.spec.dead{opacity:.85;box-shadow:none;background:transparent;border-style:dashed}
+.spec.dead .n{color:var(--bad)}
+.empty{color:var(--ink-3);font-size:13.5px;text-align:center;padding:50px 20px;line-height:1.7}
+
+/* ---------------- nav ---------------- */
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:14px;padding:3px;
+  background:var(--well);border-radius:999px}
+nav button{padding:10px 4px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-3)}
+nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+
+/* ---------------- sheet ---------------- */
+.backdrop{position:fixed;inset:0;background:rgba(20,30,22,.45);z-index:50;opacity:0;
+  pointer-events:none;transition:opacity .22s}
+.backdrop.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;max-height:88dvh;overflow-y:auto;
+  background:var(--paper);border-radius:22px 22px 0 0;border-top:1px solid var(--line);
+  padding:8px 20px calc(env(safe-area-inset-bottom) + 24px);
+  transform:translateY(102%);transition:transform .26s cubic-bezier(.3,.9,.3,1);
+  max-width:520px;margin:0 auto;-webkit-overflow-scrolling:touch}
+.sheet.on{transform:translateY(0)}
+.grab{width:38px;height:4px;background:var(--line);border-radius:999px;margin:6px auto 14px}
+.sheet h2{font-family:var(--fd);font-size:20px;font-weight:600;
+  font-variation-settings:'SOFT' 50,'WONK' 1;margin:0 0 4px}
+.sheet .sub{font-size:12.5px;color:var(--ink-3);margin:0 0 18px;line-height:1.55}
+.subjhead{display:flex;align-items:center;gap:8px;margin:22px 0 10px;font-size:11.5px;
+  font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+.spgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.sp{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:8px 8px 11px;text-align:center}
+.sp[aria-pressed="true"]{border-color:var(--sub);box-shadow:0 0 0 1px var(--sub)}
+.sp canvas{width:100%;aspect-ratio:1;display:block}
+.sp .n{font-size:12px;font-weight:700;line-height:1.25;margin-top:4px}
+.sp .t{font-size:10.5px;color:var(--ink-3);margin-top:2px}
+.sp.locked canvas{opacity:.3;filter:grayscale(1)}
+.sp .cost{display:inline-flex;align-items:center;gap:4px;margin-top:4px;
+  font-size:11.5px;font-weight:700;color:var(--coin)}
+.sp .cost svg{width:12px;height:12px}
+.sp.cant .cost{color:var(--ink-3)}
+
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:14px 0;border-top:1px solid var(--line)}
+.setrow:first-of-type{border-top:0}
+.setrow .k{font-size:14px;font-weight:700}
+.setrow .d{font-size:12px;color:var(--ink-3);margin-top:3px;line-height:1.5}
+.setrow .ctl{flex:none}
+.mini{padding:8px 13px;border-radius:999px;background:var(--card);
+  border:1px solid var(--line);font-size:12.5px;font-weight:700}
+.mini.danger{color:var(--bad);border-color:var(--bad)}
+.sw{width:50px;height:30px;border-radius:999px;background:var(--well);position:relative;transition:background .18s}
+.sw i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:999px;
+  background:var(--card);box-shadow:var(--shadow);transition:transform .18s}
+.sw[aria-pressed="true"]{background:var(--sub)}
+.sw[aria-pressed="true"] i{transform:translateX(20px)}
+.help{font-size:12.5px;color:var(--ink-2);line-height:1.65;background:var(--card);
+  border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:8px}
+.help b{font-weight:700;color:var(--ink)}
+.stagelist{margin-top:10px;font-size:12px;color:var(--ink-3);line-height:1.7}
+.stagelist b{color:var(--ink-2)}
+
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar" id="bar">
+    <button class="coins" id="coinsBtn">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="var(--coin)"></circle><circle cx="12" cy="12" r="5.6" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.4"></circle></svg>
+      <span id="coins">0</span>
+    </button>
+    <div class="title" id="barTitle">EPFL Focus</div>
+    <button class="icobtn" id="openSettings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6 17 17M7 7 5.4 5.4"></path></svg>
+    </button>
+  </div>
+
+  <main>
+    <!-- ===================== HOME ===================== -->
+    <section class="view on" id="v-home">
+      <div class="dialwrap" id="dialwrap">
+        <svg id="dial" viewBox="0 0 300 300" aria-hidden="true">
+          <circle class="track" cx="150" cy="150" r="126"></circle>
+          <path class="arc" id="arc"></path>
+          <g id="handle">
+            <circle class="handle" id="hOuter" r="13"></circle>
+            <circle class="handle-dot" id="hInner" r="4.5"></circle>
+          </g>
+        </svg>
+        <canvas id="preview"></canvas>
+        <button class="pickcenter" id="pickCenter" hidden>Pick<br>a course</button>
+      </div>
+
+      <div class="readout">
+        <div class="minutes"><span id="minVal">45</span><small>min</small></div>
+        <button class="species" id="speciesBtn" hidden>
+          <span class="code" id="spCode"></span><span id="spName"></span><span class="chev">▾</span>
+        </button>
+        <div class="growline" id="growLine"></div>
+        <div class="stagename" id="stageName"></div>
+      </div>
+
+      <button class="plant" id="plant">Start</button>
+    </section>
+
+    <!-- ===================== SESSION ===================== -->
+    <section class="view" id="v-session">
+      <div class="session-top"><div class="chip"><span class="code" id="sesCode"></span><span id="sesName"></span></div></div>
+      <div class="dialwrap" id="sesWrap">
+        <svg viewBox="0 0 300 300" aria-hidden="true">
+          <circle class="track" cx="150" cy="150" r="126"></circle>
+          <path class="arc" id="sesArc"></path>
+        </svg>
+        <canvas id="organism"></canvas>
+      </div>
+      <div class="clock" id="clock">45:00</div>
+      <div class="substate" id="sesState"></div>
+      <button class="hold" id="abandon"><i id="holdFill"></i><span>Hold to give up</span></button>
+    </section>
+
+    <!-- ===================== OUTCOME ===================== -->
+    <section class="view" id="v-result">
+      <div class="dialwrap" id="resWrap" style="max-width:250px">
+        <canvas id="organism2" style="left:0;top:0;width:100%;height:100%"></canvas>
+      </div>
+      <div class="result">
+        <h2 id="resTitle"></h2>
+        <p id="resSub"></p>
+        <div class="gain" id="resGain"></div>
+        <div class="pbar"><i id="resBar"></i></div>
+        <p id="resNote"></p>
+        <button class="again" id="again">Continue</button>
+      </div>
+    </section>
+
+    <!-- ===================== STATS ===================== -->
+    <section class="view" id="v-stats">
+      <div class="scope" id="scope">
+        <button data-scope="day" aria-selected="true">Day</button>
+        <button data-scope="month" aria-selected="false">Month</button>
+        <button data-scope="year" aria-selected="false">Year</button>
+      </div>
+      <div class="period">
+        <button id="prev" aria-label="Previous">‹</button>
+        <div class="label" id="periodLabel"></div>
+        <button id="next" aria-label="Next">›</button>
+      </div>
+      <div id="statsBody"></div>
+    </section>
+
+    <!-- ===================== COLLECTION ===================== -->
+    <section class="view" id="v-grove"><div id="groveBody"></div></section>
+  </main>
+
+  <nav id="nav">
+    <button data-view="home" aria-selected="true">Timer</button>
+    <button data-view="stats" aria-selected="false">Stats</button>
+    <button data-view="grove" aria-selected="false">Collection</button>
+  </nav>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="flash" id="flash"></div>
+
+<script>
+"use strict";
+/* =========================================================================
+   EPFL Focus — study timer. No dependencies, no network: everything lives in
+   localStorage and never leaves the phone.
+
+   Time is always derived from Date.now(): iOS freezes JS in the background,
+   so any incremental counter would be wrong.
+   ========================================================================= */
+
+const STORE = 'epflfocus.v3';
+const COIN_PER_MIN = 1;
+const MATURE_BONUS = 150;
+const MIN_MINUTES = 5;
+const STEP_MINUTES = 5;                     /* the drag is smooth, the value moves in 5s */
+const MAX_MINUTES = 120;
+const STAGE_MIN = 20;                       /* one new part every 20 minutes */
+
+const SUBJECTS = [
+  {id:'hum428', code:'HUM-428', name:'Science, technology & env.',   hue:'#3c8d59', dark:'#4e9a52'},
+  {id:'ee411',  code:'EE-411',  name:'Inference and learning',       hue:'#467ac6', dark:'#5285d9'},
+  {id:'ee429',  code:'EE-429',  name:'VLSI design',                  hue:'#bf534e', dark:'#d15b60'},
+  {id:'cs473',  code:'CS-473',  name:'System programming for SoC',   hue:'#189a9b', dark:'#009b95'},
+  {id:'cs472',  code:'CS-472',  name:'Design technologies for IC',   hue:'#9a5fac', dark:'#a569bf'},
+  {id:'ee557',  code:'EE-557',  name:'Semiconductor devices I',      hue:'#a86b16', dark:'#b77610'},
+  {id:'ee424',  code:'EE-424',  name:'Analog VLSI design',           hue:'#b45483', dark:'#cd5586'},
+  {id:'other',  code:'OTHER',   name:'Anything else',                hue:'#6b7a70', dark:'#8b9a90'},
+];
+const SUB = Object.fromEntries(SUBJECTS.map(s => [s.id, s]));
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MON3 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/* ========================================================== DRAWING MODEL
+   A species is a builder that emits primitives tagged with the stage they
+   belong to. One stage = STAGE_MIN minutes of study, so a specimen visibly
+   gains a new, named part every 20 minutes.
+   ========================================================================= */
+function emitter(){
+  const items = [], names = [];
+  let cur = -1;
+  const push = o => { o.st = cur; items.push(o); return o; };
+  const A = {
+    stage(name){ cur++; names.push(name); },
+    line(x1,y1,x2,y2,o){ return push(Object.assign({k:'line',x1,y1,x2,y2}, o)); },
+    path(pts,o){ return push(Object.assign({k:'path',pts}, o)); },
+    curve(x1,y1,cx,cy,x2,y2,o){ return push(Object.assign({k:'curve',x1,y1,cx,cy,x2,y2}, o)); },
+    rect(x,y,w,h,o){ return push(Object.assign({k:'rect',x,y,rw:w,rh:h}, o)); },
+    poly(pts,o){ return push(Object.assign({k:'poly',pts}, o)); },
+    dot(x,y,r,o){ return push(Object.assign({k:'dot',x,y,r}, o)); },
+    ell(x,y,rx,ry,rot,o){ return push(Object.assign({k:'ell',x,y,rx,ry,rot:rot||0}, o)); },
+    text(x,y,t,o){ return push(Object.assign({k:'text',x,y,t}, o)); },
+    arrow(x1,y1,x2,y2,o){ return push(Object.assign({k:'arrow',x1,y1,x2,y2}, o)); },
+  };
+  return {A, items, names};
+}
+
+/* --- shared little shapes ------------------------------------------------ */
+function boxLabel(A, x, y, w, h, label, o){
+  o = o || {};
+  A.rect(x, y, w, h, {f:o.f || 'lite', c:o.c || 'dark', w:o.w || 2.4, r:o.r != null ? o.r : 10});
+  A.text(x + w/2, y + h/2, label, {size:o.size || 26, c:o.tc || 'ink'});
+}
+function isoP(x, y, z, u, cx, cy){
+  return [cx + (x - z)*0.866*u, cy - ((x + z)*0.5 - y)*u];
+}
+
+/* ===================== EE-557 · Silicon crystal (9 stages) ================ */
+function spSiCrystal(rnd, S){
+  const {A, items, names} = emitter();
+  const u = S*0.30, cx = S*0.50, cy = S*0.56;
+  const P = (x,y,z) => isoP(x, y, z, u, cx, cy);
+  const corners = [[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]];
+  const faces = [[.5,.5,0],[.5,.5,1],[.5,0,.5],[.5,1,.5],[0,.5,.5],[1,.5,.5]];
+  const inner = [[.25,.25,.25],[.75,.75,.25],[.75,.25,.75],[.25,.75,.75]];
+  const near = p => {
+    const all = corners.concat(faces);
+    return all.map(q => ({q, d:Math.hypot(q[0]-p[0], q[1]-p[1], q[2]-p[2])}))
+      .sort((a,b) => a.d - b.d).slice(0,4).map(o => o.q);
+  };
+  const atom = (p, o) => { const [x,y] = P(...p); A.dot(x, y, S*0.026, Object.assign({f:'main', c:'dark', w:2}, o)); };
+  const bond = (a, b, o) => { const [x1,y1] = P(...a), [x2,y2] = P(...b);
+    A.line(x1, y1, x2, y2, Object.assign({c:'dark', w:3.4}, o)); };
+
+  A.stage('Si atom');
+  atom(inner[0]);
+  { const [x,y] = P(...inner[0]); A.text(x + S*0.075, y - S*0.045, 'Si', {size:49, c:'dark'}); }
+
+  A.stage('Unit cell');
+  corners.forEach(a => corners.forEach(b => {
+    const d = Math.abs(a[0]-b[0]) + Math.abs(a[1]-b[1]) + Math.abs(a[2]-b[2]);
+    if (d === 1 && a.join() < b.join()) bond(a, b, {c:'alt', w:2.2});
+  }));
+  corners.forEach(c => atom(c, {f:'lite'}));
+
+  A.stage('Face-centred atoms');
+  faces.forEach(f => atom(f, {f:'lite'}));
+
+  A.stage('Covalent bonds');
+  near(inner[0]).forEach(q => bond(inner[0], q));
+
+  A.stage('Diamond basis');
+  inner.slice(1).forEach(p => { atom(p); near(p).forEach(q => bond(p, q)); });
+
+  A.stage('a = 5.43 Å');
+  { const yb = S*0.905, xa = S*0.24, xb = S*0.76;
+    A.line(xa, yb, xb, yb, {c:'alt', w:2.2});
+    A.line(xa, yb - S*0.022, xa, yb + S*0.022, {c:'alt', w:2.2});
+    A.line(xb, yb - S*0.022, xb, yb + S*0.022, {c:'alt', w:2.2});
+    A.text(S*0.5, yb - S*0.085, 'a = 5.43 Å', {size:40, c:'alt'}); }
+
+  A.stage('Donor · P');
+  { const p = faces[2]; atom(p, {f:'cool', c:'cool'});
+    const [x,y] = P(...p);
+    A.dot(x + S*0.055, y - S*0.05, S*0.015, {f:'cool', c:'cool', w:1.6});
+    A.line(x + S*0.03, y - S*0.03, S*0.80, S*0.115, {c:'cool', w:1.8});
+    A.text(S*0.86, S*0.10, 'n · P', {size:38, c:'cool'}); }
+
+  A.stage('Acceptor · B');
+  { const p = faces[4]; atom(p, {f:'paper', c:'hot'});
+    const [x,y] = P(...p);
+    A.dot(x - S*0.055, y + S*0.05, S*0.015, {c:'hot', w:1.8});
+    A.line(x - S*0.03, y + S*0.03, S*0.16, S*0.80, {c:'hot', w:1.8});
+    A.text(S*0.13, S*0.835, 'p · B', {size:38, c:'hot'}); }
+
+  A.stage('Carriers');
+  for (let i=0;i<7;i++){
+    const a = rnd()*Math.PI*2, r = S*(0.13 + rnd()*0.18);
+    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r*0.62;
+    A.dot(x, y, S*0.013, i % 2 ? {f:'cool', c:'cool', w:1.4} : {c:'hot', w:1.6});
+  }
+  A.arrow(S*0.30, S*0.055, S*0.62, S*0.055, {c:'alt', w:2.4});
+  A.text(S*0.68, S*0.055, 'E', {size:39, c:'alt', align:'left'});
+  return {items, names};
+}
+
+/* ===================== EE-557 · MOSFET cross-section (12 stages) ========== */
+function spMosfet(rnd, S){
+  const {A, items, names} = emitter();
+  const L = S*0.10, R = S*0.90, top = S*0.44, bot = S*0.86;
+  const gx = S*0.38, gw = S*0.24;
+
+  A.stage('p-substrate');
+  A.rect(L, top, R-L, bot-top, {f:'lite', c:'dark', w:2.6, r:6});
+  A.text(S*0.5, S*0.78, 'p-Si substrate', {size:42, c:'dark'});
+
+  A.stage('Shallow trench isolation');
+  A.rect(L, top - S*0.055, S*0.13, S*0.13, {f:'altl', c:'alt', w:2.2, r:4});
+  A.rect(R - S*0.13, top - S*0.055, S*0.13, S*0.13, {f:'altl', c:'alt', w:2.2, r:4});
+  A.text(S*0.145, top - S*0.085, 'STI', {size:36, c:'alt'});
+
+  A.stage('Gate oxide');
+  A.rect(gx, top - S*0.022, gw, S*0.022, {f:'hot', c:'hot', w:1.6, r:2});
+  A.line(gx, top - S*0.011, S*0.185, S*0.245, {c:'hot', w:1.8});
+  A.text(S*0.17, S*0.215, 'SiO₂ · 2 nm', {size:34, c:'hot'});
+
+  A.stage('Poly gate');
+  A.rect(gx, top - S*0.155, gw, S*0.133, {f:'main', c:'dark', w:2.6, r:4});
+  A.text(gx + gw/2, top - S*0.088, 'poly', {size:39, c:'paper'});
+
+  A.stage('Spacers');
+  A.poly([[gx, top-S*0.022],[gx, top-S*0.13],[gx-S*0.055, top-S*0.022]], {f:'altl', c:'alt', w:2});
+  A.poly([[gx+gw, top-S*0.022],[gx+gw, top-S*0.13],[gx+gw+S*0.055, top-S*0.022]], {f:'altl', c:'alt', w:2});
+
+  A.stage('n+ source & drain');
+  A.rect(L + S*0.045, top, S*0.235, S*0.115, {f:'cool', c:'cool', w:2.2, r:5});
+  A.rect(R - S*0.28, top, S*0.235, S*0.115, {f:'cool', c:'cool', w:2.2, r:5});
+  A.text(L + S*0.163, top + S*0.058, 'n+', {size:39, c:'paper'});
+  A.text(R - S*0.163, top + S*0.058, 'n+', {size:39, c:'paper'});
+
+  A.stage('LDD extensions');
+  A.rect(L + S*0.28, top, S*0.045, S*0.045, {f:'cool', c:'cool', w:1.6, r:3});
+  A.rect(R - S*0.325, top, S*0.045, S*0.045, {f:'cool', c:'cool', w:1.6, r:3});
+
+  A.stage('Depletion edge');
+  A.path([[L+S*0.03, top+S*0.155],[S*0.32, top+S*0.115],[S*0.5, top+S*0.10],
+          [S*0.68, top+S*0.115],[R-S*0.03, top+S*0.155]], {c:'dark', w:2, dash:[8,7]});
+
+  A.stage('Silicide & contacts');
+  [L + S*0.09, R - S*0.20].forEach(x => {
+    A.rect(x, top - S*0.016, S*0.11, S*0.016, {f:'alt', c:'alt', w:1.4, r:2});
+    A.rect(x + S*0.03, top - S*0.115, S*0.05, S*0.10, {f:'alt', c:'alt', w:2, r:2});
+  });
+
+  A.stage('Metal 1');
+  A.rect(L + S*0.05, top - S*0.165, S*0.19, S*0.05, {f:'altl', c:'alt', w:2.2, r:3});
+  A.rect(R - S*0.24, top - S*0.165, S*0.19, S*0.05, {f:'altl', c:'alt', w:2.2, r:3});
+  A.text(L + S*0.145, top - S*0.14, 'S', {size:39, c:'alt'});
+  A.text(R - S*0.145, top - S*0.14, 'D', {size:39, c:'alt'});
+
+  A.stage('Inversion channel');
+  A.rect(gx, top + S*0.004, gw, S*0.028, {f:'cool', c:'cool', w:1.6, r:2});
+  for (let i=0;i<5;i++) A.dot(gx + gw*(i+.5)/5, top + S*0.018, S*0.009, {f:'cool', c:'cool', w:1.2});
+  A.text(S*0.5, top + S*0.068, 'inversion', {size:34, c:'cool'});
+
+  A.stage('Drain current');
+  A.arrow(R - S*0.145, S*0.225, L + S*0.145, S*0.225, {c:'hot', w:3.2});
+  A.text(S*0.5, S*0.165, 'ID', {size:46, c:'hot'});
+  return {items, names};
+}
+
+/* ===================== EE-411 · Central limit theorem (9 stages) ========== */
+function spCLT(rnd, S){
+  const {A, items, names} = emitter();
+  const x0 = S*0.10, x1 = S*0.90, base = S*0.80, H = S*0.52;
+  const gauss = (x, mu, sg) => Math.exp(-((x-mu)**2)/(2*sg*sg));
+  const bars = 17, bw = (x1-x0)/bars;
+
+  A.stage('Axes');
+  A.line(x0, base, x1, base, {c:'ink', w:2.4});
+  A.line(x0, base, x0, base - H, {c:'ink', w:2.4});
+  for (let i=0;i<=4;i++){
+    const x = x0 + (x1-x0)*i/4;
+    A.line(x, base, x, base + S*0.016, {c:'ink', w:2});
+  }
+  A.text(S*0.5, base + S*0.075, 'X̄ₙ', {size:42, c:'ink'});
+
+  A.stage('One draw');
+  A.dot(x0 + (x1-x0)*0.31, base - S*0.03, S*0.017, {f:'main', c:'dark', w:2});
+
+  A.stage('n = 5');
+  [0.22,0.44,0.58,0.71,0.35].forEach((t,i) =>
+    A.dot(x0 + (x1-x0)*t, base - S*0.03 - i*S*0.028, S*0.017, {f:'main', c:'dark', w:2}));
+
+  const drawBars = (sg, alpha) => {
+    for (let i=0;i<bars;i++){
+      const t = (i + .5)/bars, h = gauss(t, .5, sg)*H*0.92;
+      A.rect(x0 + i*bw + bw*0.10, base - h, bw*0.80, h, {f:alpha, c:'dark', w:1.6, r:3});
+    }
+  };
+
+  A.stage('n = 20 · histogram');
+  drawBars(0.30, 'altl');
+
+  A.stage('n = 100');
+  drawBars(0.20, 'lite');
+
+  A.stage('n = 1000');
+  drawBars(0.145, 'main');
+
+  A.stage('Gaussian limit');
+  { const pts = [];
+    for (let i=0;i<=60;i++){ const t = i/60; pts.push([x0 + (x1-x0)*t, base - gauss(t, .5, .145)*H*0.92]); }
+    A.path(pts, {c:'hot', w:4}); }
+
+  A.stage('Mean and σ');
+  { const mid = x0 + (x1-x0)*0.5;
+    A.line(mid, base, mid, base - H*0.95, {c:'ink', w:2, dash:[7,6]});
+    A.text(mid, base - H - S*0.03, 'μ', {size:45, c:'ink'});
+    [-1,1].forEach(k => {
+      const x = mid + k*(x1-x0)*0.145;
+      A.line(x, base, x, base - gauss(.5 + k*.145, .5, .145)*H*0.92, {c:'alt', w:2, dash:[5,5]});
+    });
+    A.text(mid + (x1-x0)*0.30, base - H*0.62, 'σ/√n', {size:36, c:'alt'}); }
+
+  A.stage('Tails');
+  { const pts = [];
+    for (let i=0;i<=20;i++){ const t = 0.78 + 0.22*i/20; pts.push([x0 + (x1-x0)*t, base - gauss(t, .5, .145)*H*0.92]); }
+    pts.push([x1, base], [x0 + (x1-x0)*0.78, base]);
+    A.poly(pts, {f:'hot', c:'hot', w:1.4});
+    A.text(S*0.5, S*0.13, 'CLT', {size:55, c:'hot'}); }
+  return {items, names};
+}
+
+/* ===================== EE-411 · Gradient descent (12 stages) ============== */
+function spDescent(rnd, S){
+  const {A, items, names} = emitter();
+  const cx = S*0.55, cy = S*0.58, rot = -0.5;
+  const ring = k => A.ell(cx, cy, S*0.365*k, S*0.155*k, rot, {c:'alt', w:2.2});
+  /* an elongated quadratic bowl: descent zig-zags across the narrow axis */
+  const f = (x, y) => { const dx = x-cx, dy = y-cy;
+    const u = dx*Math.cos(-rot) - dy*Math.sin(-rot), v = dx*Math.sin(-rot) + dy*Math.cos(-rot);
+    return [u, v]; };
+  const g = (u, v) => [u*0.16, v*0.95];
+
+  A.stage('Loss landscape'); ring(1);
+  A.stage('Contours');       ring(0.78); ring(0.58);
+  A.stage('Basin');          ring(0.40); ring(0.24); ring(0.11);
+
+  A.stage('Start θ₀');
+  let u = -S*0.36, v = -S*0.115;
+  const toXY = (u,v) => [cx + u*Math.cos(rot) - v*Math.sin(rot), cy + u*Math.sin(rot) + v*Math.cos(rot)];
+  let [px,py] = toXY(u,v);
+  A.dot(px, py, S*0.022, {f:'hot', c:'hot', w:2});
+  A.text(px - S*0.02, py - S*0.06, 'θ₀', {size:42, c:'hot'});
+
+  for (let s=0;s<6;s++){
+    A.stage('Step ' + (s+1));
+    const [gu,gv] = g(u,v);
+    u -= gu*1.05; v -= gv*1.85;
+    const [nx,ny] = toXY(u,v);
+    A.arrow(px, py, nx, ny, {c:'hot', w:3});
+    A.dot(nx, ny, S*0.016, {f:'hot', c:'hot', w:1.8});
+    px = nx; py = ny;
+  }
+
+  A.stage('Minimum θ*');
+  A.line(cx - S*0.03, cy - S*0.03, cx + S*0.03, cy + S*0.03, {c:'ink', w:3});
+  A.line(cx - S*0.03, cy + S*0.03, cx + S*0.03, cy - S*0.03, {c:'ink', w:3});
+  A.text(cx + S*0.085, cy + S*0.055, 'θ*', {size:45, c:'ink'});
+
+  A.stage('∇L = 0');
+  A.dot(cx, cy, S*0.055, {c:'hot', w:3});
+  A.text(S*0.24, S*0.13, '∇L = 0', {size:49, c:'hot'});
+  return {items, names};
+}
+
+/* ===================== CS-473 · 5-stage pipeline (9 stages) =============== */
+function spPipeline(rnd, S){
+  const {A, items, names} = emitter();
+  const names5 = ['IF','ID','EX','MEM','WB'];
+  const bx = S*0.30, bw = S*0.40, bh = S*0.108, gap = S*0.055;
+  const y0 = S*0.09;
+  const Y = i => y0 + i*(bh + gap);
+
+  names5.forEach((n,i) => {
+    A.stage(n === 'IF' ? 'Instruction fetch' : n === 'ID' ? 'Instruction decode'
+      : n === 'EX' ? 'Execute' : n === 'MEM' ? 'Memory' : 'Write back');
+    boxLabel(A, bx, Y(i), bw, bh, n, {f:'lite', size:45});
+    if (i){
+      A.line(S*0.5, Y(i-1) + bh, S*0.5, Y(i), {c:'dark', w:2.6});
+      A.rect(bx + bw*0.30, Y(i) - gap*0.72, bw*0.40, gap*0.44, {f:'alt', c:'alt', w:1.6, r:3});
+    }
+  });
+
+  A.stage('Register file');
+  boxLabel(A, S*0.735, Y(1) + bh*0.2, S*0.20, bh*1.6, 'RF', {f:'altl', c:'alt', size:42, tc:'alt'});
+  A.line(bx + bw, Y(1) + bh*0.5, S*0.735, Y(1) + bh*0.5, {c:'alt', w:2.2});
+  A.line(bx + bw, Y(4) + bh*0.5, S*0.90, Y(4) + bh*0.5, {c:'alt', w:2.2});
+  A.line(S*0.90, Y(4) + bh*0.5, S*0.90, Y(2) + bh*0.9, {c:'alt', w:2.2});
+  A.line(S*0.90, Y(2) + bh*0.9, S*0.835, Y(2) + bh*0.9, {c:'alt', w:2.2});
+
+  A.stage('Forwarding');
+  A.curve(bx, Y(2) + bh*0.6, S*0.10, Y(2) + bh*1.2, bx, Y(2) + bh*0.15, {c:'hot', w:3});
+  A.curve(bx, Y(3) + bh*0.6, S*0.06, Y(2) + bh*1.1, bx, Y(2) + bh*0.55, {c:'hot', w:3});
+  A.text(S*0.115, Y(2) + bh*1.75, 'bypass', {size:36, c:'hot'});
+
+  A.stage('Hazard unit');
+  boxLabel(A, S*0.05, Y(0) + bh*0.1, S*0.19, bh*0.85, 'HZD', {f:'hot', c:'hot', size:36, tc:'paper'});
+  A.line(S*0.24, Y(0) + bh*0.5, bx, Y(0) + bh*0.5, {c:'hot', w:2.2, dash:[6,5]});
+  A.text(S*0.145, Y(0) + bh*1.25, 'stall', {size:32, c:'hot'});
+
+  A.stage('Instructions in flight');
+  const flight = ['main','cool','hot','alt','dark'];
+  flight.forEach((c,i) => {
+    A.rect(bx + bw*0.055, Y(i) + bh*0.24, bw*0.14, bh*0.52, {f:c, c:'dark', w:1.8, r:4});
+    A.text(bx + bw*0.125, Y(i) + bh*0.5, String(5-i), {size:26, c:'paper'});
+  });
+  return {items, names};
+}
+
+/* ===================== CS-473 · GECKO5 SoC (12 stages) =================== */
+function spGecko(rnd, S){
+  const {A, items, names} = emitter();
+  const busY = S*0.505, busH = S*0.062;
+  const BW = S*0.165, BX = i => S*0.055 + i*S*0.188;
+  const bot = (i, label, sub) => {
+    boxLabel(A, BX(i), S*0.63, BW, S*0.185, label, {size:34});
+    A.line(BX(i) + BW/2, S*0.63, BX(i) + BW/2, busY + busH, {c:'dark', w:2.6});
+    if (sub) A.text(BX(i) + BW/2, S*0.855, sub, {size:30, c:'alt'});
+  };
+
+  A.stage('OpenRISC or1300');
+  boxLabel(A, S*0.055, S*0.115, S*0.40, S*0.275, 'or1300', {f:'main', size:49, tc:'paper'});
+  A.text(S*0.255, S*0.325, '5-stage · 32 bit', {size:30, c:'paper'});
+
+  A.stage('32-bit bus');
+  A.rect(S*0.05, busY, S*0.90, busH, {f:'dark', c:'dark', w:2, r:8});
+  A.text(S*0.135, busY - S*0.045, '32-bit bus', {size:32, c:'dark'});
+  A.line(S*0.255, S*0.39, S*0.255, busY, {c:'dark', w:3.6});
+
+  A.stage('Instruction cache');
+  boxLabel(A, S*0.485, S*0.115, S*0.21, S*0.13, 'I$', {size:38});
+  A.line(S*0.59, S*0.245, S*0.59, busY, {c:'dark', w:2.6});
+
+  A.stage('Data cache');
+  boxLabel(A, S*0.735, S*0.115, S*0.21, S*0.13, 'D$', {size:38});
+  A.line(S*0.84, S*0.245, S*0.84, busY, {c:'dark', w:2.6});
+
+  A.stage('Scratchpad');
+  bot(0, 'SPM', '2 kB');
+
+  A.stage('Bus arbiter');
+  A.rect(S*0.345, busY - S*0.042, S*0.15, busH + S*0.084, {f:'hot', c:'hot', w:2.2, r:6});
+  A.text(S*0.42, busY + busH/2, 'ARB', {size:32, c:'paper'});
+
+  A.stage('BIOS ROM');
+  bot(1, 'ROM', '8 kB');
+
+  A.stage('SDRAM controller');
+  bot(2, 'SDRAM');
+
+  A.stage('UART RS-232');
+  bot(3, 'UART');
+
+  A.stage('HDMI controller');
+  bot(4, 'HDMI');
+
+  A.stage('Bus traffic');
+  [0,1,2,3,4].forEach(i => A.dot(BX(i) + BW/2, busY + busH/2, S*0.015, {f:'paper', c:'paper', w:0}));
+  A.dot(S*0.255, busY + busH/2, S*0.019, {f:'paper', c:'paper', w:0});
+  A.dot(S*0.59, busY + busH/2, S*0.015, {f:'paper', c:'paper', w:0});
+  A.dot(S*0.84, busY + busH/2, S*0.015, {f:'paper', c:'paper', w:0});
+
+  A.stage('GECKO5 board');
+  A.rect(S*0.015, S*0.055, S*0.97, S*0.855, {c:'alt', w:2.6, dash:[9,7], r:14});
+  A.text(S*0.5, S*0.955, 'GECKO5 · EPFL edition', {size:34, c:'alt'});
+  return {items, names};
+}
+
+/* ===================== CS-472 · AND-inverter graph (9 stages) ============= */
+function spAIG(rnd, S){
+  const {A, items, names} = emitter();
+  const R = S*0.036;
+  const node = (x,y,o) => A.dot(x, y, R, Object.assign({f:'lite', c:'dark', w:2.6}, o));
+  const bub = (x,y) => A.dot(x, y, S*0.014, {f:'paper', c:'hot', w:2.2});
+  const ins = [0.14, 0.38, 0.62, 0.86].map(t => [S*t, S*0.88]);
+
+  A.stage('Primary inputs');
+  ins.forEach(([x,y],i) => { node(x, y, {f:'altl', c:'alt'});
+    A.text(x, y + S*0.075, 'abcd'[i], {size:45, c:'alt'}); });
+
+  A.stage('AND level 1');
+  const l1 = [[S*0.26, S*0.66],[S*0.74, S*0.66]];
+  l1.forEach((p,i) => { node(p[0], p[1]);
+    A.line(ins[i*2][0], ins[i*2][1] - R, p[0], p[1] + R, {c:'dark', w:2.4});
+    A.line(ins[i*2+1][0], ins[i*2+1][1] - R, p[0], p[1] + R, {c:'dark', w:2.4}); });
+
+  A.stage('Inverted edges');
+  bub(S*0.31, S*0.755); bub(S*0.69, S*0.755);
+
+  A.stage('AND level 2');
+  const l2 = [[S*0.38, S*0.45],[S*0.62, S*0.45]];
+  l2.forEach(p => { node(p[0], p[1]);
+    l1.forEach(q => A.line(q[0], q[1] - R, p[0], p[1] + R, {c:'dark', w:2.4})); });
+
+  A.stage('Output f');
+  node(S*0.50, S*0.24, {f:'main'});
+  l2.forEach(q => A.line(q[0], q[1] - R, S*0.50, S*0.24 + R, {c:'dark', w:2.4}));
+  A.text(S*0.50, S*0.155, 'f', {size:49, c:'dark'});
+
+  A.stage('Structural hashing');
+  A.ell(S*0.62, S*0.45, S*0.075, S*0.075, 0, {c:'hot', w:2.6, dash:[7,6]});
+  A.text(S*0.78, S*0.43, 'shared', {size:36, c:'hot'});
+
+  A.stage('Rewriting');
+  A.ell(S*0.26, S*0.66, S*0.085, S*0.075, 0, {c:'hot', w:2.6, dash:[7,6]});
+  A.arrow(S*0.16, S*0.55, S*0.235, S*0.60, {c:'hot', w:2.4});
+
+  A.stage('Technology mapping');
+  A.rect(S*0.16, S*0.60, S*0.30, S*0.135, {c:'alt', w:2.4, dash:[8,6], r:10});
+  A.rect(S*0.30, S*0.385, S*0.40, S*0.135, {c:'alt', w:2.4, dash:[8,6], r:10});
+
+  A.stage('Mapped netlist');
+  A.text(S*0.10, S*0.575, 'NAND2', {size:36, c:'alt', align:'left'});
+  A.text(S*0.30, S*0.355, 'AOI21', {size:36, c:'alt', align:'left'});
+  A.text(S*0.50, S*0.075, 'area 4.2 · depth 3', {size:36, c:'ink'});
+  return {items, names};
+}
+
+/* ===================== CS-472 · BDD (12 stages) ========================== */
+function spBDD(rnd, S){
+  const {A, items, names} = emitter();
+  const R = S*0.048;
+  const node = (x,y,l) => { A.dot(x, y, R, {f:'lite', c:'dark', w:2.6});
+    A.text(x, y, l, {size:42, c:'dark'}); };
+  const edge = (a,b,one) => A.line(a[0], a[1] + R, b[0], b[1] - R,
+    {c: one ? 'dark' : 'alt', w: one ? 2.8 : 2, dash: one ? null : [7,6]});
+  const N = {};
+
+  A.stage('Root x₁');
+  N.r = [S*0.50, S*0.16]; node(N.r[0], N.r[1], 'x₁');
+
+  A.stage('x₂ branches');
+  N.a = [S*0.28, S*0.38]; N.b = [S*0.72, S*0.38];
+  node(N.a[0], N.a[1], 'x₂'); node(N.b[0], N.b[1], 'x₂');
+
+  A.stage('0-edges');
+  edge(N.r, N.a, false);
+  A.text(S*0.355, S*0.265, '0', {size:36, c:'alt'});
+
+  A.stage('1-edges');
+  edge(N.r, N.b, true);
+  A.text(S*0.645, S*0.265, '1', {size:36, c:'dark'});
+
+  A.stage('x₃ level');
+  N.c = [S*0.16, S*0.60]; N.d = [S*0.44, S*0.60]; N.e = [S*0.84, S*0.60];
+  [N.c, N.d, N.e].forEach(p => node(p[0], p[1], 'x₃'));
+
+  A.stage('Level edges');
+  edge(N.a, N.c, false); edge(N.a, N.d, true);
+  edge(N.b, N.d, false); edge(N.b, N.e, true);
+
+  A.stage('Terminal 0');
+  A.rect(S*0.14, S*0.80, S*0.13, S*0.11, {f:'altl', c:'alt', w:2.4, r:4});
+  A.text(S*0.205, S*0.855, '0', {size:45, c:'alt'});
+
+  A.stage('Terminal 1');
+  A.rect(S*0.73, S*0.80, S*0.13, S*0.11, {f:'main', c:'dark', w:2.4, r:4});
+  A.text(S*0.795, S*0.855, '1', {size:45, c:'paper'});
+
+  A.stage('Terminal edges');
+  [[N.c,0],[N.d,1],[N.e,1]].forEach(([p,one]) =>
+    A.line(p[0], p[1] + R, one ? S*0.795 : S*0.205, S*0.80, {c: one ? 'dark' : 'alt', w: one ? 2.8 : 2, dash: one ? null : [7,6]}));
+  [[N.c,1],[N.d,0],[N.e,0]].forEach(([p,one]) =>
+    A.line(p[0], p[1] + R, one ? S*0.795 : S*0.205, S*0.80, {c:'alt', w:1.8, dash:[7,6]}));
+
+  A.stage('Isomorphic nodes');
+  A.ell(S*0.16, S*0.60, S*0.085, S*0.085, 0, {c:'hot', w:2.6, dash:[7,6]});
+  A.ell(S*0.84, S*0.60, S*0.085, S*0.085, 0, {c:'hot', w:2.6, dash:[7,6]});
+
+  A.stage('Reduce');
+  A.curve(S*0.245, S*0.545, S*0.50, S*0.47, S*0.755, S*0.545, {c:'hot', w:2.6, dash:[8,6]});
+  A.text(S*0.50, S*0.50, 'merge', {size:36, c:'hot'});
+
+  A.stage('ROBDD');
+  A.text(S*0.50, S*0.965, 'canonical · 6 nodes', {size:36, c:'ink'});
+  return {items, names};
+}
+
+/* ===================== EE-429 · CMOS inverter layout (9 stages) =========== */
+function spInverter(rnd, S){
+  const {A, items, names} = emitter();
+  const polyX = S*0.44, polyW = S*0.11;
+
+  A.stage('n-well');
+  A.rect(S*0.10, S*0.10, S*0.80, S*0.36, {f:'altl', c:'alt', w:2.4, dash:[9,6], r:8});
+  A.text(S*0.175, S*0.145, 'n-well', {size:36, c:'alt', align:'left'});
+
+  A.stage('p+ diffusion');
+  A.rect(S*0.20, S*0.17, S*0.60, S*0.20, {f:'main', c:'dark', w:2.6, r:5});
+  A.text(S*0.74, S*0.30, 'p+', {size:39, c:'paper'});
+
+  A.stage('n+ diffusion');
+  A.rect(S*0.20, S*0.60, S*0.60, S*0.20, {f:'cool', c:'cool', w:2.6, r:5});
+  A.text(S*0.74, S*0.73, 'n+', {size:39, c:'paper'});
+
+  A.stage('Poly gate');
+  A.rect(polyX, S*0.11, polyW, S*0.78, {f:'hot', c:'hot', w:2.4, r:4});
+  A.text(polyX + polyW/2, S*0.475, 'poly', {size:32, c:'paper', rot:-Math.PI/2});
+
+  A.stage('Contacts');
+  [[S*0.25, S*0.21],[S*0.25, S*0.64],[S*0.65, S*0.21],[S*0.65, S*0.64]].forEach(([x,y]) => {
+    A.rect(x, y, S*0.055, S*0.055, {f:'alt', c:'ink', w:2, r:2});
+    A.line(x, y, x + S*0.055, y + S*0.055, {c:'ink', w:1.4});
+    A.line(x + S*0.055, y, x, y + S*0.055, {c:'ink', w:1.4});
+  });
+
+  A.stage('VDD rail');
+  A.rect(S*0.06, S*0.035, S*0.88, S*0.055, {f:'altl', c:'alt', w:2.2, r:3});
+  A.line(S*0.278, S*0.09, S*0.278, S*0.21, {c:'alt', w:5});
+  A.text(S*0.10, S*0.062, 'VDD', {size:36, c:'alt', align:'left'});
+
+  A.stage('GND rail');
+  A.rect(S*0.06, S*0.905, S*0.88, S*0.055, {f:'altl', c:'alt', w:2.2, r:3});
+  A.line(S*0.278, S*0.695, S*0.278, S*0.905, {c:'alt', w:5});
+  A.text(S*0.10, S*0.932, 'GND', {size:36, c:'alt', align:'left'});
+
+  A.stage('Output metal');
+  A.line(S*0.678, S*0.235, S*0.678, S*0.667, {c:'alt', w:6});
+  A.line(S*0.678, S*0.45, S*0.93, S*0.45, {c:'alt', w:6});
+  A.dot(S*0.93, S*0.45, S*0.022, {f:'alt', c:'ink', w:2});
+  A.text(S*0.90, S*0.395, 'Y', {size:45, c:'ink'});
+
+  A.stage('Input & symbol');
+  A.line(S*0.495, S*0.475, S*0.075, S*0.475, {c:'hot', w:5});
+  A.dot(S*0.075, S*0.475, S*0.022, {f:'hot', c:'ink', w:2});
+  A.text(S*0.115, S*0.425, 'A', {size:45, c:'ink'});
+  A.poly([[S*0.60, S*0.845],[S*0.60, S*0.955],[S*0.70, S*0.90]], {f:'paper', c:'ink', w:2.4});
+  A.dot(S*0.725, S*0.90, S*0.017, {f:'paper', c:'ink', w:2.2});
+  return {items, names};
+}
+
+/* ===================== EE-429 · Clock H-tree (12 stages) ================== */
+function spHTree(rnd, S){
+  const {A, items, names} = emitter();
+  const buf = (x, y) => {
+    const r = S*0.017;
+    A.poly([[x - r, y - r],[x - r, y + r],[x + r*1.5, y]], {f:'paper', c:'hot', w:2});
+  };
+  const levels = [[], [], [], []];
+  (function h(x, y, len, d){
+    if (d > 3) return;
+    levels[d].push({x, y, len});
+    [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sy]) => h(x + sx*len, y + sy*len, len/2, d+1));
+  })(S*0.5, S*0.5, S*0.20, 1);
+
+  A.stage('Clock source');
+  A.rect(S*0.415, S*0.455, S*0.17, S*0.09, {f:'main', c:'dark', w:2.4, r:6});
+  A.text(S*0.5, S*0.50, 'CLK', {size:34, c:'paper'});
+
+  for (let d=1; d<=3; d++){
+    A.stage('H level ' + d);
+    levels[d].forEach(n => {
+      A.line(n.x - n.len, n.y, n.x + n.len, n.y, {c:'dark', w:5 - d});
+      A.line(n.x - n.len, n.y - n.len, n.x - n.len, n.y + n.len, {c:'dark', w:5 - d});
+      A.line(n.x + n.len, n.y - n.len, n.x + n.len, n.y + n.len, {c:'dark', w:5 - d});
+    });
+    A.stage('Buffers L' + d);
+    levels[d].forEach(n => { buf(n.x - n.len, n.y); buf(n.x + n.len, n.y); });
+  }
+
+  const leaves = [];
+  levels[3].forEach(n => [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sy]) =>
+    leaves.push([n.x + sx*n.len, n.y + sy*n.len])));
+  [['Sinks · NW', l => l[0] < S*0.5 && l[1] < S*0.5],
+   ['Sinks · NE', l => l[0] >= S*0.5 && l[1] < S*0.5],
+   ['Sinks · SW', l => l[0] < S*0.5 && l[1] >= S*0.5],
+   ['Sinks · SE', l => l[0] >= S*0.5 && l[1] >= S*0.5]].forEach(([n, f]) => {
+    A.stage(n);
+    leaves.filter(f).forEach(([x,y]) =>
+      A.rect(x - S*0.016, y - S*0.016, S*0.032, S*0.032, {f:'cool', c:'cool', w:1.6, r:2}));
+  });
+
+  A.stage('Die & skew');
+  A.rect(S*0.045, S*0.045, S*0.91, S*0.83, {c:'alt', w:2.6, dash:[9,7], r:10});
+  A.text(S*0.5, S*0.945, 'skew 12 ps · 64 sinks', {size:34, c:'ink'});
+  return {items, names};
+}
+
+/* ===================== HUM-428 · Oak (9 stages) ========================== */
+function spOak(rnd, S){
+  const {A, items, names} = emitter();
+  const gy = S*0.90, tx = S*0.50;
+  const blob = (x, y, r, o) => {
+    for (let i=0;i<5;i++){
+      const a = i/5*Math.PI*2 + rnd();
+      A.ell(x + Math.cos(a)*r*0.45, y + Math.sin(a)*r*0.34, r*0.72, r*0.58, rnd()*0.8,
+        Object.assign({f:'main', c:'dark', w:2}, o));
+    }
+  };
+  A.stage('Acorn');
+  A.ell(tx, gy - S*0.03, S*0.028, S*0.036, 0, {f:'dark', c:'dark', w:2});
+  A.ell(tx, gy - S*0.055, S*0.030, S*0.016, 0, {f:'alt', c:'dark', w:2});
+  A.ell(tx, gy + S*0.012, S*0.16, S*0.022, 0, {f:'altl', c:null, w:0});
+
+  A.stage('Roots');
+  [-1,1].forEach(s => {
+    A.curve(tx, gy, tx + s*S*0.06, gy + S*0.045, tx + s*S*0.17, gy + S*0.055, {c:'dark', w:5});
+    A.curve(tx, gy, tx + s*S*0.10, gy + S*0.02, tx + s*S*0.09, gy + S*0.075, {c:'dark', w:3.4});
+  });
+
+  A.stage('Sprout');
+  A.line(tx, gy, tx, gy - S*0.16, {c:'dark', w:7});
+  A.ell(tx - S*0.042, gy - S*0.145, S*0.033, S*0.020, -0.5, {f:'main', c:'dark', w:1.8});
+  A.ell(tx + S*0.042, gy - S*0.155, S*0.033, S*0.020, 0.5, {f:'main', c:'dark', w:1.8});
+
+  A.stage('Trunk');
+  A.poly([[tx - S*0.055, gy],[tx - S*0.032, gy - S*0.34],
+          [tx + S*0.032, gy - S*0.34],[tx + S*0.055, gy]], {f:'lite', c:'dark', w:3});
+  A.line(tx - S*0.012, gy - S*0.05, tx - S*0.006, gy - S*0.30, {c:'dark', w:1.6});
+
+  const limbs = [];
+  A.stage('Primary limbs');
+  [[-1, 0.72], [1, 0.62], [-1, 0.30]].forEach(([s, len], i) => {
+    const y0 = gy - S*0.34 + i*S*0.02;
+    const ex = tx + s*S*0.19*len*1.5, ey = y0 - S*0.19*len;
+    A.curve(tx + s*S*0.02, y0, tx + s*S*0.10, y0 - S*0.10, ex, ey, {c:'dark', w:5.5});
+    limbs.push([ex, ey, s]);
+  });
+  A.line(tx, gy - S*0.34, tx, gy - S*0.52, {c:'dark', w:5.5});
+  limbs.push([tx, gy - S*0.52, 0]);
+
+  A.stage('Secondary branches');
+  limbs.forEach(([x,y,s]) => {
+    for (let i=0;i<2;i++){
+      const ex = x + (s || (i ? 1 : -1))*S*0.07 + (rnd()-.5)*S*0.05, ey = y - S*0.09 - rnd()*S*0.05;
+      A.line(x, y, ex, ey, {c:'dark', w:3.2});
+    }
+  });
+
+  A.stage('Canopy');
+  limbs.forEach(([x,y]) => blob(x, y - S*0.05, S*0.115));
+
+  A.stage('Crown');
+  blob(tx, gy - S*0.62, S*0.15);
+  blob(tx - S*0.20, gy - S*0.50, S*0.11);
+  blob(tx + S*0.20, gy - S*0.50, S*0.11);
+
+  A.stage('Acorns');
+  for (let i=0;i<7;i++){
+    const a = 0.15 + rnd()*2.85, r = S*(0.26 + rnd()*0.05);
+    const ax = tx + Math.cos(a)*r, ay = gy - S*0.50 + Math.sin(a)*r*0.62;
+    A.line(ax, ay - S*0.022, ax, ay, {c:'dark', w:2});
+    A.ell(ax, ay + S*0.016, S*0.017, S*0.022, 0, {f:'lite', c:'dark', w:1.8});
+    A.ell(ax, ay + S*0.004, S*0.019, S*0.010, 0, {f:'dark', c:'dark', w:1.4});
+  }
+  return {items, names};
+}
+
+/* ===================== HUM-428 · Wind farm (12 stages) =================== */
+function spWind(rnd, S){
+  const {A, items, names} = emitter();
+  const gy = S*0.86;
+  const turbine = (x, h, sc, phase) => {
+    A.poly([[x - S*0.016*sc, gy],[x - S*0.008*sc, gy - h],
+            [x + S*0.008*sc, gy - h],[x + S*0.016*sc, gy]], {f:'lite', c:'dark', w:2.4});
+    A.ell(x, gy - h, S*0.022*sc, S*0.016*sc, 0, {f:'main', c:'dark', w:2.2});
+    for (let b=0;b<3;b++){
+      const a = phase + b*Math.PI*2/3;
+      const L = S*0.20*sc;
+      A.poly([[x, gy - h],
+              [x + Math.cos(a)*L - Math.sin(a)*S*0.012*sc, gy - h + Math.sin(a)*L + Math.cos(a)*S*0.012*sc],
+              [x + Math.cos(a)*L + Math.sin(a)*S*0.006*sc, gy - h + Math.sin(a)*L - Math.cos(a)*S*0.006*sc]],
+        {f:'lite', c:'dark', w:2});
+    }
+  };
+  A.stage('Horizon');
+  A.line(S*0.04, gy, S*0.96, gy, {c:'dark', w:3});
+  A.path([[S*0.04, gy - S*0.03],[S*0.22, gy - S*0.07],[S*0.40, gy - S*0.035],
+          [S*0.62, gy - S*0.08],[S*0.82, gy - S*0.04],[S*0.96, gy - S*0.06]], {c:'alt', w:2, dash:[8,7]});
+
+  A.stage('Foundation');
+  A.rect(S*0.44, gy - S*0.02, S*0.12, S*0.03, {f:'altl', c:'alt', w:2, r:3});
+
+  A.stage('Tower');
+  A.poly([[S*0.484, gy],[S*0.492, gy - S*0.38],[S*0.508, gy - S*0.38],[S*0.516, gy]],
+    {f:'lite', c:'dark', w:2.6});
+
+  A.stage('Nacelle');
+  A.ell(S*0.50, gy - S*0.38, S*0.026, S*0.018, 0, {f:'main', c:'dark', w:2.4});
+
+  ['Blade A','Blade B','Blade C'].forEach((n, b) => {
+    A.stage(n);
+    const a = -Math.PI/2 + b*Math.PI*2/3, L = S*0.22;
+    A.poly([[S*0.50, gy - S*0.38],
+            [S*0.50 + Math.cos(a)*L - Math.sin(a)*S*0.014, gy - S*0.38 + Math.sin(a)*L + Math.cos(a)*S*0.014],
+            [S*0.50 + Math.cos(a)*L + Math.sin(a)*S*0.007, gy - S*0.38 + Math.sin(a)*L - Math.cos(a)*S*0.007]],
+      {f:'lite', c:'dark', w:2.2});
+  });
+
+  A.stage('Second turbine');
+  turbine(S*0.20, S*0.27, 0.72, -Math.PI/2 + 0.7);
+
+  A.stage('Third turbine');
+  turbine(S*0.80, S*0.23, 0.62, -Math.PI/2 + 1.6);
+
+  A.stage('Collector cables');
+  A.path([[S*0.20, gy],[S*0.35, gy + S*0.03],[S*0.50, gy],[S*0.66, gy + S*0.03],[S*0.80, gy]],
+    {c:'alt', w:2.2, dash:[7,6]});
+
+  A.stage('Substation');
+  A.rect(S*0.06, gy + S*0.02, S*0.13, S*0.07, {f:'altl', c:'alt', w:2.2, r:4});
+  A.line(S*0.10, gy + S*0.02, S*0.10, gy - S*0.05, {c:'alt', w:2.2});
+  A.line(S*0.15, gy + S*0.02, S*0.15, gy - S*0.05, {c:'alt', w:2.2});
+
+  A.stage('9 MW');
+  A.text(S*0.50, S*0.115, '9 MW', {size:55, c:'main'});
+  A.text(S*0.50, S*0.175, 'grid connected', {size:36, c:'alt'});
+  return {items, names};
+}
+
+/* ===================== OTHER · Bonsai (9 stages) ========================= */
+function spBonsai(rnd, S){
+  const {A, items, names} = emitter();
+  const py = S*0.86, px = S*0.50;
+  const pad = (x, y, r) => {
+    A.ell(x, y, r, r*0.52, 0, {f:'main', c:'dark', w:2.4});
+    A.ell(x - r*0.35, y - r*0.18, r*0.5, r*0.34, 0, {f:'lite', c:null, w:0});
+  };
+  A.stage('Pot');
+  A.poly([[px - S*0.19, py],[px + S*0.19, py],[px + S*0.155, py + S*0.09],[px - S*0.155, py + S*0.09]],
+    {f:'altl', c:'alt', w:2.8, r:4});
+  A.rect(px - S*0.205, py - S*0.028, S*0.41, S*0.032, {f:'alt', c:'alt', w:2, r:3});
+
+  A.stage('Soil & moss');
+  A.ell(px, py - S*0.03, S*0.155, S*0.022, 0, {f:'dark', c:null, w:0});
+  for (let i=0;i<5;i++) A.ell(px + (rnd()-.5)*S*0.24, py - S*0.038, S*0.028, S*0.014, 0,
+    {f:'main', c:null, w:0});
+
+  A.stage('Trunk');
+  A.curve(px + S*0.03, py - S*0.03, px - S*0.13, py - S*0.20, px + S*0.02, py - S*0.32, {c:'dark', w:14});
+  A.curve(px + S*0.03, py - S*0.03, px - S*0.11, py - S*0.19, px + S*0.02, py - S*0.31, {c:'lite', w:5});
+
+  A.stage('First bend');
+  A.curve(px + S*0.02, py - S*0.32, px + S*0.14, py - S*0.40, px + S*0.09, py - S*0.47, {c:'dark', w:10});
+
+  A.stage('Left branch');
+  A.curve(px + S*0.02, py - S*0.33, px - S*0.12, py - S*0.38, px - S*0.22, py - S*0.36, {c:'dark', w:6});
+
+  A.stage('Right branch');
+  A.curve(px + S*0.06, py - S*0.41, px + S*0.20, py - S*0.44, px + S*0.27, py - S*0.41, {c:'dark', w:5});
+
+  A.stage('Foliage pads');
+  pad(px - S*0.24, py - S*0.38, S*0.115);
+  pad(px + S*0.28, py - S*0.43, S*0.10);
+
+  A.stage('Apex');
+  pad(px + S*0.09, py - S*0.52, S*0.135);
+
+  A.stage('Stone & signature');
+  A.ell(px - S*0.255, py + S*0.075, S*0.05, S*0.028, -0.25, {f:'alt', c:'alt', w:2});
+  A.text(px + S*0.30, py + S*0.055, '盆栽', {size:39, c:'alt'});
+  return {items, names};
+}
+
+/* ===================== OTHER · Fern (12 stages) ========================== */
+function spFern(rnd, S){
+  const {A, items, names} = emitter();
+  const bx = S*0.50, by = S*0.90;
+  const frond = (ang, len, open) => {
+    /* the rachis is a logarithmic spiral that unrolls as `open` goes to 1 */
+    const pts = [], N = 26, curl = (1 - open)*2.6;
+    for (let i=0;i<=N;i++){
+      const t = i/N;
+      const a = ang + t*t*curl*1.4;
+      const r = len*t;
+      pts.push([bx + Math.cos(a)*r, by - Math.sin(a)*r]);
+    }
+    A.path(pts, {c:'dark', w:4.5});
+    for (let i=4;i<N;i+=2){
+      const t = i/N, [x,y] = pts[i];
+      const a = ang + t*t*curl*1.4;
+      const pl = len*0.20*Math.sin(t*Math.PI)*open;
+      [1,-1].forEach(s => {
+        const na = a + s*1.15;
+        A.ell(x + Math.cos(na)*pl*0.6, y - Math.sin(na)*pl*0.6, pl*0.62, pl*0.26, -na,
+          {f:'main', c:'dark', w:1.6});
+      });
+    }
+  };
+  A.stage('Crown');
+  A.ell(bx, by, S*0.10, S*0.035, 0, {f:'dark', c:'dark', w:2});
+  A.ell(bx, by + S*0.035, S*0.20, S*0.028, 0, {f:'altl', c:null, w:0});
+
+  A.stage('Fiddlehead');
+  { const pts = [];
+    for (let i=0;i<=30;i++){ const t = i/30, a = -Math.PI/2 + t*t*7, r = S*0.13*t + S*0.02;
+      pts.push([bx + Math.cos(a)*r*0.5, by - S*0.06 - Math.sin(a)*r*0.5]); }
+    A.path(pts, {c:'dark', w:4.5}); }
+
+  const angs = [1.9, 1.25, 2.5, 0.75, 2.95, 1.57, 0.45, 2.1, 1.05];
+  angs.forEach((a, i) => {
+    A.stage('Frond ' + (i+1));
+    frond(a, S*(0.36 + (i % 3)*0.06), 1);
+  });
+
+  A.stage('Spores');
+  for (let i=0;i<14;i++){
+    const a = 0.5 + rnd()*2.2, r = S*(0.20 + rnd()*0.22);
+    A.dot(bx + Math.cos(a)*r, by - Math.sin(a)*r, S*0.008, {f:'alt', c:null, w:0});
+  }
+  return {items, names};
+}
+
+/* ===================== EE-424 · analog building blocks =================== */
+/* One shared MOS symbol: gate plate, channel, drain and source stubs.
+   Returns the terminal points so the two schematics can wire themselves. */
+function mos(A, cx, cy, u, o){
+  o = o || {};
+  const f = o.flip ? -1 : 1;
+  const gx = cx - f*u*0.55, chx = cx - f*u*0.20;
+  A.line(gx, cy - u*0.78, gx, cy + u*0.78, {c:'dark', w:4});
+  A.line(chx, cy - u*0.78, chx, cy + u*0.78, {c:'dark', w:4});
+  A.line(chx, cy - u*0.62, cx + f*u*0.55, cy - u*0.62, {c:'dark', w:3.4});
+  A.line(cx + f*u*0.55, cy - u*0.62, cx + f*u*0.55, cy - u*1.15, {c:'dark', w:3.4});
+  A.line(chx, cy + u*0.62, cx + f*u*0.55, cy + u*0.62, {c:'dark', w:3.4});
+  A.line(cx + f*u*0.55, cy + u*0.62, cx + f*u*0.55, cy + u*1.15, {c:'dark', w:3.4});
+  A.line(gx, cy, gx - f*u*(o.p ? 0.75 : 0.55), cy, {c:'dark', w:3.4});
+  if (o.p) A.dot(gx - f*u*0.19, cy, u*0.12, {f:'paper', c:'dark', w:2.6});
+  if (o.label) A.text(cx + f*u*0.78, cy - u*0.10, o.label, {size:32, c:'ink', align: o.flip ? 'right' : 'left'});
+  return {d:[cx + f*u*0.55, cy - u*1.15], s:[cx + f*u*0.55, cy + u*1.15],
+          g:[gx - f*u*(o.p ? 0.75 : 0.55), cy], gp:[gx, cy]};
+}
+function ground(A, x, y, u){
+  A.line(x, y, x, y + u*0.3, {c:'dark', w:3.4});
+  A.line(x - u*0.34, y + u*0.3, x + u*0.34, y + u*0.3, {c:'dark', w:4});
+  A.line(x - u*0.20, y + u*0.44, x + u*0.20, y + u*0.44, {c:'dark', w:3.4});
+  A.line(x - u*0.08, y + u*0.56, x + u*0.08, y + u*0.56, {c:'dark', w:3});
+}
+
+function wire(A, pts, o){ A.path(pts, Object.assign({c:'dark', w:3.4}, o)); }
+function junction(A, x, y, u){ A.dot(x, y, u*0.10, {f:'dark', c:'dark', w:0}); }
+function isrc(A, x, y, r, label, o){
+  o = o || {};
+  A.dot(x, y, r, {c:'main', w:3.4});
+  A.line(x, y - r*0.55, x, y + r*0.5, {c:'main', w:3});
+  A.line(x - r*0.30, y + r*0.14, x, y + r*0.5, {c:'main', w:3});
+  A.line(x + r*0.30, y + r*0.14, x, y + r*0.5, {c:'main', w:3});
+  if (label) A.text(x + (o.left ? -r*1.5 : r*1.5), y, label,
+    {size:32, c:'main', align: o.left ? 'right' : 'left'});
+}
+
+function spMirror(rnd, S){
+  const {A, items, names} = emitter();
+  const u = S*0.145;
+  const x1 = S*0.32, x2 = S*0.70, yl = S*0.62, gnd = S*0.88;
+  /* M1 is mirrored so the two gate leads face each other */
+  const d1 = x1 - u*0.55, d2 = x2 + u*0.55;          /* drain/source columns */
+  const g1 = x1 + u*1.10, g2 = x2 - u*1.10;          /* gate lead ends */
+  const yTop = yl - u*1.15, yBot = yl + u*1.15;
+  const yDiode = yl - u*1.55;
+
+  A.stage('Ground rail');
+  A.line(d1, gnd, d2, gnd, {c:'dark', w:3.4});
+  ground(A, (d1 + d2)/2, gnd, u);
+
+  A.stage('M1 diode-connected');
+  mos(A, x1, yl, u, {flip:true, label:'M1'});
+  wire(A, [[d1, yBot],[d1, gnd]]);
+
+  A.stage('Diode connection');
+  wire(A, [[g1, yl],[g1, yDiode],[d1, yDiode],[d1, yTop]]);
+  junction(A, d1, yDiode, u);
+
+  A.stage('Reference current');
+  isrc(A, d1, S*0.22, u*0.34, 'IREF', {left:true});
+  wire(A, [[d1, S*0.22 + u*0.34],[d1, yDiode]]);
+
+  A.stage('M2 output device');
+  mos(A, x2, yl, u, {label:'M2'});
+  wire(A, [[d2, yBot],[d2, gnd]]);
+
+  A.stage('Gate bus');
+  wire(A, [[g1, yl],[g2, yl]]);
+  junction(A, g1, yl, u);
+
+  A.stage('Output branch');
+  wire(A, [[d2, yTop],[d2, S*0.30]]);
+  A.arrow(d2, S*0.19, d2, S*0.29, {c:'hot', w:3.4});
+  A.text(d2 + u*0.28, S*0.225, 'IOUT', {size:34, c:'hot', align:'left'});
+
+  A.stage('Sizing');
+  A.text(x1, S*0.965, '(W/L)', {size:32, c:'alt'});
+  A.text(x2, S*0.965, 'N · (W/L)', {size:32, c:'alt'});
+  A.text(S*0.50, S*0.115, 'IOUT = N · IREF', {size:36, c:'ink'});
+
+  A.stage('Output resistance');
+  A.text(S*0.50, S*0.175, 'rout = ro2 = 1 / (λ·ID)', {size:32, c:'main'});
+  return {items, names};
+}
+
+function spOTA(rnd, S){
+  const {A, items, names} = emitter();
+  const u = S*0.092;
+  const vdd = S*0.10, vss = S*0.925;
+  const xa = S*0.28, xb = S*0.54, xo = S*0.80, xt = S*0.41;
+  const yp = S*0.27, yn = S*0.53, ym = S*0.75;
+  const colA = xa + u*0.55, colB = xb - u*0.55, colO = xo + u*0.55;
+  const gA = xa - u*1.10, gB = xb + u*1.10, gO = xo - u*1.10;
+  const yPbot = yp + u*1.15, yPtop = yp - u*1.15;
+  const yNtop = yn - u*1.15, yNbot = yn + u*1.15;
+  const yMtop = ym - u*1.15, yMbot = ym + u*1.15;
+  const yNode = (yPbot + yNtop)/2;
+
+  A.stage('Supply rails');
+  A.line(S*0.06, vdd, S*0.94, vdd, {c:'alt', w:4});
+  A.line(S*0.06, vss, S*0.94, vss, {c:'alt', w:4});
+  A.text(S*0.075, vdd - S*0.035, 'VDD', {size:30, c:'alt', align:'left'});
+  A.text(S*0.075, vss + S*0.04, 'VSS', {size:30, c:'alt', align:'left'});
+
+  A.stage('Tail current source');
+  isrc(A, xt, ym, u*0.42, 'IB', {left:true});
+  wire(A, [[xt, ym + u*0.42],[xt, vss]]);
+
+  A.stage('Differential pair');
+  mos(A, xa, yn, u, {label:'M1'});
+  mos(A, xb, yn, u, {flip:true, label:'M2'});
+  wire(A, [[colA, yNbot],[colA, S*0.66],[colB, S*0.66],[colB, yNbot]]);
+  wire(A, [[xt, S*0.66],[xt, ym - u*0.42]]);
+  junction(A, xt, S*0.66, u);
+
+  A.stage('Inputs');
+  wire(A, [[gA, yn],[S*0.085, yn]]);
+  A.dot(S*0.085, yn, u*0.13, {f:'paper', c:'dark', w:3});
+  A.text(S*0.085, yn - S*0.055, 'V−', {size:32, c:'ink'});
+  wire(A, [[gB, yn],[S*0.655, yn],[S*0.655, S*0.66]]);
+  A.dot(S*0.655, S*0.66, u*0.13, {f:'paper', c:'dark', w:3});
+  A.text(S*0.685, S*0.665, 'V+', {size:32, c:'ink', align:'left'});
+
+  A.stage('Mirror load');
+  mos(A, xa, yp, u, {p:true, label:'M3'});
+  mos(A, xb, yp, u, {flip:true, p:true, label:'M4'});
+  wire(A, [[colA, yPtop],[colA, vdd]]);
+  wire(A, [[colB, yPtop],[colB, vdd]]);
+
+  A.stage('Gate bus');
+  wire(A, [[gA - u*0.2, yp],[S*0.16, yp],[S*0.16, S*0.175],[S*0.62, S*0.175],[S*0.62, yp],[gB + u*0.2, yp]]);
+
+  A.stage('Diode connection');
+  wire(A, [[S*0.16, yp],[S*0.16, yPbot + S*0.03],[colA, yPbot + S*0.03]]);
+  junction(A, S*0.16, yp, u);
+  junction(A, colA, yPbot + S*0.03, u);
+
+  A.stage('First-stage output');
+  wire(A, [[colA, yPbot],[colA, yNtop]]);
+  wire(A, [[colB, yPbot],[colB, yNtop]]);
+  wire(A, [[colB, yNode],[gO, yNode],[gO, yp]]);
+  junction(A, colB, yNode, u);
+
+  A.stage('Second stage');
+  mos(A, xo, yp, u, {p:true, label:'M6'});
+  wire(A, [[colO, yPtop],[colO, vdd]]);
+
+  A.stage('Output current source');
+  mos(A, xo, ym, u, {label:'M7'});
+  wire(A, [[colO, yMbot],[colO, vss]]);
+  wire(A, [[gO, ym],[S*0.60, ym]]);
+  A.text(S*0.585, ym - S*0.045, 'VB', {size:30, c:'ink', align:'right'});
+  wire(A, [[colO, yPbot],[colO, yMtop]]);
+  A.dot(S*0.945, S*0.50, u*0.13, {f:'paper', c:'dark', w:3});
+  wire(A, [[colO, S*0.50],[S*0.945, S*0.50]]);
+  junction(A, colO, S*0.50, u);
+  A.text(S*0.945, S*0.445, 'VOUT', {size:30, c:'ink'});
+
+  A.stage('Miller compensation');
+  const yc = S*0.62;
+  wire(A, [[gO, yNode],[gO, yc],[S*0.72, yc]], {c:'hot'});
+  A.rect(S*0.655, yc - S*0.026, S*0.062, S*0.052, {f:'paper', c:'hot', w:3, r:3});
+  A.text(S*0.686, yc - S*0.062, 'Rz', {size:28, c:'hot'});
+  A.line(S*0.755, yc - S*0.032, S*0.755, yc + S*0.032, {c:'hot', w:5});
+  A.line(S*0.785, yc - S*0.032, S*0.785, yc + S*0.032, {c:'hot', w:5});
+  A.text(S*0.77, yc - S*0.068, 'Cc', {size:28, c:'hot'});
+  wire(A, [[S*0.785, yc],[colO, yc]], {c:'hot'});
+  junction(A, gO, yNode, u);
+  junction(A, colO, yc, u);
+
+  A.stage('Specs');
+  A.text(S*0.50, S*0.985, 'A0 70 dB · GBW 10 MHz · PM 60°', {size:32, c:'ink'});
+  return {items, names};
+}
+
+/* ------------------------------------------------------------- catalogue */
+const BUILDERS = {
+  sd_crystal:spSiCrystal, sd_mosfet:spMosfet,
+  il_clt:spCLT,           il_descent:spDescent,
+  soc_pipe:spPipeline,    soc_gecko:spGecko,
+  dt_aig:spAIG,           dt_bdd:spBDD,
+  vl_inv:spInverter,      vl_htree:spHTree,
+  en_oak:spOak,           en_wind:spWind,
+  ot_bonsai:spBonsai,     ot_fern:spFern,
+  an_mirror:spMirror,     an_ota:spOTA,
+};
+const SPECIES = [
+  {id:'soc_pipe',   sub:'cs473',  name:'5-stage pipeline',    stages:9,  cost:0},
+  {id:'soc_gecko',  sub:'cs473',  name:'GECKO5 SoC',          stages:12, cost:500},
+  {id:'dt_aig',     sub:'cs472',  name:'AND-inverter graph',  stages:9,  cost:0},
+  {id:'dt_bdd',     sub:'cs472',  name:'Binary decision diagram', stages:12, cost:500},
+  {id:'il_clt',     sub:'ee411',  name:'Central limit theorem', stages:9, cost:0},
+  {id:'il_descent', sub:'ee411',  name:'Gradient descent',    stages:12, cost:500},
+  {id:'sd_crystal', sub:'ee557',  name:'Silicon crystal',     stages:9,  cost:0},
+  {id:'sd_mosfet',  sub:'ee557',  name:'MOSFET cross-section',stages:12, cost:500},
+  {id:'vl_inv',     sub:'ee429',  name:'CMOS inverter layout',stages:9,  cost:0},
+  {id:'vl_htree',   sub:'ee429',  name:'Clock H-tree',        stages:12, cost:500},
+  {id:'en_oak',     sub:'hum428', name:'Oak',                 stages:9,  cost:0},
+  {id:'en_wind',    sub:'hum428', name:'Wind farm',           stages:12, cost:500},
+  {id:'an_mirror',  sub:'ee424',  name:'Current mirror',      stages:9,  cost:0},
+  {id:'an_ota',     sub:'ee424',  name:'Two-stage OTA',       stages:12, cost:500},
+  {id:'ot_bonsai',  sub:'other',  name:'Bonsai',              stages:9,  cost:0},
+  {id:'ot_fern',    sub:'other',  name:'Fern',                stages:12, cost:500},
+];
+SPECIES.forEach(s => { s.growth = s.stages * STAGE_MIN; });
+const SP = Object.fromEntries(SPECIES.map(s => [s.id, s]));
+
+/* ------------------------------------------------------------- storage */
+const blank = () => ({
+  v:3, coins:0, unlocked:{}, growing:{}, grove:[], sessions:[], active:null,
+  prefs:{sp:null, minutes:45, sound:true, grace:15, strict:false},
+});
+let DB = blank();
+(function load(){
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (raw){
+      DB = Object.assign(blank(), JSON.parse(raw));
+      DB.prefs = Object.assign(blank().prefs, DB.prefs);
+      return;
+    }
+    const old = JSON.parse(localStorage.getItem('crescita.v2') || 'null');
+    if (old){                                  /* species were redrawn: remap by course */
+      const remap = {cs473:'soc_pipe', cs472:'dt_aig', ee411:'il_clt', ee557:'sd_crystal',
+                     ee429:'vl_inv', hum428:'en_oak', other:'ot_bonsai'};
+      DB.coins = old.coins || 0;
+      DB.sessions = (old.sessions || []).map(s => ({...s, sp: remap[s.subject] || 'ot_bonsai'}));
+      DB.grove = (old.grove || []).map(g => ({...g, sp: remap[g.sub] || 'ot_bonsai'}));
+      DB.prefs.minutes = (old.prefs && old.prefs.minutes) || 45;
+    }
+  } catch (e) { DB = blank(); }
+})();
+DB.prefs.minutes = clamp(Math.round(DB.prefs.minutes/STEP_MINUTES)*STEP_MINUTES, MIN_MINUTES, MAX_MINUTES);
+function save(){ try { localStorage.setItem(STORE, JSON.stringify(DB)); } catch (e) {} }
+
+const isUnlocked = id => SP[id].cost === 0 || !!DB.unlocked[id];
+const growthMs = id => SP[id].growth * 60000;
+const newSeed = () => ((Date.now() ^ (Math.random()*1e9 | 0)) >>> 0) % 2147483647;
+function specimen(id){
+  if (!DB.growing[id]) DB.growing[id] = {ms:0, seed:newSeed()};
+  return DB.growing[id];
+}
+
+/* ---------------------------------------------------------------- utils */
+const $ = s => document.querySelector(s);
+function clamp(v,a,b){ return v < a ? a : v > b ? b : v; }
+const pad2 = n => String(n).padStart(2,'0');
+const isDark = () => document.documentElement.dataset.theme === 'dark' ||
+  (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+const hueOf = id => isDark() ? SUB[id].dark : SUB[id].hue;
+
+function fmtClock(ms){
+  const t = Math.max(0, Math.ceil(ms/1000));
+  const h = Math.floor(t/3600), m = Math.floor(t%3600/60), s = t%60;
+  return h ? `${h}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
+}
+function fmtDur(ms){
+  const min = Math.round(ms/60000);
+  if (min < 60) return min + ' min';
+  const h = Math.floor(min/60), m = min%60;
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
+const dayKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; };
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const hex2rgb = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+const mixc = (a,b,t) => { const A = Array.isArray(a) ? a : hex2rgb(a), B = Array.isArray(b) ? b : hex2rgb(b);
+  return A.map((v,i) => Math.round(v + (B[i]-v)*t)); };
+const rgba = (c,a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function buildOrganism(spId, seed){
+  const S = 1000;
+  const {items, names} = BUILDERS[spId](mulberry32(seed || 1), S);
+  return {items, names, S, sp:spId, sub:SP[spId].sub, nst:SP[spId].stages, seed};
+}
+
+/* -------------------------------------------------------------- painting */
+function palette(subId, decay){
+  const paper = cssVar('--card') || '#f4f7ef';
+  const ink   = cssVar('--ink')  || '#1e2a21';
+  const dk    = isDark();
+  const base  = hueOf(subId);
+  const grey  = dk ? '#5b6a5f' : '#a3afa4';
+  const g = c => mixc(c, grey, decay);
+  return {
+    main: g(base),
+    dark: g(mixc(base, ink, .42)),
+    lite: g(mixc(base, paper, .58)),
+    alt:  g(dk ? '#8a9aa6' : '#66747f'),
+    altl: g(dk ? '#39434a' : '#dfe4e6'),
+    cool: g(dk ? '#5f92d8' : '#3f74b8'),
+    hot:  g(dk ? '#dd7a6a' : '#c05a45'),
+    ink:  g(ink),
+    paper:hex2rgb(paper),
+  };
+}
+
+function drawOrganism(canvas, org, p, opt){
+  opt = opt || {};
+  const decay = opt.decay || 0;
+  const solid = opt.alpha != null ? opt.alpha : 1;
+  const hasGhost = opt.ghost != null && opt.ghost > p;
+  const ghost = hasGhost ? opt.ghost : p;
+  const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  const box = canvas.getBoundingClientRect();
+  const side = Math.round(Math.min(box.width, box.height));
+  if (side < 24) return;
+  if (canvas.width !== Math.round(side*dpr)) canvas.width = canvas.height = Math.round(side*dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, side, side);
+
+  const s = side*0.98/org.S, ox = (side - org.S*s)/2, oy = (side - org.S*s)/2;
+  const X = x => ox + x*s, Y = y => oy + y*s, L = v => v*s;
+  const P = palette(org.sub, decay);
+  const fade = (1 - decay*0.45)*solid;
+  const drop = decay*decay*org.S*0.045;
+
+  const stF = p*org.nst, stG = ghost*org.nst;
+  const stage = Math.floor(stF), frac = stF - stage;
+
+  /* per-stage item index, so a stage builds up piece by piece */
+  const idxIn = {}, cntIn = {};
+  org.items.forEach(it => { cntIn[it.st] = (cntIn[it.st] || 0) + 1; });
+
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+  for (const it of org.items){
+    const i = (idxIn[it.st] = (idxIn[it.st] || 0)), n = cntIn[it.st];
+    idxIn[it.st]++;
+    let g = 1, alpha = fade;
+    if (it.st > stage){
+      if (!hasGhost || it.st >= stG) continue;
+      alpha = fade*0.16;                     /* only when a ghost was asked for */
+    } else if (it.st === stage){
+      const t0 = (i/n)*0.55;
+      g = clamp((frac - t0)/0.45, 0, 1);
+      if (g <= 0.001) continue;              /* this piece simply is not there yet */
+    }
+
+    const dy = drop*(1 + (it.st % 3)*0.4);
+    const stroke = it.c === null ? null : P[it.c || 'dark'];
+    const fill = it.f ? P[it.f] : null;
+    const lw = Math.max(0.9, L(it.w != null ? it.w : 2.4));
+    ctx.setLineDash(it.dash ? it.dash.map(v => L(v)) : []);
+
+    const strokeIt = () => { if (!stroke || !it.w) return; ctx.strokeStyle = rgba(stroke, alpha); ctx.lineWidth = lw; ctx.stroke(); };
+    const fillIt = () => { if (!fill) return; ctx.fillStyle = rgba(fill, alpha*(it.f === 'paper' ? 1 : 0.9)); ctx.fill(); };
+
+    if (it.k === 'line'){
+      ctx.beginPath();
+      ctx.moveTo(X(it.x1), Y(it.y1) + dy);
+      ctx.lineTo(X(it.x1 + (it.x2-it.x1)*g), Y(it.y1 + (it.y2-it.y1)*g) + dy);
+      strokeIt();
+    } else if (it.k === 'arrow'){
+      const ax = it.x1 + (it.x2-it.x1)*g, ay = it.y1 + (it.y2-it.y1)*g;
+      ctx.beginPath(); ctx.moveTo(X(it.x1), Y(it.y1) + dy); ctx.lineTo(X(ax), Y(ay) + dy); strokeIt();
+      if (g > 0.6 && stroke){
+        const a = Math.atan2(ay - it.y1, ax - it.x1), h = org.S*0.026;
+        ctx.beginPath();
+        ctx.moveTo(X(ax), Y(ay) + dy);
+        ctx.lineTo(X(ax - Math.cos(a-0.42)*h), Y(ay - Math.sin(a-0.42)*h) + dy);
+        ctx.lineTo(X(ax - Math.cos(a+0.42)*h), Y(ay - Math.sin(a+0.42)*h) + dy);
+        ctx.closePath();
+        ctx.fillStyle = rgba(stroke, alpha); ctx.fill();
+      }
+    } else if (it.k === 'path'){
+      const n2 = Math.max(2, Math.round(it.pts.length*g));
+      ctx.beginPath();
+      it.pts.slice(0, n2).forEach(([x,y], j) => j ? ctx.lineTo(X(x), Y(y) + dy) : ctx.moveTo(X(x), Y(y) + dy));
+      fillIt(); strokeIt();
+    } else if (it.k === 'curve'){
+      ctx.beginPath();
+      ctx.moveTo(X(it.x1), Y(it.y1) + dy);
+      ctx.quadraticCurveTo(X(it.cx), Y(it.cy) + dy,
+        X(it.x1 + (it.x2-it.x1)*g), Y(it.y1 + (it.y2-it.y1)*g) + dy);
+      strokeIt();
+    } else if (it.k === 'rect'){
+      const gw = it.rw*g, gh = it.rh*g;
+      const x = it.x + (it.rw - gw)/2, y = it.y + (it.rh - gh)/2;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(X(x), Y(y) + dy, L(gw), L(gh), L(it.r != null ? it.r : 0));
+      else ctx.rect(X(x), Y(y) + dy, L(gw), L(gh));
+      fillIt(); strokeIt();
+    } else if (it.k === 'poly'){
+      const cx = it.pts.reduce((a,q) => a + q[0], 0)/it.pts.length;
+      const cy = it.pts.reduce((a,q) => a + q[1], 0)/it.pts.length;
+      ctx.beginPath();
+      it.pts.forEach(([x,y], j) => {
+        const px = cx + (x-cx)*g, py = cy + (y-cy)*g;
+        j ? ctx.lineTo(X(px), Y(py) + dy) : ctx.moveTo(X(px), Y(py) + dy);
+      });
+      ctx.closePath();
+      fillIt(); strokeIt();
+    } else if (it.k === 'dot'){
+      ctx.beginPath();
+      ctx.arc(X(it.x), Y(it.y) + dy, Math.max(0.8, L(it.r*g)), 0, 6.2832);
+      fillIt(); strokeIt();
+    } else if (it.k === 'ell'){
+      ctx.beginPath();
+      ctx.ellipse(X(it.x), Y(it.y) + dy, Math.max(0.5, L(it.rx*g)), Math.max(0.5, L(it.ry*g)),
+        it.rot || 0, 0, 6.2832);
+      fillIt(); strokeIt();
+    } else if (it.k === 'text'){
+      const size = L(it.size || 24);
+      if (size < 4.5) continue;
+      ctx.save();
+      ctx.translate(X(it.x), Y(it.y) + dy);
+      if (it.rot) ctx.rotate(it.rot);
+      ctx.font = `700 ${size}px Karla, ui-sans-serif, sans-serif`;
+      ctx.textAlign = it.align || 'center';
+      ctx.fillStyle = rgba(P[it.c || 'ink'], alpha*g);
+      ctx.fillText(it.t, 0, 0);
+      ctx.restore();
+    }
+  }
+  ctx.setLineDash([]);
+}
+
+function stageInfo(spId, ms){
+  const sp = SP[spId], per = STAGE_MIN*60000;
+  const idx = clamp(Math.floor(ms/per), 0, sp.stages-1);
+  const org = ORG_CACHE[spId] || (ORG_CACHE[spId] = buildOrganism(spId, 1));
+  return {index:idx, name:org.names[idx] || '', total:sp.stages,
+    next: org.names[Math.min(idx+1, sp.stages-1)] || ''};
+}
+const ORG_CACHE = {};
+
+/* ================================================================== DIAL
+   Continuous: 0 min at 12 o'clock, 120 min after a full turn, no snapping.
+   ========================================================================= */
+const R_DIAL = 126, C_DIAL = 150;
+function polar(deg, r){
+  const a = (deg - 90)*Math.PI/180;
+  return [C_DIAL + Math.cos(a)*r, C_DIAL + Math.sin(a)*r];
+}
+function arcPath(deg){
+  if (deg <= 0.4) return '';
+  if (deg >= 359.6)
+    return `M${C_DIAL} ${C_DIAL-R_DIAL} A${R_DIAL} ${R_DIAL} 0 1 1 ${C_DIAL-0.01} ${C_DIAL-R_DIAL}`;
+  const [x1,y1] = polar(0, R_DIAL), [x2,y2] = polar(deg, R_DIAL);
+  return `M${x1} ${y1} A${R_DIAL} ${R_DIAL} 0 ${deg > 180 ? 1 : 0} 1 ${x2} ${y2}`;
+}
+const minToDeg = m => m/MAX_MINUTES*360;
+
+function paintDial(degOverride){
+  const deg = degOverride != null ? degOverride : minToDeg(DB.prefs.minutes);
+  $('#arc').setAttribute('d', arcPath(deg));
+  const [hx,hy] = polar(deg, R_DIAL);
+  $('#hOuter').setAttribute('cx', hx); $('#hOuter').setAttribute('cy', hy);
+  $('#hInner').setAttribute('cx', hx); $('#hInner').setAttribute('cy', hy);
+  $('#minVal').textContent = Math.round(DB.prefs.minutes);
+}
+
+(function dialDrag(){
+  const wrap = $('#dialwrap');
+  let acc = 0, last = 0, dragging = false;
+  const rel = e => {
+    const r = wrap.getBoundingClientRect();
+    return [e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2), r.width/2];
+  };
+  const angleAt = e => { const [dx,dy] = rel(e); return (Math.atan2(dy, dx)*180/Math.PI + 90 + 360) % 360; };
+  const inRing = e => { const [dx,dy,R] = rel(e); const d = Math.hypot(dx, dy)/R; return d > 0.56 && d < 1.20; };
+  wrap.addEventListener('pointerdown', e => {
+    if (!DB.prefs.sp || !inRing(e)) return;
+    dragging = true;
+    try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
+    acc = minToDeg(DB.prefs.minutes);
+    last = angleAt(e);
+    e.preventDefault();
+  });
+  wrap.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const a = angleAt(e);
+    let d = a - last;
+    if (d > 180) d -= 360; else if (d < -180) d += 360;
+    last = a;
+    acc = clamp(acc + d, minToDeg(MIN_MINUTES), 360);
+    const snapped = clamp(Math.round(acc/360*MAX_MINUTES/STEP_MINUTES)*STEP_MINUTES,
+      MIN_MINUTES, MAX_MINUTES);
+    const changed = snapped !== DB.prefs.minutes;
+    DB.prefs.minutes = snapped;
+    paintDial(acc);                          /* the ring tracks the finger, not the step */
+    if (changed) paintPreview();
+  });
+  const end = () => { if (dragging){ dragging = false; paintDial(); save(); } };
+  wrap.addEventListener('pointerup', end);
+  wrap.addEventListener('pointercancel', end);
+})();
+
+/* =================================================================== HOME */
+let previewOrg = null;
+
+function applySubjectColor(subId){
+  document.documentElement.style.setProperty('--sub',
+    subId ? hueOf(subId) : (isDark() ? '#8b9a90' : '#6b7a70'));
+}
+
+function paintPreview(){
+  const id = DB.prefs.sp;
+  $('#coins').textContent = DB.coins;
+  $('#pickCenter').hidden = !!id;
+  $('#speciesBtn').hidden = !id;
+  $('#plant').disabled = !id;
+  $('#preview').style.visibility = id ? 'visible' : 'hidden';
+  $('#dial').style.opacity = id ? '1' : '.3';
+  if (!id){
+    applySubjectColor(null);
+    $('#growLine').textContent = 'Tap the middle to choose';
+    $('#stageName').textContent = '';
+    return;
+  }
+  const sp = SP[id], spec = specimen(id), gm = growthMs(id);
+  applySubjectColor(sp.sub);
+  $('#spCode').textContent = SUB[sp.sub].code;
+  $('#spName').textContent = sp.name;
+  if (!previewOrg || previewOrg.sp !== id || previewOrg.seed !== spec.seed)
+    previewOrg = buildOrganism(id, spec.seed);
+  /* home always shows at least the first part, so the ring is never blank */
+  const target = clamp((spec.ms + DB.prefs.minutes*60000)/gm, 0, 1);
+  drawOrganism($('#preview'), previewOrg, Math.max(target, 1/sp.stages), {});
+
+  const st = stageInfo(id, spec.ms);
+  const gained = Math.floor((spec.ms + DB.prefs.minutes*60000)/(STAGE_MIN*60000)) - Math.floor(spec.ms/(STAGE_MIN*60000));
+  $('#growLine').innerHTML = `<b>${Math.round(spec.ms/60000)}</b> / ${sp.growth} min · stage <b>${st.index+1}</b>/${st.total}`;
+  $('#stageName').textContent = gained > 0
+    ? `+${gained} part${gained > 1 ? 's' : ''} · next: ${st.next}`
+    : `not enough for a new part`;
+}
+
+/* =============================================================== SESSION */
+/* iOS cannot tell a locked screen from another app: both are just "hidden".
+   So hidden time never counts as studied — the clock pauses. In strict mode it
+   also kills the specimen after the grace period. */
+function studiedOf(a, now){
+  const away = a.awayAt != null ? now - a.awayAt : 0;
+  return clamp(now - a.startAt - a.pausedMs - away, 0, a.plannedMs);
+}
+function resolve(a, now, graceMs, strict){
+  if (a.awayAt != null){
+    if (strict && now - a.awayAt >= graceMs)
+      return {kind:'dead', at: a.awayAt + graceMs,
+              studied: clamp(a.awayAt - a.startAt - a.pausedMs, 0, a.plannedMs)};
+    return {kind:'paused'};
+  }
+  if (now - a.startAt - a.pausedMs >= a.plannedMs)
+    return {kind:'done', at: a.startAt + a.plannedMs + a.pausedMs, studied: a.plannedMs};
+  return {kind:'running'};
+}
+
+let ORG = null, rafId = 0;
+
+function startSession(){
+  if (!DB.prefs.sp) return;
+  unlockAudio();
+  const id = DB.prefs.sp, spec = specimen(id), now = Date.now();
+  DB.active = {sp:id, subject:SP[id].sub, startAt:now, plannedMs:Math.round(DB.prefs.minutes)*60000,
+    seed:spec.seed, baseMs:spec.ms, awayAt:null, pausedMs:0, seen:now, escapes:0};
+  save();
+  ORG = buildOrganism(id, spec.seed);
+  applySubjectColor(SP[id].sub);
+  $('#sesCode').textContent = SUB[SP[id].sub].code;
+  $('#sesName').textContent = SP[id].name;
+  show('session');
+  requestWakeLock();
+  loop();
+}
+
+function endSession(status, at, studied, awayMs){
+  const a = DB.active;
+  if (!a) return;
+  const actual = Math.max(0, Math.round(studied));
+  const gm = growthMs(a.sp), spec = specimen(a.sp);
+  const ok = status === 'done';
+  const out = {status, actual, coins: ok ? Math.round(actual/60000)*COIN_PER_MIN : 0,
+    matured:false, deadAt:0, sp:a.sp, seed:a.seed, awayMs, baseMs:a.baseMs,
+    pausedMs:a.pausedMs || 0};
+
+  if (ok){
+    spec.ms += actual;
+    DB.coins += out.coins;
+    if (spec.ms >= gm){
+      out.matured = true;
+      DB.coins += MATURE_BONUS;
+      out.coins += MATURE_BONUS;
+      DB.grove.push({sp:a.sp, sub:a.subject, ms:gm, at, seed:a.seed, dead:false});
+      DB.growing[a.sp] = {ms: spec.ms - gm, seed:newSeed()};
+    }
+  } else {
+    out.deadAt = spec.ms + actual;
+    DB.grove.push({sp:a.sp, sub:a.subject, ms:out.deadAt, at, seed:a.seed, dead:true});
+    DB.growing[a.sp] = {ms:0, seed:newSeed()};
+  }
+
+  DB.sessions.push({id:a.startAt, subject:a.subject, sp:a.sp, startAt:a.startAt, endAt:at,
+    plannedMs:a.plannedMs, actualMs:actual, pausedMs:a.pausedMs || 0, status,
+    coins:out.coins, escapes:a.escapes});
+  DB.active = null;
+  save();
+  releaseWakeLock();
+  stopLoop();
+  previewOrg = null;
+  showResult(out);
+}
+
+function loop(){
+  stopLoop();
+  const step = () => {
+    const a = DB.active;
+    if (!a) return;
+    const now = Date.now();
+    const r = resolve(a, now, DB.prefs.grace*1000, DB.prefs.strict);
+    if (r.kind === 'dead'){ beep('dead'); endSession('escaped', r.at, r.studied, DB.prefs.grace*1000); return; }
+    if (r.kind === 'done'){ beep('done'); endSession('done', r.at, r.studied, 0); return; }
+
+    const studied = studiedOf(a, now), gm = growthMs(a.sp);
+    $('#clock').textContent = fmtClock(a.plannedMs - studied);
+    $('#sesArc').setAttribute('d', arcPath(clamp(studied/a.plannedMs, 0, 1)*359.9));
+    const grown = a.baseMs + studied;
+    const st = stageInfo(a.sp, Math.min(grown, gm - 1));
+    $('#sesState').innerHTML = grown >= gm
+      ? 'Complete · extra minutes go to the next one'
+      : `stage ${st.index+1}/${st.total} · <b>${st.name}</b>` +
+        (a.pausedMs > 30000 ? ` · ${fmtDur(a.pausedMs)} paused` : '');
+    drawOrganism($('#organism'), ORG, clamp(grown/gm, 0, 1),
+      {alpha: 0.3 + 0.7*clamp(studied/a.plannedMs, 0, 1)});
+    if (now - (a.seen || 0) > 5000){ a.seen = now; save(); }   /* survives a hard kill */
+    rafId = requestAnimationFrame(step);
+  };
+  step();
+}
+function stopLoop(){ cancelAnimationFrame(rafId); rafId = 0; }
+
+function showResult(o){
+  const sp = SP[o.sp], gm = growthMs(o.sp);
+  applySubjectColor(sp.sub);
+  const org = buildOrganism(o.sp, o.seed);
+  const ok = o.status === 'done';
+  const pStart = clamp(o.baseMs/gm, 0, 1);
+  const pEnd = clamp((o.baseMs + o.actual)/gm, 0, 1);
+  const partsGained = Math.floor((o.baseMs + o.actual)/(STAGE_MIN*60000)) - Math.floor(o.baseMs/(STAGE_MIN*60000));
+
+  $('#resTitle').textContent = o.matured ? sp.name + ' complete'
+    : ok ? 'Session done'
+    : o.status === 'abandoned' ? 'Given up' : 'Dead';
+  $('#resTitle').style.color = ok ? 'var(--ink)' : 'var(--bad)';
+  $('#resSub').textContent = o.matured
+    ? 'Fully built. It goes to the collection and a new one starts.'
+    : ok ? (o.pausedMs > 30000 ? `Done, with ${fmtDur(o.pausedMs)} paused along the way.`
+                                : 'You stayed here the whole time.')
+    : o.status === 'abandoned' ? 'You ended it yourself: the specimen is lost.'
+    : `You were out of the app for more than ${DB.prefs.grace} seconds.`;
+  $('#resGain').innerHTML =
+    `<span class="pill">${fmtDur(o.actual)}</span>` +
+    (ok && partsGained ? `<span class="pill">+${partsGained} part${partsGained > 1 ? 's' : ''}</span>` : '') +
+    (o.coins ? `<span class="pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="var(--coin)"></circle></svg>+${o.coins}</span>` : '');
+  $('#resBar').style.width = (ok ? pEnd*100 : 0) + '%';
+  $('#resNote').textContent = ok
+    ? (o.matured ? 'Maturity bonus included.'
+       : `${Math.round((o.baseMs + o.actual)/60000)} of ${sp.growth} minutes built.`)
+    : `It had ${Math.round(o.deadAt/60000)} minutes in it. The minutes stay in the stats, the specimen does not.`;
+
+  show('result');
+  const t0 = performance.now();
+  const anim = now => {
+    const dt = now - t0;
+    const decay = ok ? 0 : clamp(dt/1800, 0, 1);
+    const p = ok ? pStart + (pEnd - pStart)*clamp(dt/1400, 0, 1) : pEnd;
+    drawOrganism($('#organism2'), org, p, {decay});
+    if (ok ? dt < 1600 : decay < 1) rafId = requestAnimationFrame(anim);
+  };
+  rafId = requestAnimationFrame(anim);
+}
+
+/* leaving the app: record the timestamp, never the event */
+document.addEventListener('visibilitychange', () => {
+  if (!DB.active) return;
+  if (document.hidden){ DB.active.awayAt = Date.now(); save(); }
+  else handleReturn();
+});
+window.addEventListener('pagehide', () => {
+  if (DB.active && DB.active.awayAt == null){ DB.active.awayAt = Date.now(); save(); }
+});
+
+function handleReturn(){
+  const a = DB.active;
+  if (!a || a.awayAt == null) return;
+  const now = Date.now(), away = now - a.awayAt;
+  const r = resolve(a, now, DB.prefs.grace*1000, DB.prefs.strict);
+  if (r.kind === 'dead'){ save(); beep('dead'); endSession('escaped', r.at, r.studied, away); return; }
+  a.pausedMs = (a.pausedMs || 0) + away;
+  a.awayAt = null;
+  a.seen = now;
+  if (away > 2000) flash(`Paused ${fmtDur(away)} · not counted`, true);
+  save(); requestWakeLock(); loop();
+}
+
+let flashTimer = 0;
+function flash(msg, neutral){
+  const el = $('#flash');
+  if (neutral) el.style.background = 'var(--ink-3)';
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => { el.classList.remove('on'); el.style.background = ''; }, 4000);
+}
+function flashOk(msg){ $('#flash').style.background = 'var(--sub)'; flash(msg); }
+
+/* ------------------------------------------------------- audio & screen */
+let AC = null;
+function unlockAudio(){
+  if (!DB.prefs.sound) return;
+  try {
+    if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === 'suspended') AC.resume();
+  } catch (e) {}
+}
+function beep(kind){
+  if (!AC || !DB.prefs.sound) return;
+  try {
+    const t = AC.currentTime, notes = kind === 'done' ? [523.25, 659.25, 783.99] : [196, 138.59];
+    notes.forEach((f,i) => {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = kind === 'done' ? 'sine' : 'triangle';
+      o.frequency.value = f;
+      const t0 = t + i*(kind === 'done' ? .16 : .34);
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(kind === 'done' ? .22 : .3, t0 + .02);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + (kind === 'done' ? .5 : 1.1));
+      o.connect(g); g.connect(AC.destination);
+      o.start(t0); o.stop(t0 + 1.2);
+    });
+  } catch (e) {}
+}
+let wakeLock = null;
+async function requestWakeLock(){
+  try { if ('wakeLock' in navigator && !wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+}
+function releaseWakeLock(){ try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
+
+/* =================================================================== VIEWS */
+let currentView = 'home';
+function show(v){
+  currentView = v;
+  $('#coins').textContent = DB.coins;
+  ['home','session','result','stats','grove'].forEach(k => $('#v-'+k).classList.toggle('on', k === v));
+  const locked = v === 'session' || v === 'result';
+  $('#nav').style.display = locked ? 'none' : '';
+  $('#bar').style.display = v === 'session' ? 'none' : 'flex';
+  $('#openSettings').style.visibility = locked ? 'hidden' : 'visible';
+  document.querySelectorAll('#nav button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.view === v)));
+  $('#barTitle').textContent = v === 'stats' ? 'Stats' : v === 'grove' ? 'Collection' : 'EPFL Focus';
+  if (v === 'home'){ paintDial(); paintPreview(); }
+  if (v === 'stats') renderStats();
+  if (v === 'grove') renderGrove();
+  if (!locked) stopLoop();
+}
+
+/* hold to give up: leaving has to cost a gesture */
+(function(){
+  const btn = $('#abandon'), fill = $('#holdFill');
+  let start = 0, id = 0;
+  const stop = () => { cancelAnimationFrame(id); fill.style.width = '0%'; start = 0; };
+  const tick = () => {
+    const p = clamp((performance.now() - start)/1400, 0, 1);
+    fill.style.width = (p*100) + '%';
+    if (p >= 1){ const n = Date.now(); stop(); endSession('abandoned', n, studiedOf(DB.active, n), 0); return; }
+    id = requestAnimationFrame(tick);
+  };
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); start = performance.now(); tick(); });
+  ['pointerup','pointercancel','pointerleave'].forEach(ev => btn.addEventListener(ev, stop));
+})();
+
+$('#plant').onclick = startSession;
+$('#again').onclick = () => { stopLoop(); show('home'); };
+$('#pickCenter').onclick = openSpecies;
+$('#speciesBtn').onclick = openSpecies;
+$('#coinsBtn').onclick = openSpecies;
+
+/* =================================================================== SHEET */
+function openSheet(html){
+  $('#sheetBody').innerHTML = html;
+  $('#sheet').classList.add('on');
+  $('#backdrop').classList.add('on');
+  $('#sheet').scrollTop = 0;
+}
+function closeSheet(){
+  $('#sheet').classList.remove('on');
+  $('#backdrop').classList.remove('on');
+}
+$('#backdrop').onclick = closeSheet;
+
+function paintMinis(root){
+  root.querySelectorAll('canvas[data-sp]').forEach(c => {
+    const org = buildOrganism(c.dataset.sp, +c.dataset.seed);
+    requestAnimationFrame(() => drawOrganism(c, org, +c.dataset.p, {decay: c.dataset.dead === '1' ? .8 : 0}));
+  });
+}
+
+function openSpecies(){
+  let html = `<h2>What you are building</h2>
+    <p class="sub">One minute of study, one coin. A specimen gains a new named part every
+    ${STAGE_MIN} minutes; the bigger ones have more parts and take longer.</p>`;
+  SUBJECTS.forEach(sub => {
+    html += `<div class="subjhead"><span class="dotc" style="background:${hueOf(sub.id)}"></span>${sub.code} · ${sub.name}</div><div class="spgrid">`;
+    SPECIES.filter(s => s.sub === sub.id).forEach(s => {
+      const un = isUnlocked(s.id), cant = !un && DB.coins < s.cost;
+      html += `<button class="sp ${un ? '' : 'locked'} ${cant ? 'cant' : ''}" data-id="${s.id}"
+        aria-pressed="${String(DB.prefs.sp === s.id)}">
+        <canvas data-sp="${s.id}" data-seed="7" data-p="1"></canvas>
+        <div class="n">${s.name}</div>
+        <div class="t">${s.stages} parts · ${s.growth} min</div>
+        ${un ? '' : `<div class="cost"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"></circle></svg>${s.cost}</div>`}
+      </button>`;
+    });
+    html += `</div>`;
+  });
+  openSheet(html);
+  const body = $('#sheetBody');
+  paintMinis(body);
+  body.querySelectorAll('.sp').forEach(b => b.onclick = () => {
+    const s = SP[b.dataset.id];
+    if (isUnlocked(s.id)){
+      DB.prefs.sp = s.id; save(); closeSheet();
+      previewOrg = null; paintDial(); paintPreview();
+    } else if (DB.coins >= s.cost){
+      DB.coins -= s.cost; DB.unlocked[s.id] = true; DB.prefs.sp = s.id; save();
+      closeSheet(); previewOrg = null; paintDial(); paintPreview();
+      flashOk(`${s.name} unlocked`);
+    } else {
+      flash(`${s.cost - DB.coins} coins short`);
+    }
+  });
+}
+
+function openSettings(){
+  const themeName = {light:'Light', dark:'Dark'}[localStorage.getItem('epflfocus.theme')] || 'System';
+  const cur = DB.prefs.sp ? SP[DB.prefs.sp] : null;
+  const curOrg = cur ? (ORG_CACHE[cur.id] || (ORG_CACHE[cur.id] = buildOrganism(cur.id, 1))) : null;
+  openSheet(`<h2>Settings</h2><p class="sub">The rules of the game, explained once.</p>
+    <div class="setrow">
+      <div><div class="k">Leaving kills the specimen</div><div class="d">Off: the clock just pauses while
+        the app is not on screen. On: after the grace period the specimen dies — but the phone cannot
+        tell a locked screen from another app, so turning the screen off kills it too.</div></div>
+      <div class="ctl"><button class="sw" id="setStrict" aria-pressed="${!!DB.prefs.strict}" aria-label="Strict mode"><i></i></button></div>
+    </div>
+    <div class="setrow">
+      <div><div class="k">Grace period</div><div class="d">How long you can be away before it dies. Only used when the switch above is on.</div></div>
+      <div class="ctl"><button class="mini" id="setGrace">${DB.prefs.grace} s</button></div>
+    </div>
+    <div class="setrow">
+      <div><div class="k">Sound</div><div class="d">A chord when a session ends, a low note when it dies.</div></div>
+      <div class="ctl"><button class="sw" id="setSound" aria-pressed="${DB.prefs.sound}" aria-label="Sound"><i></i></button></div>
+    </div>
+    <div class="setrow">
+      <div><div class="k">Theme</div><div class="d">Light paper, night paper, or whatever the phone says.</div></div>
+      <div class="ctl"><button class="mini" id="setTheme">${themeName}</button></div>
+    </div>
+    <div class="setrow">
+      <div><div class="k">Backup</div><div class="d">Data lives on this phone only. Copy the JSON and keep it somewhere.</div></div>
+      <div class="ctl"><button class="mini" id="setExport">Copy</button></div>
+    </div>
+    <div class="setrow">
+      <div><div class="k">Start over</div><div class="d">Wipes sessions, collection and coins. No way back.</div></div>
+      <div class="ctl"><button class="mini danger" id="setReset">Reset</button></div>
+    </div>
+
+    ${curOrg ? `<div class="subjhead">${cur.name} · ${cur.stages} parts</div>
+      <div class="stagelist">${curOrg.names.map((n,i) => `<b>${(i+1)*STAGE_MIN}′</b> ${n}`).join(' · ')}</div>` : ''}
+
+    <div class="subjhead">How it works</div>
+    <div class="help"><b>iOS puts up the wall, not this app.</b> No app can block another one:
+      before you start, <b>triple-click the side button</b> to turn on Guided Access, then tap Start.
+      The phone stays nailed here until you type the code.</div>
+    <div class="help">The side button is the <b>long one at the top right</b> — not the small smooth
+      Camera Control below it, which just opens the camera. Turn the feature on first in
+      <b>Settings → Accessibility → Guided Access</b>: set a passcode, set Display Auto-Lock to Never,
+      and under Accessibility Shortcut tick Guided Access only, so the triple-click goes straight in.</div>
+    <div class="help">Whenever the app is not on screen — home screen, another app, or the screen
+      simply off — <b>the clock stops</b>. Time away is never counted as study, so there is nothing
+      to gain by leaving. With Guided Access on you cannot leave at all, so the only pause is the
+      screen going dark.</div>
+    <div class="help">A specimen grows across <b>several sessions</b>. When every part is built it
+      goes to the collection, pays a <b>${MATURE_BONUS} coin</b> bonus, and a new one starts.</div>
+    <div class="help">No sound with the screen off, no notifications, no haptics: it is a web app,
+      not an alarm clock. Keep the phone in sight.</div>`);
+
+  $('#setGrace').onclick = e => {
+    const opts = [10, 15, 30, 60];
+    DB.prefs.grace = opts[(opts.indexOf(DB.prefs.grace) + 1) % opts.length];
+    save(); e.currentTarget.textContent = DB.prefs.grace + ' s';
+  };
+  $('#setStrict').onclick = e => {
+    DB.prefs.strict = !DB.prefs.strict; save();
+    e.currentTarget.setAttribute('aria-pressed', String(DB.prefs.strict));
+  };
+  $('#setSound').onclick = e => {
+    DB.prefs.sound = !DB.prefs.sound; save();
+    e.currentTarget.setAttribute('aria-pressed', String(DB.prefs.sound));
+    if (DB.prefs.sound) unlockAudio();
+  };
+  $('#setTheme').onclick = e => {
+    const c = localStorage.getItem('epflfocus.theme') || 'system';
+    const next = c === 'system' ? 'light' : c === 'light' ? 'dark' : 'system';
+    if (next === 'system'){ localStorage.removeItem('epflfocus.theme'); delete document.documentElement.dataset.theme; }
+    else { localStorage.setItem('epflfocus.theme', next); document.documentElement.dataset.theme = next; }
+    e.currentTarget.textContent = {light:'Light', dark:'Dark', system:'System'}[next];
+    previewOrg = null; paintPreview();
+  };
+  $('#setExport').onclick = async e => {
+    const t = e.currentTarget;
+    try { await navigator.clipboard.writeText(JSON.stringify(DB)); t.textContent = 'Copied'; }
+    catch (err) { t.textContent = 'Failed'; }
+    setTimeout(() => { t.textContent = 'Copy'; }, 2000);
+  };
+  $('#setReset').onclick = e => {
+    const t = e.currentTarget;
+    if (t.dataset.sure){ DB = blank(); save(); closeSheet(); previewOrg = null; show('home'); return; }
+    t.dataset.sure = '1'; t.textContent = 'Sure?';
+  };
+}
+$('#openSettings').onclick = openSettings;
+
+/* =================================================================== STATS */
+let scope = 'day', anchor = new Date();
+
+function periodRange(){
+  const d = anchor;
+  if (scope === 'day'){
+    const a = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    return [a.getTime(), a.getTime() + 86400000];
+  }
+  if (scope === 'month')
+    return [new Date(d.getFullYear(), d.getMonth(), 1).getTime(),
+            new Date(d.getFullYear(), d.getMonth()+1, 1).getTime()];
+  return [new Date(d.getFullYear(), 0, 1).getTime(), new Date(d.getFullYear()+1, 0, 1).getTime()];
+}
+function periodLabel(){
+  const d = anchor, n = new Date();
+  if (scope === 'day'){
+    if (dayKey(d.getTime()) === dayKey(n.getTime())) return 'Today';
+    if (dayKey(d.getTime()) === dayKey(n.getTime() - 86400000)) return 'Yesterday';
+    return d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
+  }
+  if (scope === 'month') return MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+  return String(d.getFullYear());
+}
+function shift(dir){
+  const d = new Date(anchor);
+  if (scope === 'day') d.setDate(d.getDate() + dir);
+  else if (scope === 'month') d.setMonth(d.getMonth() + dir);
+  else d.setFullYear(d.getFullYear() + dir);
+  anchor = d;
+  renderStats();
+}
+function isFuture(){
+  const d = anchor, n = new Date();
+  if (scope === 'day') return dayKey(d.getTime()) >= dayKey(n.getTime());
+  if (scope === 'month') return d.getFullYear() > n.getFullYear() ||
+    (d.getFullYear() === n.getFullYear() && d.getMonth() >= n.getMonth());
+  return d.getFullYear() >= n.getFullYear();
+}
+function streakDays(){
+  const done = new Set(DB.sessions.filter(s => s.status === 'done').map(s => dayKey(s.startAt)));
+  let n = 0;
+  const d = new Date();
+  if (!done.has(dayKey(d.getTime()))) d.setDate(d.getDate() - 1);
+  while (done.has(dayKey(d.getTime()))){ n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+
+function barChart(values, labels, axis, title){
+  const max = Math.max(1, ...values), maxIdx = values.indexOf(Math.max(...values));
+  const bars = values.map((v,i) =>
+    `<button data-i="${i}" aria-pressed="false" aria-label="${labels[i]}: ${fmtDur(v)}"><i class="${v ? '' : 'zero'}" style="height:${v ? Math.max(4, v/max*100) : 0}%"></i></button>`).join('');
+  const init = Math.max(...values) > 0
+    ? `<span>Best · ${labels[maxIdx]}</span><b>${fmtDur(values[maxIdx])}</b>`
+    : `<span>No sessions</span><b>0 min</b>`;
+  return `<div class="chart">
+    <div class="cap"><span class="t">${title}</span><span class="m">peak ${fmtDur(max)}</span></div>
+    <div class="bars" id="bars">${bars}</div>
+    <div class="axis">${axis.map(a => `<span>${a}</span>`).join('')}</div>
+    <div class="readbox" id="readbox">${init}</div></div>`;
+}
+function bindBars(values, labels){
+  const bars = $('#bars');
+  if (!bars) return;
+  bars.querySelectorAll('button').forEach(b => b.onclick = () => {
+    bars.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false'));
+    b.setAttribute('aria-pressed', 'true');
+    const i = +b.dataset.i;
+    $('#readbox').innerHTML = `<span>${labels[i]}</span><b>${fmtDur(values[i])}</b>`;
+  });
+}
+function subjectSplit(list){
+  const by = {};
+  list.forEach(s => { by[s.subject] = (by[s.subject] || 0) + s.actualMs; });
+  const rows = SUBJECTS.filter(s => by[s.id]).sort((a,b) => by[b.id] - by[a.id]);
+  if (!rows.length) return '';
+  const max = Math.max(...rows.map(s => by[s.id]));
+  return `<div class="split"><h3>By course</h3>` + rows.map(s => `
+    <div class="srow"><span class="dotc" style="background:${hueOf(s.id)}"></span>
+      <span class="code">${s.code}</span>
+      <span class="track2"><i style="width:${by[s.id]/max*100}%;background:${hueOf(s.id)}"></i></span>
+      <span class="v">${fmtDur(by[s.id])}</span></div>`).join('') + `</div>`;
+}
+
+function renderStats(){
+  $('#periodLabel').textContent = periodLabel();
+  $('#next').disabled = isFuture();
+  document.querySelectorAll('#scope button').forEach(b =>
+    b.setAttribute('aria-selected', String(b.dataset.scope === scope)));
+  applySubjectColor(null);
+
+  const [from, to] = periodRange();
+  const list = DB.sessions.filter(s => s.startAt >= from && s.startAt < to).sort((a,b) => a.startAt - b.startAt);
+  const total = list.reduce((n,s) => n + s.actualMs, 0);
+  const done = list.filter(s => s.status === 'done').length;
+  const lost = list.length - done;
+
+  let html = `<div class="hero"><span class="v">${Math.round(total/60000)}</span><span class="u">minutes studied</span></div>
+    <div class="kpis">
+      <div class="kpi"><div class="v">${done}</div><div class="k">completed</div></div>
+      <div class="kpi ${lost ? 'bad' : ''}"><div class="v">${lost}</div><div class="k">lost</div></div>
+      <div class="kpi"><div class="v">${streakDays()}</div><div class="k">day streak</div></div>
+    </div>`;
+
+  let values = null, labels = null;
+  if (scope === 'day'){
+    html += subjectSplit(list) + `<div class="slist"><h3>Sessions</h3>`;
+    if (!list.length) html += `<div class="empty">Nothing yet.</div>`;
+    else list.forEach(s => {
+      const ko = s.status !== 'done';
+      html += `<div class="sess ${ko ? 'ko' : ''}">
+        <span class="when">${new Date(s.startAt).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'})}</span>
+        <span class="dotc" style="background:${hueOf(s.subject)}"></span>
+        <span class="code">${SUB[s.subject].code}</span>
+        ${ko ? `<span class="tag">${s.status === 'escaped' ? 'escaped' : 'gave up'}</span>` : ''}
+        <span class="len">${fmtDur(s.actualMs)}</span></div>`;
+    });
+    html += `</div>`;
+  } else if (scope === 'month'){
+    const y = anchor.getFullYear(), m = anchor.getMonth(), days = new Date(y, m+1, 0).getDate();
+    values = Array(days).fill(0);
+    labels = Array.from({length:days}, (_,i) => `${MON3[m]} ${i+1}`);
+    list.forEach(s => { values[new Date(s.startAt).getDate()-1] += s.actualMs; });
+    html += barChart(values, labels, ['1', String(Math.ceil(days/2)), String(days)], 'Minutes per day') + subjectSplit(list);
+  } else {
+    values = Array(12).fill(0);
+    labels = MONTHS.slice();
+    list.forEach(s => { values[new Date(s.startAt).getMonth()] += s.actualMs; });
+    html += barChart(values, labels, ['Jan','Jun','Dec'], 'Minutes per month') + subjectSplit(list);
+  }
+
+  const allTime = DB.sessions.reduce((n,s) => n + s.actualMs, 0);
+  const grown = DB.grove.filter(g => !g.dead).length;
+  html += `<div class="foot">${fmtDur(allTime)} in total · ${DB.sessions.length} sessions · ${grown} completed specimens</div>`;
+  $('#statsBody').innerHTML = html;
+  if (values) bindBars(values, labels);
+}
+document.querySelectorAll('#scope button').forEach(b =>
+  b.onclick = () => { scope = b.dataset.scope; anchor = new Date(); renderStats(); });
+$('#prev').onclick = () => shift(-1);
+$('#next').onclick = () => shift(1);
+
+/* ============================================================== COLLECTION */
+function renderGrove(){
+  applySubjectColor(null);
+  const all = [...DB.grove].filter(g => SP[g.sp]).sort((a,b) => b.at - a.at);
+  if (!all.length){
+    $('#groveBody').innerHTML = `<div class="empty">The collection is empty.<br>
+      A specimen lands here when every part is built —<br>or when it dies, and then the gap shows.</div>`;
+    return;
+  }
+  const groups = new Map();
+  all.forEach(g => {
+    const d = new Date(g.at), k = d.getFullYear()*12 + d.getMonth();
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(g);
+  });
+  let html = '';
+  for (const [k, list] of groups){
+    const y = Math.floor(k/12), m = k%12, ok = list.filter(g => !g.dead).length, lost = list.length - ok;
+    const parts = [];
+    if (ok) parts.push(ok + (ok === 1 ? ' complete' : ' complete'));
+    if (lost) parts.push(lost + ' lost');
+    html += `<div class="month"><h3>${MONTHS[m]} ${y} · ${parts.join(', ')}</h3><div class="grid">`;
+    list.forEach(g => {
+      const sp = SP[g.sp];
+      const p = g.dead ? clamp(g.ms/growthMs(g.sp), .12, 1) : 1;
+      html += `<div class="spec ${g.dead ? 'dead' : ''}" title="${sp.name} · ${fmtDur(g.ms)}">
+        <canvas data-sp="${g.sp}" data-seed="${g.seed}" data-p="${p}" data-dead="${g.dead ? 1 : 0}"></canvas>
+        <div class="n">${g.dead ? Math.round(g.ms/60000) + ' min' : sp.name}</div></div>`;
+    });
+    html += `</div></div>`;
+  }
+  $('#groveBody').innerHTML = html;
+  paintMinis($('#groveBody'));
+}
+
+/* ==================================================================== BOOT */
+(function initTheme(){
+  const t = localStorage.getItem('epflfocus.theme');
+  if (t) document.documentElement.dataset.theme = t;
+})();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  previewOrg = null;
+  if (currentView === 'home') paintPreview();
+  else if (currentView === 'grove') renderGrove();
+});
+
+document.querySelectorAll('#nav button').forEach(b =>
+  b.onclick = () => { if (!DB.active) show(b.dataset.view); });
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('touchend', unlockAudio, {once:true, passive:true});
+new ResizeObserver(() => {
+  if (currentView === 'home') paintPreview();
+  else if (currentView === 'session' && ORG && DB.active)
+    drawOrganism($('#organism'), ORG,
+      clamp((DB.active.baseMs + Date.now() - DB.active.startAt)/growthMs(DB.active.sp), 0, 1), {});
+}).observe($('#app'));
+
+/* labels are drawn on canvas, so wait for the webfont before the first paint */
+if (document.fonts && document.fonts.ready)
+  document.fonts.ready.then(() => { if (currentView === 'home') paintPreview(); else if (currentView === 'grove') renderGrove(); });
+
+paintDial();
+if (DB.active && SP[DB.active.sp]){
+  const now = Date.now(), a = DB.active;
+  a.pausedMs = a.pausedMs || 0;
+  /* cold restart: everything since the last heartbeat was time off the app */
+  if (a.awayAt == null) a.awayAt = a.seen || now;
+  const r = resolve(a, now, DB.prefs.grace*1000, DB.prefs.strict);
+  applySubjectColor(a.subject);
+  $('#sesCode').textContent = SUB[a.subject].code;
+  $('#sesName').textContent = SP[a.sp].name;
+  if (r.kind === 'dead') endSession('escaped', r.at, r.studied, now - a.awayAt);
+  else {
+    a.pausedMs += now - a.awayAt;
+    a.awayAt = null; a.seen = now; save();
+    ORG = buildOrganism(a.sp, a.seed);
+    show('session'); requestWakeLock(); loop();
+  }
+} else {
+  DB.active = null;
+  show('home');
+}
+
+if ('serviceWorker' in navigator)
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
+</body>
+</html>

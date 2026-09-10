@@ -1,0 +1,30 @@
+{
+  "name": "EPFL Focus",
+  "short_name": "EPFL Focus",
+  "description": "Study timer: a specimen from your own courses gains a part every 20 minutes, and dies if you leave the app.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e9ede3",
+  "theme_color": "#e9ede3",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
