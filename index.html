@@ -1534,11 +1534,18 @@ function specimen(id){
 const $ = s => document.querySelector(s);
 /* iOS paints the notch strip with theme-color: keep it identical to the paper
    the page is actually using, or the top of the screen reads as a darker band */
-function syncStatusBar(){
+const SCRIM = [20, 30, 22], SCRIM_A = 0.45;      /* must match .backdrop */
+function syncStatusBar(dimmed){
   const paper = (getComputedStyle(document.documentElement).getPropertyValue('--paper') || '').trim() || '#e9ede3';
+  /* The sheet's backdrop covers the notch strip too, and iOS keeps whatever
+     colour ended up there. So the strip is dimmed and undimmed on purpose —
+     writing the same value back would be a no-op and change nothing. */
+  const c = dimmed
+    ? '#' + mixc(paper, SCRIM, SCRIM_A).map(v => v.toString(16).padStart(2, '0')).join('')
+    : paper;
   const light = document.querySelector('#themeColor'), dark = document.querySelector('#themeColorDark');
-  if (light){ light.removeAttribute('media'); light.setAttribute('content', paper); }
   if (dark) dark.remove();
+  if (light){ light.removeAttribute('media'); light.setAttribute('content', c); }
 }
 function clamp(v,a,b){ return v < a ? a : v > b ? b : v; }
 const pad2 = n => String(n).padStart(2,'0');
@@ -2120,11 +2127,12 @@ function openSheet(html){
   $('#sheet').classList.add('on');
   $('#backdrop').classList.add('on');
   $('#sheet').scrollTop = 0;
+  syncStatusBar(true);
 }
 function closeSheet(){
   $('#sheet').classList.remove('on');
   $('#backdrop').classList.remove('on');
-  setTimeout(syncStatusBar, 260);        /* after the backdrop has faded out */
+  setTimeout(() => syncStatusBar(false), 230);   /* once the backdrop has faded */
 }
 $('#backdrop').onclick = closeSheet;
 
