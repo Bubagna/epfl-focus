@@ -1532,6 +1532,14 @@ function specimen(id){
 
 /* ---------------------------------------------------------------- utils */
 const $ = s => document.querySelector(s);
+/* iOS paints the notch strip with theme-color: keep it identical to the paper
+   the page is actually using, or the top of the screen reads as a darker band */
+function syncStatusBar(){
+  const paper = (getComputedStyle(document.documentElement).getPropertyValue('--paper') || '').trim() || '#e9ede3';
+  const light = document.querySelector('#themeColor'), dark = document.querySelector('#themeColorDark');
+  if (light){ light.removeAttribute('media'); light.setAttribute('content', paper); }
+  if (dark) dark.remove();
+}
 function clamp(v,a,b){ return v < a ? a : v > b ? b : v; }
 const pad2 = n => String(n).padStart(2,'0');
 const isDark = () => document.documentElement.dataset.theme === 'dark' ||
@@ -2068,6 +2076,7 @@ function releaseWakeLock(){ try { wakeLock && wakeLock.release(); } catch (e) {}
 let currentView = 'home';
 function show(v){
   currentView = v;
+  syncStatusBar();
   $('#coins').textContent = DB.coins;
   ['home','session','result','stats','grove','rank'].forEach(k => $('#v-'+k).classList.toggle('on', k === v));
   const locked = v === 'session' || v === 'result';
@@ -2115,6 +2124,7 @@ function openSheet(html){
 function closeSheet(){
   $('#sheet').classList.remove('on');
   $('#backdrop').classList.remove('on');
+  setTimeout(syncStatusBar, 260);        /* after the backdrop has faded out */
 }
 $('#backdrop').onclick = closeSheet;
 
@@ -2670,14 +2680,6 @@ async function doAuth(isUp){
 }
 
 /* ==================================================================== BOOT */
-/* iOS paints the notch strip with theme-color: keep it identical to the paper
-   the page is actually using, or the top of the screen reads as a darker band */
-function syncStatusBar(){
-  const paper = cssVar('--paper') || '#e9ede3';
-  const light = $('#themeColor'), dark = $('#themeColorDark');
-  if (light){ light.removeAttribute('media'); light.setAttribute('content', paper); }
-  if (dark) dark.remove();
-}
 (function initTheme(){
   const t = localStorage.getItem('epflfocus.theme');
   if (t) document.documentElement.dataset.theme = t;
