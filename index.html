@@ -146,6 +146,9 @@ main{flex:1;display:flex;flex-direction:column;min-height:0}
   border-radius:var(--r);background:var(--card);border:1px solid var(--line);
   font-size:13px;color:var(--ink-3);text-align:center}
 .hold i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--bad);opacity:.2}
+.hold.finish{background:var(--sub);border-color:var(--sub);color:#fff;font-weight:700}
+.dialwrap.over .track{stroke:var(--sub);opacity:.28}
+.dialwrap.over .arc{stroke:var(--sub)}
 .hold span{position:relative}
 
 .flash{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 10px);
@@ -382,7 +385,7 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
       </div>
       <div class="clock" id="clock">45:00</div>
       <div class="substate" id="sesState"></div>
-      <button class="hold" id="abandon"><i id="holdFill"></i><span>Hold to give up</span></button>
+      <button class="hold" id="abandon"><i id="holdFill"></i><span id="abandonLabel">Hold to give up</span></button>
     </section>
 
     <!-- ===================== OUTCOME ===================== -->
@@ -444,14 +447,16 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
    so any incremental counter would be wrong.
    ========================================================================= */
 
-const BUILD = 10;                            /* bump with sw.js CACHE */
+const BUILD = 11;                            /* bump with sw.js CACHE */
 const STORE = 'epflfocus.v3';
 const COIN_PER_MIN = 1;
 const MATURE_BONUS = 150;
 const MIN_MINUTES = 5;
 const STEP_MINUTES = 5;                     /* the drag is smooth, the value moves in 5s */
 const MAX_MINUTES = 120;
-const STAGE_MIN = 20;                       /* one new part every 20 minutes */
+const STAGE_MIN = 20;
+const OVERTIME_MAX = 60*60000;              /* extra time a session can run on for */
+const SESSION_CAP  = 120*60000;             /* planned + overtime never goes past this */                       /* one new part every 20 minutes */
 
 const SUBJECTS = [
   {id:'hum428', code:'HUM-428', name:'Science, technology & env.',   hue:'#3c8d59', dark:'#4e9a52'},
@@ -1860,20 +1865,26 @@ function paintPreview(){
              then the only way to hide the page is the power button)
      pause — hidden time is not studied, the clock stops
      kill  — hidden longer than the grace period and the specimen dies       */
+/* Past the planned time the session keeps running on its own — overtime —
+   until Finish is tapped, the app is left, or the cap is reached. */
+const capOf = a => Math.min(a.plannedMs + OVERTIME_MAX, SESSION_CAP);
 function studiedOf(a, now){
   const live = a.awayAt != null && DB.prefs.away !== 'count' ? now - a.awayAt : 0;
-  return clamp(now - a.startAt - (a.pausedMs || 0) - live, 0, a.plannedMs);
+  return clamp(now - a.startAt - (a.pausedMs || 0) - live, 0, capOf(a));
 }
 function resolve(a, now, graceMs, mode){
+  const cap = capOf(a);
   if (a.awayAt != null && mode !== 'count'){
+    const atAway = clamp(a.awayAt - a.startAt - (a.pausedMs || 0), 0, cap);
+    /* already past the planned time: leaving just banks the overtime */
+    if (atAway >= a.plannedMs) return {kind:'done', at: a.awayAt, studied: atAway};
     if (mode === 'kill' && now - a.awayAt >= graceMs)
-      return {kind:'dead', at: a.awayAt + graceMs,
-              studied: clamp(a.awayAt - a.startAt - (a.pausedMs || 0), 0, a.plannedMs)};
+      return {kind:'dead', at: a.awayAt + graceMs, studied: atAway};
     return {kind:'paused'};
   }
-  if (studiedOf(a, now) >= a.plannedMs)
-    return {kind:'done', at: a.startAt + a.plannedMs + (a.pausedMs || 0), studied: a.plannedMs};
-  return {kind:'running'};
+  const st = studiedOf(a, now);
+  if (st >= cap) return {kind:'done', at: a.startAt + cap + (a.pausedMs || 0), studied: cap};
+  return {kind:'running', studied: st, over: st >= a.plannedMs};
 }
 
 let ORG = null, rafId = 0;
@@ -1883,12 +1894,14 @@ function startSession(){
   unlockAudio();
   const id = DB.prefs.sp, spec = specimen(id), now = Date.now();
   DB.active = {sp:id, subject:SP[id].sub, startAt:now, plannedMs:Math.round(DB.prefs.minutes)*60000,
-    seed:spec.seed, baseMs:spec.ms, awayAt:null, pausedMs:0, hiddenMs:0, seen:now, escapes:0};
+    seed:spec.seed, baseMs:spec.ms, awayAt:null, pausedMs:0, hiddenMs:0, seen:now,
+    chimed:false, escapes:0};
   save();
   ORG = buildOrganism(id, spec.seed);
   applySubjectColor(SP[id].sub);
   $('#sesCode').textContent = SUB[SP[id].sub].code;
   $('#sesName').textContent = SP[id].name;
+  setOvertime(false);
   show('session');
   requestWakeLock();
   loop();
@@ -1902,7 +1915,8 @@ function endSession(status, at, studied, awayMs){
   const ok = status === 'done';
   const out = {status, actual, coins: ok ? Math.round(actual/60000)*COIN_PER_MIN : 0,
     matured:false, deadAt:0, sp:a.sp, seed:a.seed, awayMs, baseMs:a.baseMs,
-    pausedMs:a.pausedMs || 0, hiddenMs:a.hiddenMs || 0};
+    pausedMs:a.pausedMs || 0, hiddenMs:a.hiddenMs || 0,
+    overMs: Math.max(0, Math.round(studied) - a.plannedMs)};
 
   if (ok){
     spec.ms += actual;
@@ -1943,12 +1957,20 @@ function loop(){
     if (r.kind === 'dead'){ beep('dead'); endSession('escaped', r.at, r.studied, DB.prefs.grace*1000); return; }
     if (r.kind === 'done'){ beep('done'); endSession('done', r.at, r.studied, 0); return; }
 
-    const studied = studiedOf(a, now), gm = growthMs(a.sp);
-    $('#clock').textContent = fmtClock(a.plannedMs - studied);
-    $('#sesArc').setAttribute('d', arcPath(clamp(studied/a.plannedMs, 0, 1)*359.9));
+    const studied = studiedOf(a, now), gm = growthMs(a.sp), cap = capOf(a);
+    const over = studied >= a.plannedMs && cap > a.plannedMs;
+    if (over && !a.chimed){ a.chimed = true; beep('done'); save(); }
+    setOvertime(over);
+    $('#clock').textContent = over ? '+' + fmtClock(studied - a.plannedMs)
+                                   : fmtClock(a.plannedMs - studied);
+    $('#sesArc').setAttribute('d', arcPath(clamp(over
+      ? (studied - a.plannedMs)/(cap - a.plannedMs)
+      : studied/a.plannedMs, 0, 1)*359.9));
     const grown = a.baseMs + studied;
     const st = stageInfo(a.sp, Math.min(grown, gm - 1));
-    $('#sesState').innerHTML = grown >= gm
+    $('#sesState').innerHTML = over
+      ? `overtime · up to <b>+${Math.round((cap - a.plannedMs)/60000)} min</b>`
+      : grown >= gm
       ? 'Complete · extra minutes go to the next one'
       : `stage ${st.index+1}/${st.total} · <b>${st.name}</b>` +
         (a.pausedMs > 30000 ? ` · ${fmtDur(a.pausedMs)} paused` : '');
@@ -1993,6 +2015,7 @@ function showResult(o){
     : `You were out of the app for more than ${DB.prefs.grace} seconds.`;
   $('#resGain').innerHTML =
     `<span class="pill">${fmtDur(o.actual)}</span>` +
+    (o.overMs > 30000 ? `<span class="pill">+${fmtDur(o.overMs)} overtime</span>` : '') +
     (ok && partsGained ? `<span class="pill">+${partsGained} part${partsGained > 1 ? 's' : ''}</span>` : '') +
     (o.coins ? `<span class="pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="var(--coin)"></circle></svg>+${o.coins}</span>` : '');
   $('#resBar').style.width = (ok ? pEnd*100 : 0) + '%';
@@ -2114,6 +2137,14 @@ function show(v){
 }
 
 /* hold to give up: leaving has to cost a gesture */
+let inOvertime = false;
+function setOvertime(on){
+  if (on === inOvertime) return;
+  inOvertime = on;
+  $('#sesWrap').classList.toggle('over', on);
+  $('#abandon').classList.toggle('finish', on);
+  $('#abandonLabel').textContent = on ? 'Finish and keep the time' : 'Hold to give up';
+}
 (function(){
   const btn = $('#abandon'), fill = $('#holdFill');
   let start = 0, id = 0;
@@ -2124,7 +2155,15 @@ function show(v){
     if (p >= 1){ const n = Date.now(); stop(); endSession('abandoned', n, studiedOf(DB.active, n), 0); return; }
     id = requestAnimationFrame(tick);
   };
-  btn.addEventListener('pointerdown', e => { e.preventDefault(); start = performance.now(); tick(); });
+  btn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    if (inOvertime){                       /* the work is already done: one tap banks it */
+      const n = Date.now();
+      endSession('done', n, studiedOf(DB.active, n), 0);
+      return;
+    }
+    start = performance.now(); tick();
+  });
   ['pointerup','pointercancel','pointerleave'].forEach(ev => btn.addEventListener(ev, stop));
 })();
 
@@ -2241,6 +2280,9 @@ function openSettings(){
       different app look identical from in here, and no API separates them — so the setting above is
       a choice. With Guided Access on the question disappears: you cannot leave the app, so hidden
       can only mean the screen went dark, and <b>Keeps counting</b> is exactly right.</div>
+    <div class="help">When the timer runs out the session does not stop: it keeps going in
+      <b>overtime</b>, up to <b>+60 minutes</b> and never past <b>2 hours</b> in total. Tap Finish
+      when you are done, or just leave — the overtime you earned is kept either way.</div>
     <div class="help">A specimen grows across <b>several sessions</b>. When every part is built it
       goes to the collection, pays a <b>${MATURE_BONUS} coin</b> bonus, and a new one starts.</div>
     <div class="help">No sound with the screen off, no notifications, no haptics: it is a web app,
