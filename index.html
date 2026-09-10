@@ -149,6 +149,8 @@ main{flex:1;display:flex;flex-direction:column;min-height:0}
 .hold.finish{background:var(--sub);border-color:var(--sub);color:#fff;font-weight:700}
 .dialwrap.over .track{stroke:var(--sub);opacity:.28}
 .dialwrap.over .arc{stroke:var(--sub)}
+.dialwrap.paused .arc{stroke:var(--ink-3)}
+.dialwrap.paused canvas{opacity:.35}
 .hold span{position:relative}
 
 .flash{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 10px);
@@ -290,7 +292,11 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
   transform:translateY(102%);transition:transform .26s cubic-bezier(.3,.9,.3,1);
   max-width:520px;margin:0 auto;-webkit-overflow-scrolling:touch}
 .sheet.on{transform:translateY(0)}
-.grab{width:38px;height:4px;background:var(--line);border-radius:999px;margin:6px auto 14px}
+.sheethead{position:sticky;top:0;z-index:2;display:flex;justify-content:flex-end;
+  padding:4px 0 8px;background:var(--paper)}
+.sheetx{width:34px;height:34px;border-radius:999px;background:var(--well);color:var(--ink-2);
+  display:grid;place-items:center;font-size:15px;line-height:1}
+.sheetx:active{background:var(--line)}
 .sheet h2{font-family:var(--fd);font-size:20px;font-weight:600;
   font-variation-settings:'SOFT' 50,'WONK' 1;margin:0 0 4px}
 .sheet .sub{font-size:12.5px;color:var(--ink-3);margin:0 0 18px;line-height:1.55}
@@ -434,7 +440,10 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
 </div>
 
 <div class="backdrop" id="backdrop"></div>
-<div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="sheet" id="sheet">
+  <div class="sheethead"><button class="sheetx" id="sheetClose" aria-label="Close">✕</button></div>
+  <div id="sheetBody"></div>
+</div>
 <div class="flash" id="flash"></div>
 
 <script>
@@ -447,7 +456,7 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
    so any incremental counter would be wrong.
    ========================================================================= */
 
-const BUILD = 11;                            /* bump with sw.js CACHE */
+const BUILD = 12;                            /* bump with sw.js CACHE */
 const STORE = 'epflfocus.v3';
 const COIN_PER_MIN = 1;
 const MATURE_BONUS = 150;
@@ -456,7 +465,8 @@ const STEP_MINUTES = 5;                     /* the drag is smooth, the value mov
 const MAX_MINUTES = 120;
 const STAGE_MIN = 20;
 const OVERTIME_MAX = 60*60000;              /* extra time a session can run on for */
-const SESSION_CAP  = 120*60000;             /* planned + overtime never goes past this */                       /* one new part every 20 minutes */
+const SESSION_CAP  = 120*60000;             /* planned + overtime never goes past this */
+const POM = {block:25*60000, short:5*60000, long:15*60000, every:4};                       /* one new part every 20 minutes */
 
 const SUBJECTS = [
   {id:'hum428', code:'HUM-428', name:'Science, technology & env.',   hue:'#3c8d59', dark:'#4e9a52'},
@@ -1497,7 +1507,7 @@ const SP = Object.fromEntries(SPECIES.map(s => [s.id, s]));
 /* ------------------------------------------------------------- storage */
 const blank = () => ({
   v:3, coins:0, unlocked:{}, growing:{}, grove:[], sessions:[], active:null,
-  prefs:{sp:null, minutes:45, sound:true, grace:15, away:'pause'},
+  prefs:{sp:null, minutes:45, sound:true, grace:15, away:'pause', pomodoro:false},
 });
 let DB = blank();
 (function load(){
@@ -1853,9 +1863,13 @@ function paintPreview(){
   const st = stageInfo(id, spec.ms);
   const gained = Math.floor((spec.ms + DB.prefs.minutes*60000)/(STAGE_MIN*60000)) - Math.floor(spec.ms/(STAGE_MIN*60000));
   $('#growLine').innerHTML = `<b>${Math.round(spec.ms/60000)}</b> / ${sp.growth} min · stage <b>${st.index+1}</b>/${st.total}`;
-  $('#stageName').textContent = gained > 0
-    ? `+${gained} part${gained > 1 ? 's' : ''} · next: ${st.next}`
-    : `not enough for a new part`;
+  const plan = pomPlan(DB.prefs.minutes*60000);
+  $('#stageName').innerHTML = (gained > 0
+      ? `+${gained} part${gained > 1 ? 's' : ''} · next: ${st.next}`
+      : `not enough for a new part`)
+    + (DB.prefs.pomodoro && plan.breaks
+        ? ` · <b>${plan.blocks}×25′</b> with ${plan.breaks} break${plan.breaks > 1 ? 's' : ''}`
+        : '');
 }
 
 /* =============================================================== SESSION */
@@ -1868,12 +1882,23 @@ function paintPreview(){
 /* Past the planned time the session keeps running on its own — overtime —
    until Finish is tapped, the app is left, or the cap is reached. */
 const capOf = a => Math.min(a.plannedMs + OVERTIME_MAX, SESSION_CAP);
+/* A pomodoro break is time the app itself takes off the clock, so it is
+   subtracted like a pause — and while it runs, being away costs nothing. */
 function studiedOf(a, now){
-  const live = a.awayAt != null && DB.prefs.away !== 'count' ? now - a.awayAt : 0;
-  return clamp(now - a.startAt - (a.pausedMs || 0) - live, 0, capOf(a));
+  const brk = a.breakStart != null ? now - a.breakStart : 0;
+  const live = brk ? 0 : (a.awayAt != null && DB.prefs.away !== 'count' ? now - a.awayAt : 0);
+  return clamp(now - a.startAt - (a.pausedMs || 0) - (a.breakMs || 0) - brk - live, 0, capOf(a));
+}
+function breakLenFor(block){ return block % POM.every === 0 ? POM.long : POM.short; }
+/* how a planned stretch is cut into blocks, for the home screen */
+function pomPlan(ms){
+  const blocks = Math.max(1, Math.ceil(ms/POM.block));
+  return {blocks, breaks: blocks - 1};
 }
 function resolve(a, now, graceMs, mode){
   const cap = capOf(a);
+  if (a.breakStart != null)                 /* on a break nothing can go wrong */
+    return {kind:'break', until: a.breakStart + a.breakLen, studied: studiedOf(a, now)};
   if (a.awayAt != null && mode !== 'count'){
     const atAway = clamp(a.awayAt - a.startAt - (a.pausedMs || 0), 0, cap);
     /* already past the planned time: leaving just banks the overtime */
@@ -1895,13 +1920,14 @@ function startSession(){
   const id = DB.prefs.sp, spec = specimen(id), now = Date.now();
   DB.active = {sp:id, subject:SP[id].sub, startAt:now, plannedMs:Math.round(DB.prefs.minutes)*60000,
     seed:spec.seed, baseMs:spec.ms, awayAt:null, pausedMs:0, hiddenMs:0, seen:now,
-    chimed:false, escapes:0};
+    chimed:false, escapes:0,
+    pom: !!DB.prefs.pomodoro, breakStart:null, breakLen:0, breakMs:0, blocksDone:0};
   save();
   ORG = buildOrganism(id, spec.seed);
   applySubjectColor(SP[id].sub);
   $('#sesCode').textContent = SUB[SP[id].sub].code;
   $('#sesName').textContent = SP[id].name;
-  setOvertime(false);
+  setOvertime(false); setBreak(false);
   show('session');
   requestWakeLock();
   loop();
@@ -1957,8 +1983,38 @@ function loop(){
     if (r.kind === 'dead'){ beep('dead'); endSession('escaped', r.at, r.studied, DB.prefs.grace*1000); return; }
     if (r.kind === 'done'){ beep('done'); endSession('done', r.at, r.studied, 0); return; }
 
+    if (r.kind === 'break'){
+      if (now >= r.until){                       /* break over, back to work */
+        a.breakMs = (a.breakMs || 0) + a.breakLen;
+        a.breakStart = null; a.breakLen = 0;
+        beep('done'); save();
+      } else {
+        const left = r.until - now;
+        setOvertime(false);
+        setBreak(true);
+        $('#clock').textContent = fmtClock(left);
+        $('#sesArc').setAttribute('d', arcPath(clamp(1 - left/a.breakLen, 0, 1)*359.9));
+        $('#sesState').innerHTML = `break · back to block <b>${a.blocksDone + 1}</b> in a moment`;
+        if (now - (a.seen || 0) > 15000){ a.seen = now; save(); }
+        return;
+      }
+    }
+    setBreak(false);
+
     const studied = studiedOf(a, now), gm = growthMs(a.sp), cap = capOf(a);
     const over = studied >= a.plannedMs && cap > a.plannedMs;
+
+    /* a whole block done and more work to come: take the break */
+    if (a.pom && !over && studied < a.plannedMs){
+      const blocks = Math.floor(studied/POM.block);
+      if (blocks > (a.blocksDone || 0)){
+        a.blocksDone = blocks;
+        a.breakLen = breakLenFor(blocks);
+        a.breakStart = now;
+        beep('done'); save();
+        return;
+      }
+    }
     if (over && !a.chimed){ a.chimed = true; beep('done'); save(); }
     setOvertime(over);
     $('#clock').textContent = over ? '+' + fmtClock(studied - a.plannedMs)
@@ -2062,7 +2118,7 @@ function handleReturn(){
   if (r.kind === 'dead'){ save(); beep('dead'); endSession('escaped', r.at, r.studied, away); return; }
 
   a.hiddenMs = (a.hiddenMs || 0) + away;
-  if (mode === 'pause') a.pausedMs = (a.pausedMs || 0) + away;
+  if (mode === 'pause' && a.breakStart == null) a.pausedMs = (a.pausedMs || 0) + away;
   a.awayAt = null;
   a.seen = now;
 
@@ -2137,6 +2193,14 @@ function show(v){
 }
 
 /* hold to give up: leaving has to cost a gesture */
+let inBreak = false;
+function setBreak(on){
+  if (on === inBreak) return;
+  inBreak = on;
+  $('#sesWrap').classList.toggle('paused', on);
+  $('#abandon').classList.toggle('finish', on);
+  $('#abandonLabel').textContent = on ? 'Skip the break' : 'Hold to give up';
+}
 let inOvertime = false;
 function setOvertime(on){
   if (on === inOvertime) return;
@@ -2157,6 +2221,13 @@ function setOvertime(on){
   };
   btn.addEventListener('pointerdown', e => {
     e.preventDefault();
+    if (inBreak){                          /* cut the break short and get back to it */
+      const a = DB.active, n = Date.now();
+      a.breakMs = (a.breakMs || 0) + (n - a.breakStart);
+      a.breakStart = null; a.breakLen = 0;
+      save(); setBreak(false); loop();
+      return;
+    }
     if (inOvertime){                       /* the work is already done: one tap banks it */
       const n = Date.now();
       endSession('done', n, studiedOf(DB.active, n), 0);
@@ -2188,6 +2259,7 @@ function closeSheet(){
   setTimeout(() => { if (!$('#backdrop').classList.contains('on')) $('#backdrop').style.visibility = 'hidden'; }, 240);
 }
 $('#backdrop').onclick = closeSheet;
+$('#sheetClose').onclick = closeSheet;
 
 function paintMinis(root){
   root.querySelectorAll('canvas[data-sp]').forEach(c => {
@@ -2249,6 +2321,12 @@ function openSettings(){
       <div class="ctl"><button class="mini" id="setGrace">${DB.prefs.grace} s</button></div>
     </div>
     <div class="setrow">
+      <div><div class="k">Pomodoro</div><div class="d">Cuts the session into blocks of 25 minutes with
+        a 5 minute break between them, and 15 minutes after every fourth. Breaks are not counted as
+        study and nothing can die during one.</div></div>
+      <div class="ctl"><button class="sw" id="setPom" aria-pressed="${!!DB.prefs.pomodoro}" aria-label="Pomodoro"><i></i></button></div>
+    </div>
+    <div class="setrow">
       <div><div class="k">Sound</div><div class="d">A chord when a session ends, a low note when it dies.</div></div>
       <div class="ctl"><button class="sw" id="setSound" aria-pressed="${DB.prefs.sound}" aria-label="Sound"><i></i></button></div>
     </div>
@@ -2298,6 +2376,11 @@ function openSettings(){
     const keys = Object.keys(AWAY_MODES);
     DB.prefs.away = keys[(keys.indexOf(DB.prefs.away) + 1) % keys.length];
     save(); e.currentTarget.textContent = AWAY_MODES[DB.prefs.away];
+  };
+  $('#setPom').onclick = e => {
+    DB.prefs.pomodoro = !DB.prefs.pomodoro; save();
+    e.currentTarget.setAttribute('aria-pressed', String(DB.prefs.pomodoro));
+    paintPreview();
   };
   $('#setSound').onclick = e => {
     DB.prefs.sound = !DB.prefs.sound; save();
@@ -2825,7 +2908,7 @@ if (DB.active && SP[DB.active.sp]){
   else {
     const gap = now - a.awayAt;
     a.hiddenMs = (a.hiddenMs || 0) + gap;
-    if (DB.prefs.away === 'pause') a.pausedMs = (a.pausedMs || 0) + gap;
+    if (DB.prefs.away === 'pause' && a.breakStart == null) a.pausedMs = (a.pausedMs || 0) + gap;
     a.awayAt = null; a.seen = now;
     const after = resolve(a, now, DB.prefs.grace*1000, DB.prefs.away);
     if (after.kind === 'done'){ save(); endSession('done', after.at, after.studied, gap); }
