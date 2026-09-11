@@ -82,13 +82,14 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 :focus-visible{outline:2px solid var(--sub);outline-offset:3px;border-radius:6px}
 
 #app{
-  display:flex;flex-direction:column;min-height:100dvh;
+  display:flex;flex-direction:column;height:100dvh;
   max-width:520px;margin:0 auto;padding-inline:20px;
   padding-top:calc(env(safe-area-inset-top) + 10px);
   padding-bottom:calc(env(safe-area-inset-bottom) + 10px);
 }
 main{flex:1;display:flex;flex-direction:column;min-height:0}
-.view{display:none;flex:1;flex-direction:column;min-height:0}
+.view{display:none;flex:1;flex-direction:column;min-height:0;
+  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .view.on{display:flex}
 
 /* ---------------- top bar ---------------- */
@@ -474,7 +475,7 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
    so any incremental counter would be wrong.
    ========================================================================= */
 
-const BUILD = 14;                            /* bump with sw.js CACHE */
+const BUILD = 15;                            /* bump with sw.js CACHE */
 const STORE = 'epflfocus.v3';
 const COIN_PER_MIN = 1;
 const MATURE_BONUS = 150;
