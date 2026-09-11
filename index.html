@@ -119,6 +119,7 @@ main{flex:1;display:flex;flex-direction:column;min-height:0}
 .minutes{font-family:var(--fd);font-size:46px;font-weight:600;line-height:1;
   font-variation-settings:'SOFT' 70,'WONK' 1,'opsz' 90;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .minutes small{font-family:var(--fs);font-size:14px;font-weight:500;color:var(--ink-3);margin-left:6px}
+.minutes small.tight{margin-left:1px}   /* the m of "1h 45m" hangs on the number */
 .species{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:7px 14px;
   background:var(--card);border:1px solid var(--line);border-radius:999px;font-size:13.5px;font-weight:600}
 .species .code{color:var(--sub);font-weight:700}
@@ -384,7 +385,7 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
       </div>
 
       <div class="readout">
-        <div class="minutes"><span id="minVal">45</span><small>min</small></div>
+        <div class="minutes"><span id="minVal">45</span><small id="minUnit">min</small></div>
         <button class="species" id="speciesBtn" hidden>
           <span class="code" id="spCode"></span><span id="spName"></span><span class="chev">▾</span>
         </button>
@@ -473,17 +474,19 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
    so any incremental counter would be wrong.
    ========================================================================= */
 
-const BUILD = 13;                            /* bump with sw.js CACHE */
+const BUILD = 14;                            /* bump with sw.js CACHE */
 const STORE = 'epflfocus.v3';
 const COIN_PER_MIN = 1;
 const MATURE_BONUS = 150;
 const MIN_MINUTES = 5;
 const STEP_MINUTES = 5;                     /* the drag is smooth, the value moves in 5s */
 const MAX_MINUTES = 120;
-const STAGE_MIN = 20;
+const STAGE_MIN = 180;                      /* one named part every 3 hours of study */
+const STAGE_MS = STAGE_MIN*60000;
+const LEGACY_STAGE_MS = 20*60000;           /* what a part cost before build 14 */
 const OVERTIME_MAX = 60*60000;              /* extra time a session can run on for */
 const SESSION_CAP  = 120*60000;             /* planned + overtime never goes past this */
-const POM = {block:25*60000, short:5*60000, long:15*60000, every:4};                       /* one new part every 20 minutes */
+const POM = {block:25*60000, short:5*60000, long:15*60000, every:4};
 
 const SUBJECTS = [
   {id:'hum428', code:'HUM-428', name:'Science, technology & env.',   hue:'#3c8d59', dark:'#4e9a52'},
@@ -504,7 +507,7 @@ const DAY3 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];   /* weeks start on Mo
 /* ========================================================== DRAWING MODEL
    A species is a builder that emits primitives tagged with the stage they
    belong to. One stage = STAGE_MIN minutes of study, so a specimen visibly
-   gains a new, named part every 20 minutes.
+   gains a new, named part every few hours of work.
    ========================================================================= */
 function emitter(){
   const items = [], names = [];
@@ -1556,6 +1559,15 @@ if (DB.prefs.strict !== undefined){                 /* migrate the old on/off sw
   DB.prefs.away = DB.prefs.strict ? 'kill' : 'pause';
   delete DB.prefs.strict;
 }
+/* build 14 went from 20 minutes a part to 3 hours. Everything already in the
+   ground stays on the old pace, so nothing shrinks and nothing is lost. */
+Object.keys(DB.growing || {}).forEach(id => {
+  const g = DB.growing[id];
+  if (g && !g.per) g.per = g.ms > 0 ? LEGACY_STAGE_MS : STAGE_MS;
+});
+(DB.grove || []).forEach(g => {
+  if (!g.gm && SP[g.sp]) g.gm = SP[g.sp].stages * LEGACY_STAGE_MS;
+});
 const AWAY_MODES = {
   count: 'Keeps counting',
   pause: 'Pauses the clock',
@@ -1571,10 +1583,14 @@ function save(allowEmpty){
 }
 
 const isUnlocked = id => SP[id].cost === 0 || !!DB.unlocked[id];
-const growthMs = id => SP[id].growth * 60000;
+/* A specimen keeps the pace it was started with: slowing growth down must
+   never take parts away from one that is already half built. */
+const stageMsOf = id => (DB.growing[id] && DB.growing[id].per) || STAGE_MS;
+const growthMs = id => SP[id].stages * stageMsOf(id);
+const graveGrowth = g => g.gm || SP[g.sp].stages * LEGACY_STAGE_MS;
 const newSeed = () => ((Date.now() ^ (Math.random()*1e9 | 0)) >>> 0) % 2147483647;
 function specimen(id){
-  if (!DB.growing[id]) DB.growing[id] = {ms:0, seed:newSeed()};
+  if (!DB.growing[id]) DB.growing[id] = {ms:0, seed:newSeed(), per:STAGE_MS};
   return DB.growing[id];
 }
 
@@ -1606,9 +1622,16 @@ function fmtClock(ms){
 }
 function fmtDur(ms){
   const min = Math.round(ms/60000);
-  if (min < 60) return min + ' min';
   const h = Math.floor(min/60), m = min%60;
+  if (!h) return m + 'm';
   return m ? `${h}h ${m}m` : `${h}h`;
+}
+/* the dial still steps in minutes, but past an hour it reads as one */
+function setDialValue(min){
+  const h = Math.floor(min/60), m = min%60;
+  $('#minVal').textContent = h ? (m ? `${h}h ${m}` : `${h}h`) : min;
+  $('#minUnit').textContent = h ? (m ? 'm' : '') : 'min';
+  $('#minUnit').className = h ? 'tight' : '';
 }
 const dayKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; };
 function mulberry32(a){
@@ -1776,7 +1799,7 @@ function drawOrganism(canvas, org, p, opt){
 }
 
 function stageInfo(spId, ms){
-  const sp = SP[spId], per = STAGE_MIN*60000;
+  const sp = SP[spId], per = stageMsOf(spId);
   const idx = clamp(Math.floor(ms/per), 0, sp.stages-1);
   const org = ORG_CACHE[spId] || (ORG_CACHE[spId] = buildOrganism(spId, 1));
   return {index:idx, name:org.names[idx] || '', total:sp.stages,
@@ -1807,7 +1830,7 @@ function paintDial(degOverride){
   const [hx,hy] = polar(deg, R_DIAL);
   $('#hOuter').setAttribute('cx', hx); $('#hOuter').setAttribute('cy', hy);
   $('#hInner').setAttribute('cx', hx); $('#hInner').setAttribute('cy', hy);
-  $('#minVal').textContent = Math.round(DB.prefs.minutes);
+  setDialValue(Math.round(DB.prefs.minutes));
 }
 
 (function dialDrag(){
@@ -1879,8 +1902,9 @@ function paintPreview(){
   drawOrganism($('#preview'), previewOrg, Math.max(target, 1/sp.stages), {});
 
   const st = stageInfo(id, spec.ms);
-  const gained = Math.floor((spec.ms + DB.prefs.minutes*60000)/(STAGE_MIN*60000)) - Math.floor(spec.ms/(STAGE_MIN*60000));
-  $('#growLine').innerHTML = `<b>${Math.round(spec.ms/60000)}</b> / ${sp.growth} min · stage <b>${st.index+1}</b>/${st.total}`;
+  const per = stageMsOf(id);
+  const gained = Math.floor((spec.ms + DB.prefs.minutes*60000)/per) - Math.floor(spec.ms/per);
+  $('#growLine').innerHTML = `<b>${fmtDur(spec.ms)}</b> / ${fmtDur(gm)} · stage <b>${st.index+1}</b>/${st.total}`;
   const plan = pomPlan(DB.prefs.minutes*60000);
   $('#stageName').innerHTML = (gained > 0
       ? `+${gained} part${gained > 1 ? 's' : ''} · next: ${st.next}`
@@ -1937,7 +1961,7 @@ function startSession(){
   unlockAudio();
   const id = DB.prefs.sp, spec = specimen(id), now = Date.now();
   DB.active = {sp:id, subject:SP[id].sub, startAt:now, plannedMs:Math.round(DB.prefs.minutes)*60000,
-    seed:spec.seed, baseMs:spec.ms, awayAt:null, pausedMs:0, hiddenMs:0, seen:now,
+    seed:spec.seed, baseMs:spec.ms, per:stageMsOf(id), awayAt:null, pausedMs:0, hiddenMs:0, seen:now,
     chimed:false, escapes:0,
     pom: !!DB.prefs.pomodoro, breakStart:null, breakLen:0, breakMs:0, blocksDone:0};
   save();
@@ -1959,6 +1983,7 @@ function endSession(status, at, studied, awayMs){
   const ok = status === 'done';
   const out = {status, actual, coins: ok ? Math.round(actual/60000)*COIN_PER_MIN : 0,
     matured:false, deadAt:0, sp:a.sp, seed:a.seed, awayMs, baseMs:a.baseMs,
+    gm, per: a.per || stageMsOf(a.sp),
     pausedMs:a.pausedMs || 0, hiddenMs:a.hiddenMs || 0,
     overMs: Math.max(0, Math.round(studied) - a.plannedMs)};
 
@@ -1969,13 +1994,13 @@ function endSession(status, at, studied, awayMs){
       out.matured = true;
       DB.coins += MATURE_BONUS;
       out.coins += MATURE_BONUS;
-      DB.grove.push({sp:a.sp, sub:a.subject, ms:gm, at, seed:a.seed, dead:false});
-      DB.growing[a.sp] = {ms: spec.ms - gm, seed:newSeed()};
+      DB.grove.push({sp:a.sp, sub:a.subject, ms:gm, gm, at, seed:a.seed, dead:false});
+      DB.growing[a.sp] = {ms: spec.ms - gm, seed:newSeed(), per:STAGE_MS};
     }
   } else {
     out.deadAt = spec.ms + actual;
-    DB.grove.push({sp:a.sp, sub:a.subject, ms:out.deadAt, at, seed:a.seed, dead:true});
-    DB.growing[a.sp] = {ms:0, seed:newSeed()};
+    DB.grove.push({sp:a.sp, sub:a.subject, ms:out.deadAt, gm, at, seed:a.seed, dead:true});
+    DB.growing[a.sp] = {ms:0, seed:newSeed(), per:STAGE_MS};
   }
 
   DB.sessions.push({id:a.startAt, subject:a.subject, sp:a.sp, startAt:a.startAt, endAt:at,
@@ -2043,7 +2068,7 @@ function loop(){
     const grown = a.baseMs + studied;
     const st = stageInfo(a.sp, Math.min(grown, gm - 1));
     $('#sesState').innerHTML = over
-      ? `overtime · up to <b>+${Math.round((cap - a.plannedMs)/60000)} min</b>`
+      ? `overtime · up to <b>+${fmtDur(cap - a.plannedMs)}</b>`
       : grown >= gm
       ? 'Complete · extra minutes go to the next one'
       : `stage ${st.index+1}/${st.total} · <b>${st.name}</b>` +
@@ -2069,13 +2094,14 @@ function stopLoop(){
 }
 
 function showResult(o){
-  const sp = SP[o.sp], gm = growthMs(o.sp);
+  const sp = SP[o.sp], gm = o.gm || growthMs(o.sp);
   applySubjectColor(sp.sub);
   const org = buildOrganism(o.sp, o.seed);
   const ok = o.status === 'done';
   const pStart = clamp(o.baseMs/gm, 0, 1);
   const pEnd = clamp((o.baseMs + o.actual)/gm, 0, 1);
-  const partsGained = Math.floor((o.baseMs + o.actual)/(STAGE_MIN*60000)) - Math.floor(o.baseMs/(STAGE_MIN*60000));
+  const per = o.per || STAGE_MS;
+  const partsGained = Math.floor((o.baseMs + o.actual)/per) - Math.floor(o.baseMs/per);
 
   $('#resTitle').textContent = o.matured ? sp.name + ' complete'
     : ok ? 'Session done'
@@ -2095,8 +2121,8 @@ function showResult(o){
   $('#resBar').style.width = (ok ? pEnd*100 : 0) + '%';
   $('#resNote').textContent = ok
     ? (o.matured ? 'Maturity bonus included.'
-       : `${Math.round((o.baseMs + o.actual)/60000)} of ${sp.growth} minutes built.`)
-    : `It had ${Math.round(o.deadAt/60000)} minutes in it. The minutes stay in the stats, the specimen does not.`;
+       : `${fmtDur(o.baseMs + o.actual)} of ${fmtDur(gm)} built.`)
+    : `It had ${fmtDur(o.deadAt)} in it. The time stays in the stats, the specimen does not.`;
 
   show('result');
   const t0 = performance.now();
@@ -2289,7 +2315,7 @@ function paintMinis(root){
 function openSpecies(){
   let html = `<h2>What you are building</h2>
     <p class="sub">One minute of study, one coin. A specimen gains a new named part every
-    ${STAGE_MIN} minutes; the bigger ones have more parts and take longer.</p>`;
+    ${fmtDur(STAGE_MS)}; the bigger ones have more parts and take longer.</p>`;
   SUBJECTS.forEach(sub => {
     html += `<div class="subjhead"><span class="dotc" style="background:${hueOf(sub.id)}"></span>${sub.code} · ${sub.name}</div><div class="spgrid">`;
     SPECIES.filter(s => s.sub === sub.id).forEach(s => {
@@ -2298,7 +2324,7 @@ function openSpecies(){
         aria-pressed="${String(DB.prefs.sp === s.id)}">
         <canvas data-sp="${s.id}" data-seed="7" data-p="1"></canvas>
         <div class="n">${s.name}</div>
-        <div class="t">${s.stages} parts · ${s.growth} min</div>
+        <div class="t">${s.stages} parts · ${fmtDur(s.growth*60000)}</div>
         ${un ? '' : `<div class="cost"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"></circle></svg>${s.cost}</div>`}
       </button>`;
     });
@@ -2362,7 +2388,7 @@ function openSettings(){
     </div>
 
     ${curOrg ? `<div class="subjhead">${cur.name} · ${cur.stages} parts</div>
-      <div class="stagelist">${curOrg.names.map((n,i) => `<b>${(i+1)*STAGE_MIN}′</b> ${n}`).join(' · ')}</div>` : ''}
+      <div class="stagelist">${curOrg.names.map((n,i) => `<b>${fmtDur((i+1)*stageMsOf(cur.id))}</b> ${n}`).join(' · ')}</div>` : ''}
 
     <div class="subjhead">How it works</div>
     <div class="help"><b>iOS puts up the wall, not this app.</b> No app can block another one:
@@ -2498,15 +2524,17 @@ function streakDays(){
   return n;
 }
 
-function barChart(values, labels, axis, title){
-  const max = Math.max(1, ...values), maxIdx = values.indexOf(Math.max(...values));
+function barChart(values, labels, axis, title, opt){
+  opt = opt || {};
+  const peak = Math.max(...values);
+  const max = Math.max(1, opt.max || peak), maxIdx = values.indexOf(peak);
   const bars = values.map((v,i) =>
-    `<button data-i="${i}" aria-pressed="false" aria-label="${labels[i]}: ${fmtDur(v)}"><i class="${v ? '' : 'zero'}" style="height:${v ? Math.max(4, v/max*100) : 0}%"></i></button>`).join('');
-  const init = Math.max(...values) > 0
+    `<button data-i="${i}" aria-pressed="false" aria-label="${labels[i]}: ${fmtDur(v)}"><i class="${v ? '' : 'zero'}" style="height:${v ? Math.max(4, Math.min(1, v/max)*100) : 0}%"></i></button>`).join('');
+  const init = peak > 0
     ? `<span>Best · ${labels[maxIdx]}</span><b>${fmtDur(values[maxIdx])}</b>`
-    : `<span>No sessions</span><b>0 min</b>`;
+    : `<span>No sessions</span><b>0m</b>`;
   return `<div class="chart">
-    <div class="cap"><span class="t">${title}</span><span class="m">peak ${fmtDur(max)}</span></div>
+    <div class="cap"><span class="t">${title}</span><span class="m">${opt.scale || 'peak ' + fmtDur(max)}</span></div>
     <div class="bars" id="bars">${bars}</div>
     <div class="axis">${axis.map(a => `<span>${a}</span>`).join('')}</div>
     <div class="readbox" id="readbox">${init}</div></div>`;
@@ -2520,6 +2548,27 @@ function bindBars(values, labels){
     const i = +b.dataset.i;
     $('#readbox').innerHTML = `<span>${labels[i]}</span><b>${fmtDur(values[i])}</b>`;
   });
+}
+/* Minutes per hour of the day. A session is spread over the wall clock it
+   actually spans, so the studied time lands in the hours it happened in;
+   pauses and breaks stretch that span, which is why it is a share and not
+   a straight copy of actualMs. */
+function hourValues(list){
+  const v = Array(24).fill(0);
+  list.forEach(s => {
+    const span = Math.max(60000, (s.endAt || s.startAt + s.actualMs) - s.startAt);
+    const rate = s.actualMs/span;
+    let t = s.startAt;
+    const end = s.startAt + span;
+    while (t < end){
+      const d = new Date(t);
+      const next = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()+1).getTime();
+      const chunk = Math.min(end, next) - t;
+      v[d.getHours()] += chunk*rate;
+      t += chunk;
+    }
+  });
+  return v.map(x => Math.min(x, 3600000));
 }
 function subjectSplit(list){
   const by = {};
@@ -2547,7 +2596,7 @@ function renderStats(){
   const done = list.filter(s => s.status === 'done').length;
   const lost = list.length - done;
 
-  let html = `<div class="hero"><span class="v">${Math.round(total/60000)}</span><span class="u">minutes studied</span></div>
+  let html = `<div class="hero"><span class="v">${fmtDur(total)}</span><span class="u">studied</span></div>
     <div class="kpis">
       <div class="kpi"><div class="v">${done}</div><div class="k">completed</div></div>
       <div class="kpi ${lost ? 'bad' : ''}"><div class="v">${lost}</div><div class="k">lost</div></div>
@@ -2556,6 +2605,12 @@ function renderStats(){
 
   let values = null, labels = null;
   if (scope === 'day'){
+    if (list.length){
+      values = hourValues(list);
+      labels = values.map((_,h) => `${pad2(h)}:00 – ${pad2((h+1)%24)}:00`);
+      html += barChart(values, labels, ['00:00','06:00','12:00','18:00','24:00'],
+        'Time per hour', {max:3600000, scale:'full bar = 1h'});
+    }
     html += subjectSplit(list) + `<div class="slist"><h3>Sessions</h3>`;
     if (!list.length) html += `<div class="empty">Nothing yet.</div>`;
     else list.forEach(s => {
@@ -2573,18 +2628,18 @@ function renderStats(){
     values = Array(7).fill(0);
     labels = DAY3.map((n,i) => `${n} ${addDays(a, i).getDate()}`);
     list.forEach(s => { values[(new Date(s.startAt).getDay() + 6) % 7] += s.actualMs; });
-    html += barChart(values, labels, ['Mon','Thu','Sun'], 'Minutes per day') + subjectSplit(list);
+    html += barChart(values, labels, ['Mon','Thu','Sun'], 'Time per day') + subjectSplit(list);
   } else if (scope === 'month'){
     const y = anchor.getFullYear(), m = anchor.getMonth(), days = new Date(y, m+1, 0).getDate();
     values = Array(days).fill(0);
     labels = Array.from({length:days}, (_,i) => `${MON3[m]} ${i+1}`);
     list.forEach(s => { values[new Date(s.startAt).getDate()-1] += s.actualMs; });
-    html += barChart(values, labels, ['1', String(Math.ceil(days/2)), String(days)], 'Minutes per day') + subjectSplit(list);
+    html += barChart(values, labels, ['1', String(Math.ceil(days/2)), String(days)], 'Time per day') + subjectSplit(list);
   } else {
     values = Array(12).fill(0);
     labels = MONTHS.slice();
     list.forEach(s => { values[new Date(s.startAt).getMonth()] += s.actualMs; });
-    html += barChart(values, labels, ['Jan','Jun','Dec'], 'Minutes per month') + subjectSplit(list);
+    html += barChart(values, labels, ['Jan','Jun','Dec'], 'Time per month') + subjectSplit(list);
   }
 
   const allTime = DB.sessions.reduce((n,s) => n + s.actualMs, 0);
@@ -2607,12 +2662,12 @@ function renderGrove(){
   applySubjectColor(null);
   const rowOf = new Map();
   const row = id => {
-    if (!rowOf.has(id)) rowOf.set(id, {id, ok:0, okMs:0, lost:0, lostMs:0, live:0, seed:7, at:0});
+    if (!rowOf.has(id)) rowOf.set(id, {id, ok:0, okMs:0, lost:0, lostMs:0, lostWorth:0, live:0, seed:7, at:0});
     return rowOf.get(id);
   };
   DB.grove.filter(g => SP[g.sp]).forEach(g => {
     const r = row(g.sp);
-    if (g.dead){ r.lost++; r.lostMs += g.ms; }
+    if (g.dead){ r.lost++; r.lostMs += g.ms; r.lostWorth += g.ms/graveGrowth(g); }
     else { r.ok++; r.okMs += g.ms; if (g.at >= r.at){ r.at = g.at; r.seed = g.seed; } }
   });
   for (const id of Object.keys(DB.growing || {}))
@@ -2634,23 +2689,23 @@ function renderGrove(){
     <div class="gsec">${rows.length} specimen${rows.length > 1 ? 's' : ''}</div>`;
 
   rows.forEach(r => {
-    const sp = SP[r.id], gm = growthMs(r.id);
-    const worth = ms => (Math.round(ms/gm*10)/10).toFixed(1).replace(/\.0$/, '');
+    const sp = SP[r.id];
+    const worth = n => (Math.round(n*10)/10).toFixed(1).replace(/\.0$/, '');
     html += `<button class="spcard ${r.ok ? '' : 'gone'}" data-id="${r.id}">
       <canvas data-sp="${r.id}" data-seed="${r.seed}" data-p="1"
         data-dead="${r.ok ? 0 : 1}"></canvas>
       <span class="body">
         <span class="n">${sp.name}</span>
         <span class="c"><i class="dotc" style="background:${hueOf(sp.sub)}"></i>${SUB[sp.sub].code}
-          · ${sp.stages} parts · ${sp.growth} min each</span>
+          · ${sp.stages} parts · ${fmtDur(growthMs(r.id))} each</span>
         <span class="figs">
           <span class="fig"><b>×${r.ok}</b> · ${fmtDur(r.okMs)}</span>
-          ${r.lost ? `<span class="fig bad"><b>${fmtDur(r.lostMs)}</b> lost · ${worth(r.lostMs)}×</span>` : ''}
+          ${r.lost ? `<span class="fig bad"><b>${fmtDur(r.lostMs)}</b> lost · ${worth(r.lostWorth)}×</span>` : ''}
           ${r.live ? `<span class="fig">growing · ${fmtDur(r.live)}</span>` : ''}
         </span>
       </span></button>`;
   });
-  html += `<div class="foot">One named part every ${STAGE_MIN} minutes of study.
+  html += `<div class="foot">One named part every ${fmtDur(STAGE_MS)} of study.
     ${lostN ? `The multiplier reads lost time as the specimen it would have finished:
       ${worth0(rows)} thrown away.` : 'Nothing lost so far.'}</div>`;
 
@@ -2662,17 +2717,18 @@ function renderGrove(){
 /* lost time across species has no single growth time: quote it in whole
    specimens of the species it was actually lost on */
 function worth0(rows){
-  const n = rows.reduce((t,r) => t + r.lostMs/growthMs(r.id), 0);
+  const n = rows.reduce((t,r) => t + r.lostWorth, 0);
   return (Math.round(n*10)/10) + ' specimen' + (Math.round(n*10)/10 === 1 ? '' : 's');
 }
 
 function openSpecimens(id){
   const sp = SP[id], gm = growthMs(id);
+  const perLive = stageMsOf(id);
   const list = DB.grove.filter(g => g.sp === id).sort((a,b) => b.at - a.at);
   const live = DB.growing[id] && DB.growing[id].ms > 0 ? DB.growing[id] : null;
   let html = `<h2>${sp.name}</h2>
-    <p class="sub">${SUB[sp.sub].code} · one new part every ${STAGE_MIN} minutes,
-      ${sp.stages} parts and ${sp.growth} minutes to finish one.</p>`;
+    <p class="sub">${SUB[sp.sub].code} · one new part every ${fmtDur(perLive)},
+      ${sp.stages} parts and ${fmtDur(gm)} to finish one.</p>`;
   if (live){
     const st = stageInfo(id, live.ms);
     html += `<div class="readbox"><span>Growing now · stage ${st.index+1}/${sp.stages} · ${st.name}</span>
@@ -2682,11 +2738,11 @@ function openSpecimens(id){
     ? `<div class="grid" style="margin-top:16px">` + list.map(g => `
         <div class="spec ${g.dead ? 'dead' : ''}">
           <canvas data-sp="${g.sp}" data-seed="${g.seed}" data-dead="${g.dead ? 1 : 0}"
-            data-p="${g.dead ? clamp(g.ms/gm, .12, 1) : 1}"></canvas>
+            data-p="${g.dead ? clamp(g.ms/graveGrowth(g), .12, 1) : 1}"></canvas>
           <div class="n">${new Date(g.at).toLocaleDateString('en-GB', {day:'numeric', month:'short'})}${
-            g.dead ? ' · ' + Math.round(g.ms/60000) + 'm' : ''}</div>
+            g.dead ? ' · ' + fmtDur(g.ms) : ''}</div>
         </div>`).join('') + `</div>`
-    : `<div class="empty">Nothing finished yet — the first one lands here at ${sp.growth} minutes.</div>`;
+    : `<div class="empty">Nothing finished yet — the first one lands here at ${fmtDur(gm)}.</div>`;
   openSheet(html);
   paintMinis($('#sheetBody'));
 }
