@@ -490,7 +490,7 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
    so any incremental counter would be wrong.
    ========================================================================= */
 
-const BUILD = 16;                            /* bump with sw.js CACHE */
+const BUILD = 17;                            /* bump with sw.js CACHE */
 const STORE = 'epflfocus.v3';
 const COIN_PER_MIN = 1;
 const MATURE_BONUS = 150;
@@ -2013,6 +2013,10 @@ function endSession(status, at, studied, awayMs){
       DB.grove.push({sp:a.sp, sub:a.subject, ms:gm, gm, at, seed:a.seed, dead:false});
       DB.growing[a.sp] = {ms: spec.ms - gm, seed:newSeed(), per:STAGE_MS};
     }
+  } else if (status === 'abandoned'){
+    /* giving up costs the session, not the specimen: the minutes are forfeited
+       but what was already built stays exactly where it was */
+    out.deadAt = spec.ms;
   } else {
     out.deadAt = spec.ms + actual;
     DB.grove.push({sp:a.sp, sub:a.subject, ms:out.deadAt, gm, at, seed:a.seed, dead:true});
@@ -2114,6 +2118,7 @@ function showResult(o){
   applySubjectColor(sp.sub);
   const org = buildOrganism(o.sp, o.seed);
   const ok = o.status === 'done';
+  const kept = o.status === 'abandoned';      /* lost the session, kept the specimen */
   const pStart = clamp(o.baseMs/gm, 0, 1);
   const pEnd = clamp((o.baseMs + o.actual)/gm, 0, 1);
   const per = o.per || STAGE_MS;
@@ -2121,23 +2126,25 @@ function showResult(o){
 
   $('#resTitle').textContent = o.matured ? sp.name + ' complete'
     : ok ? 'Session done'
-    : o.status === 'abandoned' ? 'Given up' : 'Dead';
+    : kept ? 'Given up' : 'Dead';
   $('#resTitle').style.color = ok ? 'var(--ink)' : 'var(--bad)';
   $('#resSub').textContent = o.matured
     ? 'Fully built. It goes to the collection and a new one starts.'
     : ok ? (o.pausedMs > 30000 ? `Done, with ${fmtDur(o.pausedMs)} paused along the way.`
                                 : 'You stayed here the whole time.')
-    : o.status === 'abandoned' ? 'You ended it yourself: the specimen is lost.'
+    : kept ? 'You ended it yourself: these minutes do not count, but the specimen survives.'
     : `You were out of the app for more than ${DB.prefs.grace} seconds.`;
   $('#resGain').innerHTML =
     `<span class="pill">${fmtDur(o.actual)}</span>` +
     (o.overMs > 30000 ? `<span class="pill">+${fmtDur(o.overMs)} overtime</span>` : '') +
     (ok && partsGained ? `<span class="pill">+${partsGained} part${partsGained > 1 ? 's' : ''}</span>` : '') +
     (o.coins ? `<span class="pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="var(--coin)"></circle></svg>+${o.coins}</span>` : '');
-  $('#resBar').style.width = (ok ? pEnd*100 : 0) + '%';
+  $('#resBar').style.width = (ok ? pEnd*100 : kept ? pStart*100 : 0) + '%';
   $('#resNote').textContent = ok
     ? (o.matured ? 'Maturity bonus included.'
        : `${fmtDur(o.baseMs + o.actual)} of ${fmtDur(gm)} built.`)
+    : kept
+    ? `Still ${fmtDur(o.baseMs)} of ${fmtDur(gm)} built. The time stays in the stats, it just does not grow anything.`
     : `It had ${fmtDur(o.deadAt)} in it. The time stays in the stats, the specimen does not.`;
 
   /* the specimen starts drawing when the view lands, not while it is still away */
@@ -2146,10 +2153,10 @@ function showResult(o){
     const t0 = performance.now();
     const anim = now => {
       const dt = now - t0;
-      const decay = ok ? 0 : clamp(dt/1800, 0, 1);
-      const p = ok ? pStart + (pEnd - pStart)*clamp(dt/1400, 0, 1) : pEnd;
+      const decay = (ok || kept) ? 0 : clamp(dt/1800, 0, 1);
+      const p = ok ? pStart + (pEnd - pStart)*clamp(dt/1400, 0, 1) : kept ? pStart : pEnd;
       drawOrganism($('#organism2'), org, p, {decay});
-      if (ok ? dt < 1600 : decay < 1) rafId = requestAnimationFrame(anim);
+      if (ok ? dt < 1600 : kept ? false : decay < 1) rafId = requestAnimationFrame(anim);
     };
     rafId = requestAnimationFrame(anim);
   });
@@ -2489,6 +2496,9 @@ function openSettings(){
       when you are done, or just leave — the overtime you earned is kept either way.</div>
     <div class="help">A specimen grows across <b>several sessions</b>. When every part is built it
       goes to the collection, pays a <b>${MATURE_BONUS} coin</b> bonus, and a new one starts.</div>
+    <div class="help"><b>Giving up costs the session, not the specimen.</b> Hold the button and the
+      minutes you did are forfeited — no coins, no growth — but what was already built stays.
+      Escaping the app in <b>Kills the specimen</b> mode still kills it.</div>
     <div class="help">No sound with the screen off, no notifications, no haptics: it is a web app,
       not an alarm clock. Keep the phone in sight.</div>
     <div class="synced">build ${BUILD}</div>`);
