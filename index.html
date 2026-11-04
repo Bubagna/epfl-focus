@@ -6,16 +6,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="EPFL Focus">
-<meta name="theme-color" id="themeColor" content="#e9ede3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" id="themeColorDark" content="#161b17" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="Grove">
+<meta name="theme-color" id="themeColor" content="#d6eeff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" id="themeColorDark" content="#141a36" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
-<title>EPFL Focus</title>
+<title>Grove</title>
 <style>
 /* ==========================================================================
-   EPFL Focus — lab paper: pale green ground with a millimetre grid, dark
-   green ink, and the course colour as the only accent.
+   Grove — a sunny morning sky by day, a starry one by night, and the colour
+   of the tree you are growing as the only accent.
    ========================================================================== */
 @font-face{
   font-family:'Fraunces';font-style:normal;font-weight:400 700;font-display:swap;
@@ -27,61 +27,82 @@
 }
 
 :root{
-  --paper:#e9ede3;
-  --card:#f4f7ef;
-  --well:#dee5d5;
-  --line:#ccd6c2;
-  --grid:rgba(53,84,55,.055);
-  --ink:#1e2a21;
-  --ink-2:#54655a;
-  --ink-3:#87968a;
-  --coin:#c08528;
-  --bad:#bf534e;
-  --shadow:0 1px 0 rgba(30,42,33,.05), 0 6px 18px -10px rgba(30,42,33,.35);
-  --sub:#a86b16;
-  --r:14px;
+  --sky:#d6eeff;
+  --paper:#fff6e8;
+  --card:#ffffff;
+  --well:#f5ead6;
+  --line:#efe1c9;
+  --ink:#3b2f26;
+  --ink-2:#6f6053;
+  --ink-3:#a5968a;
+  --coin:#f0a417;
+  --bad:#e0695b;
+  --msky1:#c9e8ff; --msky2:#fff3dd;
+  --shadow:0 1px 0 rgba(120,80,30,.05), 0 10px 24px -14px rgba(120,80,30,.45);
+  --sub:#4c9a43;
+  --r:18px;
   --fd:'Fraunces', Georgia, 'Times New Roman', serif;
   --fs:'Karla', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --paper:#161b17; --card:#1e251f; --well:#131813; --line:#2e372f;
-    --grid:rgba(174,214,178,.05);
-    --ink:#e7eee5; --ink-2:#a3b1a5; --ink-3:#76857a;
-    --coin:#dda94e; --bad:#d97b76;
-    --shadow:0 1px 0 rgba(0,0,0,.2), 0 8px 22px -12px rgba(0,0,0,.7);
+    --sky:#141a36; --paper:#231f3d; --card:#2c2a4b; --well:#1e1c37; --line:#3a3861;
+    --ink:#f6f0e8; --ink-2:#c8c0d4; --ink-3:#9089a9;
+    --coin:#ffc24a; --bad:#ff8b7b;
+    --msky1:#1a2150; --msky2:#2e2a57;
+    --shadow:0 1px 0 rgba(0,0,0,.2), 0 10px 26px -14px rgba(0,0,0,.75);
   }
 }
 :root[data-theme="dark"]{
-  --paper:#161b17; --card:#1e251f; --well:#131813; --line:#2e372f;
-  --grid:rgba(174,214,178,.05);
-  --ink:#e7eee5; --ink-2:#a3b1a5; --ink-3:#76857a;
-  --coin:#dda94e; --bad:#d97b76;
-  --shadow:0 1px 0 rgba(0,0,0,.2), 0 8px 22px -12px rgba(0,0,0,.7);
+  --sky:#141a36; --paper:#231f3d; --card:#2c2a4b; --well:#1e1c37; --line:#3a3861;
+  --ink:#f6f0e8; --ink-2:#c8c0d4; --ink-3:#9089a9;
+  --coin:#ffc24a; --bad:#ff8b7b;
+  --msky1:#1a2150; --msky2:#2e2a57;
+  --shadow:0 1px 0 rgba(0,0,0,.2), 0 10px 26px -14px rgba(0,0,0,.75);
 }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%}
-html{background-color:#e9ede3}
-@media (prefers-color-scheme:dark){html:not([data-theme="light"]){background-color:#161b17}}
-html[data-theme="dark"]{background-color:#161b17}
-html[data-theme="light"]{background-color:#e9ede3}
+html{background-color:#d6eeff}
+@media (prefers-color-scheme:dark){html:not([data-theme="light"]){background-color:#141a36}}
+html[data-theme="dark"]{background-color:#141a36}
+html[data-theme="light"]{background-color:#d6eeff}
 body{
   background-color:var(--paper);
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size:22px 22px;
+  background-image:linear-gradient(180deg, var(--sky) 0, var(--paper) 58%);
+  min-height:100dvh;
   color:var(--ink);
   font-family:var(--fs);font-size:15px;line-height:1.45;
   -webkit-font-smoothing:antialiased;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   overscroll-behavior:none;
 }
+/* the sun (or the moon) and two clouds (or a few stars), behind everything */
+body::before{content:'';position:fixed;top:-70px;right:-60px;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle, rgba(255,205,90,.55) 0, rgba(255,205,90,.18) 42%, rgba(255,205,90,0) 70%);
+  pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;top:92px;left:-24px;width:84px;height:26px;border-radius:999px;
+  background:rgba(255,255,255,.75);pointer-events:none;z-index:0;
+  box-shadow:26px -12px 0 3px rgba(255,255,255,.75), 52px 0 0 0 rgba(255,255,255,.75),
+    calc(100vw - 70px) 58px 0 -3px rgba(255,255,255,.6), calc(100vw - 46px) 48px 0 1px rgba(255,255,255,.6)}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) body::before{background:radial-gradient(circle, rgba(220,220,255,.22) 0, rgba(220,220,255,.07) 42%, rgba(220,220,255,0) 70%)}
+  :root:not([data-theme="light"]) body::after{top:40px;left:0;width:2px;height:2px;background:rgba(255,255,255,.8);
+    box-shadow:14vw 6vh 0 0 rgba(255,255,255,.7), 31vw 13vh 0 .5px rgba(255,255,255,.55), 47vw 4vh 0 0 rgba(255,255,255,.75),
+      62vw 16vh 0 0 rgba(255,255,255,.5), 78vw 9vh 0 .5px rgba(255,255,255,.7), 88vw 21vh 0 0 rgba(255,255,255,.45),
+      8vw 22vh 0 0 rgba(255,255,255,.45), 24vw 28vh 0 0 rgba(255,255,255,.35), 70vw 30vh 0 0 rgba(255,255,255,.35)}
+}
+:root[data-theme="dark"] body::before{background:radial-gradient(circle, rgba(220,220,255,.22) 0, rgba(220,220,255,.07) 42%, rgba(220,220,255,0) 70%)}
+:root[data-theme="dark"] body::after{top:40px;left:0;width:2px;height:2px;background:rgba(255,255,255,.8);
+  box-shadow:14vw 6vh 0 0 rgba(255,255,255,.7), 31vw 13vh 0 .5px rgba(255,255,255,.55), 47vw 4vh 0 0 rgba(255,255,255,.75),
+    62vw 16vh 0 0 rgba(255,255,255,.5), 78vw 9vh 0 .5px rgba(255,255,255,.7), 88vw 21vh 0 0 rgba(255,255,255,.45),
+    8vw 22vh 0 0 rgba(255,255,255,.45), 24vw 28vh 0 0 rgba(255,255,255,.35), 70vw 30vh 0 0 rgba(255,255,255,.35)}
+
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 :focus-visible{outline:2px solid var(--sub);outline-offset:3px;border-radius:6px}
 
 #app{
+  position:relative;z-index:1;
   display:flex;flex-direction:column;height:100dvh;
   max-width:520px;margin:0 auto;padding-inline:20px;
   padding-top:calc(env(safe-area-inset-top) + 10px);
@@ -89,7 +110,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 }
 main{flex:1;display:flex;flex-direction:column;min-height:0}
 .view{display:none;flex:1;flex-direction:column;min-height:0;
-  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  /* room for the coloured button shadows, which a scrolling box would clip */
+  padding:0 10px 18px;margin:0 -10px}
 .view.on{display:flex}
 
 /* ---------------- motion ----------------
@@ -106,68 +129,68 @@ main{flex:1;display:flex;flex-direction:column;min-height:0}
 .held{transform:translateY(1px) scale(.985);opacity:.82;transition:transform .1s, opacity .1s}
 .bump{animation:bump .24s ease-out}
 @keyframes bump{from{opacity:.2;transform:scale(.95)}to{opacity:1;transform:none}}
+.pop{animation:pop .7s cubic-bezier(.3,1.7,.45,1)}
+@keyframes pop{0%{transform:scale(.86)}100%{transform:none}}
 
 /* ---------------- top bar ---------------- */
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;min-height:38px}
 .coins{display:flex;align-items:center;gap:7px;padding:6px 13px 6px 8px;
-  background:var(--card);border:1px solid var(--line);border-radius:999px;
+  background:var(--card);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);
   font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
-.coins svg{width:17px;height:17px;flex:none}
+.coins svg{width:18px;height:18px;flex:none}
 .icobtn{width:38px;height:38px;border-radius:999px;display:grid;place-items:center;
-  background:var(--card);border:1px solid var(--line)}
+  background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
 .icobtn svg{width:19px;height:19px}
-.title{font-family:var(--fd);font-size:18px;font-weight:600;
-  font-variation-settings:'SOFT' 40,'WONK' 1;letter-spacing:-.01em}
+.title{font-family:var(--fd);font-size:20px;font-weight:600;
+  font-variation-settings:'SOFT' 100,'WONK' 1;letter-spacing:-.01em}
 
 /* ---------------- dial ---------------- */
 .dialwrap{position:relative;width:100%;max-width:330px;margin:auto auto 0;aspect-ratio:1;flex:none;touch-action:none}
 .dialwrap svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .dialwrap canvas{position:absolute;left:11.5%;top:11.5%;width:77%;height:77%;display:block}
-.track{fill:none;stroke:var(--well);stroke-width:11;stroke-linecap:round}
-.arc{fill:none;stroke:var(--sub);stroke-width:11;stroke-linecap:round}
-.handle{fill:var(--card);stroke:var(--sub);stroke-width:3.5}
+.disc{fill:var(--card);opacity:.55}
+.track{fill:none;stroke:var(--well);stroke-width:14;stroke-linecap:round}
+.arc{fill:none;stroke:var(--sub);stroke-width:14;stroke-linecap:round}
+.handle{fill:var(--card);stroke:var(--sub);stroke-width:4}
 .handle-dot{fill:var(--sub)}
-.pickcenter{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:58%;padding:18px 10px;border-radius:999px;background:var(--card);
-  border:1px dashed var(--line);color:var(--ink-2);font-size:14px;font-weight:700;line-height:1.35}
 
 .readout{text-align:center;margin:4px 0 auto}
-.minutes{font-family:var(--fd);font-size:46px;font-weight:600;line-height:1;
-  font-variation-settings:'SOFT' 70,'WONK' 1,'opsz' 90;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.minutes{font-family:var(--fd);font-size:48px;font-weight:600;line-height:1;
+  font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 90;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .minutes small{font-family:var(--fs);font-size:14px;font-weight:500;color:var(--ink-3);margin-left:6px}
 .minutes small.tight{margin-left:1px}   /* the m of "1h 45m" hangs on the number */
-.species{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:7px 14px;
-  background:var(--card);border:1px solid var(--line);border-radius:999px;font-size:13.5px;font-weight:600}
-.species .code{color:var(--sub);font-weight:700}
-.species .chev{color:var(--ink-3);font-size:11px}
-.growline{margin-top:10px;font-size:12.5px;color:var(--ink-3)}
-.growline b{color:var(--ink-2);font-weight:700;font-variant-numeric:tabular-nums}
-.stagename{margin-top:3px;font-size:12.5px;color:var(--sub);font-weight:700}
+.treebtn{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 15px;
+  background:var(--card);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);
+  font-size:14px;font-weight:700}
+.treebtn .chev{color:var(--ink-3);font-size:11px}
+.growline{margin-top:10px;font-size:13px;color:var(--ink-3)}
+.growline b{color:var(--sub);font-weight:700}
+.stagename{margin-top:3px;font-size:12.5px;color:var(--ink-3)}
+.stagename b{color:var(--ink-2);font-weight:700}
 
-.plant{width:100%;margin-top:14px;padding:17px;border-radius:var(--r);
-  background:var(--sub);color:#fff;font-size:16px;font-weight:700;box-shadow:var(--shadow)}
+.plant{width:100%;margin-top:14px;padding:18px;border-radius:999px;
+  background:var(--sub);color:#fff;font-size:17px;font-weight:700;letter-spacing:.01em;
+  box-shadow:0 10px 20px -12px var(--sub), inset 0 -3px 0 rgba(0,0,0,.12)}
 .plant:active{transform:translateY(1px)}
-.plant:disabled{background:var(--well);color:var(--ink-3);box-shadow:none}
 
 /* ---------------- session ---------------- */
 .session-top{display:flex;justify-content:center;padding-block:6px 0;margin-bottom:auto}
-.chip{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;
-  background:var(--card);border:1px solid var(--line);font-size:12.5px;font-weight:600}
-.chip .code{color:var(--sub);font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;
+  background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:700;box-shadow:var(--shadow)}
 .clock{font-family:var(--fd);font-size:clamp(50px,17vw,72px);font-weight:600;line-height:1;
-  font-variation-settings:'SOFT' 70,'WONK' 1,'opsz' 120;letter-spacing:-.03em;
+  font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 120;letter-spacing:-.03em;
   font-variant-numeric:tabular-nums;text-align:center;margin-top:8px}
-.substate{text-align:center;margin:10px 0 auto;font-size:12.5px;color:var(--ink-3)}
+.substate{text-align:center;margin:10px 0 auto;font-size:13px;color:var(--ink-3)}
 .substate b{color:var(--sub);font-weight:700}
-.hold{position:relative;overflow:hidden;width:100%;padding:15px;
-  border-radius:var(--r);background:var(--card);border:1px solid var(--line);
+.hold{position:relative;overflow:hidden;width:100%;padding:16px;
+  border-radius:999px;background:var(--card);border:1px solid var(--line);
   font-size:13px;color:var(--ink-3);text-align:center}
-.hold i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--bad);opacity:.2}
+.hold i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ink-3);opacity:.2}
 .hold.finish{background:var(--sub);border-color:var(--sub);color:#fff;font-weight:700}
 .dialwrap.over .track{stroke:var(--sub);opacity:.28}
 .dialwrap.over .arc{stroke:var(--sub)}
 .dialwrap.paused .arc{stroke:var(--ink-3)}
-.dialwrap.paused canvas{opacity:.35}
+.dialwrap.paused canvas{opacity:.45}
 .hold span{position:relative}
 
 .flash{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 10px);
@@ -178,22 +201,22 @@ main{flex:1;display:flex;flex-direction:column;min-height:0}
 
 /* ---------------- outcome ---------------- */
 .result{text-align:center}
-.result h2{font-family:var(--fd);font-size:27px;font-weight:600;
-  font-variation-settings:'SOFT' 60,'WONK' 1;margin:0 0 6px;letter-spacing:-.02em}
-.result p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.6}
-.gain{display:flex;justify-content:center;gap:8px;margin:16px 0 6px;flex-wrap:wrap}
+.result h2{font-family:var(--fd);font-size:29px;font-weight:600;
+  font-variation-settings:'SOFT' 100,'WONK' 1;margin:0 0 6px;letter-spacing:-.02em}
+.result p{margin:0;font-size:14px;color:var(--ink-2);line-height:1.6}
+.gain{display:flex;justify-content:center;gap:8px;margin:16px 0 10px;flex-wrap:wrap}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;
   background:var(--card);border:1px solid var(--line);font-size:13.5px;font-weight:700;
-  font-variant-numeric:tabular-nums}
+  font-variant-numeric:tabular-nums;box-shadow:var(--shadow)}
 .pill svg{width:14px;height:14px}
-.pbar{height:9px;background:var(--well);border-radius:999px;overflow:hidden;margin:18px 0 10px}
-.pbar i{display:block;height:100%;background:var(--sub);border-radius:999px}
-.again{width:100%;margin-top:20px;padding:16px;border-radius:var(--r);
-  background:var(--sub);color:#fff;font-size:15px;font-weight:700}
+.note{font-size:13px!important;color:var(--ink-3)!important}
+.again{width:100%;margin-top:22px;padding:17px;border-radius:999px;
+  background:var(--sub);color:#fff;font-size:16px;font-weight:700;
+  box-shadow:0 10px 20px -12px var(--sub)}
 
 /* ---------------- stats ---------------- */
-.scope{display:flex;gap:3px;padding:3px;background:var(--well);border-radius:999px;margin-bottom:14px}
-.scope button{flex:1;padding:8px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.scope{display:flex;gap:3px;padding:4px;background:var(--well);border-radius:999px;margin-bottom:14px}
+.scope button{flex:1;padding:8px;border-radius:999px;font-size:13px;font-weight:700;color:var(--ink-3)}
 .scope button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 .period{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .period .label{font-size:14px;font-weight:700}
@@ -201,126 +224,74 @@ main{flex:1;display:flex;flex-direction:column;min-height:0}
   border:1px solid var(--line);color:var(--ink-2)}
 .period button:disabled{opacity:.35}
 .hero{display:flex;align-items:baseline;gap:10px}
-.hero .v{font-family:var(--fd);font-size:46px;font-weight:600;line-height:1;
-  font-variation-settings:'SOFT' 70,'WONK' 1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.hero .u{font-size:13px;color:var(--ink-3)}
+.hero .v{font-family:var(--fd);font-size:48px;font-weight:600;line-height:1;
+  font-variation-settings:'SOFT' 100,'WONK' 1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.hero .u{font-size:13.5px;color:var(--ink-3)}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 24px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:11px 12px;box-shadow:var(--shadow)}
 .kpi .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
 .kpi .k{font-size:11px;color:var(--ink-3);margin-top:2px}
-.kpi.bad .v{color:var(--bad)}
 .chart .cap{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
 .chart .cap .t{font-size:13px;font-weight:700}
 .chart .cap .m{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .bars{display:flex;align-items:flex-end;gap:2px;height:120px;border-bottom:1px solid var(--line)}
 .bars button{flex:1;min-width:0;height:100%;display:flex;align-items:flex-end}
-.bars i{display:block;width:100%;background:var(--sub);border-radius:4px 4px 0 0}
+.bars i{display:block;width:100%;background:var(--sub);border-radius:5px 5px 0 0}
 .bars i.zero{background:var(--line);height:2px!important;border-radius:2px}
 .bars button[aria-pressed="true"] i{outline:2px solid var(--ink);outline-offset:1px}
 .axis{display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:var(--ink-3)}
 .readbox{margin-top:12px;padding:10px 13px;background:var(--card);border:1px solid var(--line);
-  border-radius:10px;font-size:12.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:10px}
+  border-radius:12px;font-size:12.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:10px}
 .readbox b{color:var(--ink);font-variant-numeric:tabular-nums}
-.split{margin-top:26px}
-.split h3,.slist h3{font-size:13px;font-weight:700;margin:0 0 12px}
-.srow{display:flex;align-items:center;gap:9px;margin-bottom:10px}
-.srow .code{font-size:11.5px;font-weight:700;width:60px;flex:none;color:var(--ink-2)}
-.srow .track2{flex:1;height:9px;background:var(--well);border-radius:999px;overflow:hidden}
-.srow .track2 i{display:block;height:100%;border-radius:999px}
-.srow .v{font-size:11.5px;color:var(--ink-3);width:58px;text-align:right;font-variant-numeric:tabular-nums}
-.dotc{width:9px;height:9px;border-radius:999px;flex:none}
 .slist{margin-top:26px}
+.slist h3{font-size:13px;font-weight:700;margin:0 0 12px}
+.dotc{width:10px;height:10px;border-radius:999px;flex:none;display:inline-block}
 .sess{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
 .sess .when{font-size:12px;color:var(--ink-3);width:44px;flex:none;font-variant-numeric:tabular-nums}
-.sess .code{font-size:12px;font-weight:700;width:58px;flex:none}
+.sess .nm{font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sess .len{font-size:13px;font-weight:700;margin-left:auto;font-variant-numeric:tabular-nums}
-.sess.ko .len{color:var(--bad)}
-.sess .tag{font-size:11px;color:var(--bad)}
+.sess.ko .len{color:var(--ink-3)}
+.sess .tag{font-size:11px;color:var(--ink-3);flex:none}
 .foot{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);
   font-size:12px;color:var(--ink-3);text-align:center}
 
-/* ---------------- collection ---------------- */
-.month{margin-bottom:24px}
-.month h3{font-size:11.5px;font-weight:700;color:var(--ink-3);margin:0 0 10px;
-  letter-spacing:.05em;text-transform:uppercase}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px}
-.spec{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;
-  padding:7px 5px 8px;text-align:center;box-shadow:var(--shadow)}
-.spec canvas{width:100%;aspect-ratio:1;display:block}
-.spec .n{font-size:10.5px;color:var(--ink-3);margin-top:2px;overflow:hidden;
-  text-overflow:ellipsis;white-space:nowrap}
-.spec.dead{opacity:.85;box-shadow:none;background:transparent;border-style:dashed}
-.spec.dead .n{color:var(--bad)}
-.kpis.two{grid-template-columns:repeat(2,1fr)}
+/* ---------------- forest ---------------- */
+.meadow{position:relative;margin:16px 0 22px;border-radius:24px;overflow:hidden;
+  background:linear-gradient(180deg, var(--msky1), var(--msky2));
+  border:1px solid var(--line);box-shadow:var(--shadow)}
+.meadow canvas{display:block;width:100%;aspect-ratio:1/.8}
+.mempty{position:absolute;left:0;right:0;top:20%;text-align:center;padding:0 24px;
+  font-size:13.5px;line-height:1.6;color:var(--ink-2);font-weight:600}
+.more{position:absolute;right:12px;bottom:10px;font-size:11px;font-weight:700;color:#fff;
+  background:rgba(0,0,0,.25);padding:3px 9px;border-radius:999px}
 .gsec{font-size:11.5px;font-weight:700;color:var(--ink-3);margin:0 0 10px;
   letter-spacing:.05em;text-transform:uppercase}
 .spcard{display:flex;width:100%;gap:12px;align-items:center;text-align:left;margin-bottom:9px;
-  background:var(--card);border:1px solid var(--line);border-radius:14px;
-  padding:9px 12px 10px;box-shadow:var(--shadow)}
-.spcard canvas{width:62px;height:62px;flex:none}
+  background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:8px 14px 8px 10px;box-shadow:var(--shadow)}
+.spcard canvas{width:60px;height:60px;flex:none}
 .spcard .body{flex:1;min-width:0;display:block}
-.spcard .n{display:block;font-size:13.5px;font-weight:700;line-height:1.25}
-.spcard .c{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ink-3);margin-top:3px}
-.spcard .figs{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
-.spcard .fig{font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink-2);
-  background:var(--well);border-radius:999px;padding:3px 8px}
-.spcard .fig b{font-weight:700;color:var(--ink)}
-.spcard .fig.bad,.spcard .fig.bad b{color:var(--bad)}
-.spcard.gone canvas{opacity:.75}
-.empty{color:var(--ink-3);font-size:13.5px;text-align:center;padding:50px 20px;line-height:1.7}
+.spcard .n{display:block;font-size:14px;font-weight:700;line-height:1.25}
+.spcard .c{display:block;font-size:12px;color:var(--ink-3);margin-top:2px;font-variant-numeric:tabular-nums}
+.spcard .x{font-family:var(--fd);font-size:24px;font-weight:600;color:var(--sub);
+  font-variation-settings:'SOFT' 100,'WONK' 1;font-variant-numeric:tabular-nums}
+.empty{color:var(--ink-3);font-size:13.5px;text-align:center;padding:40px 20px;line-height:1.7}
 
 /* ---------------- nav ---------------- */
-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:14px;padding:3px;
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:0;padding:4px;
   background:var(--well);border-radius:999px}
-nav button{padding:10px 2px;border-radius:999px;font-size:12px;font-weight:600;color:var(--ink-3)}
+nav button{padding:10px 2px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--ink-3)}
 nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
-
-/* ---------------- ranking ---------------- */
-.auth{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-  padding:18px 16px;box-shadow:var(--shadow)}
-.auth h3{font-family:var(--fd);font-size:19px;font-weight:600;
-  font-variation-settings:'SOFT' 50,'WONK' 1;margin:0 0 4px}
-.auth p{margin:0 0 16px;font-size:12.5px;color:var(--ink-3);line-height:1.55}
-.field{margin-bottom:10px}
-.field label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:4px}
-.field input{width:100%;padding:12px 13px;border-radius:10px;border:1px solid var(--line);
-  background:var(--paper);color:var(--ink);font-family:var(--fs);font-size:16px;
-  -webkit-user-select:text;user-select:text}
-.field input:focus{outline:2px solid var(--sub);outline-offset:1px}
-.authbtn{width:100%;margin-top:6px;padding:14px;border-radius:11px;background:var(--sub);
-  color:#fff;font-size:15px;font-weight:700}
-.authbtn:disabled{opacity:.5}
-.authswap{margin-top:12px;font-size:12.5px;color:var(--ink-3);text-align:center}
-.authswap button{color:var(--sub);font-weight:700;text-decoration:underline}
-.authmsg{margin-top:12px;font-size:12.5px;line-height:1.55;padding:10px 12px;border-radius:9px}
-.authmsg.err{background:rgba(191,83,78,.12);color:var(--bad)}
-.authmsg.ok{background:rgba(60,141,89,.14);color:var(--ink-2)}
-.whoami{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
-.whoami .n{font-size:13.5px;font-weight:700}
-.whoami .n small{display:block;font-size:11.5px;font-weight:400;color:var(--ink-3);margin-top:1px}
-.lbrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
-.lbrow .pos{font-size:12.5px;font-weight:700;color:var(--ink-3);width:24px;flex:none;
-  font-variant-numeric:tabular-nums}
-.lbrow .nm{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lbrow .mn{font-size:13px;font-weight:700;margin-left:auto;font-variant-numeric:tabular-nums;flex:none}
-.lbrow .dy{font-size:11px;color:var(--ink-3);flex:none}
-.lbrow.me{background:var(--card);border-radius:10px;padding-inline:10px;
-  border-top-color:transparent;box-shadow:var(--shadow)}
-.lbrow.me .pos,.lbrow.me .nm{color:var(--sub)}
-.lbbar{height:6px;background:var(--well);border-radius:999px;overflow:hidden;margin-top:3px}
-.lbbar i{display:block;height:100%;background:var(--sub);border-radius:999px}
-.lbcell{flex:1;min-width:0}
-.synced{margin-top:18px;font-size:11.5px;color:var(--ink-3);text-align:center}
 
 /* ---------------- sheet ---------------- */
 /* the backdrop deliberately starts below the status bar: iOS paints that strip
    itself and keeps whatever colour is composited over it */
 .backdrop{position:fixed;left:0;right:0;bottom:0;top:env(safe-area-inset-top);
-  background:rgba(20,30,22,.45);z-index:50;opacity:0;visibility:hidden;
+  background:rgba(40,30,20,.38);z-index:50;opacity:0;visibility:hidden;
   pointer-events:none;transition:opacity .22s, visibility 0s .22s}
 .backdrop.on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .22s}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;max-height:88dvh;overflow-y:auto;
-  background:var(--paper);border-radius:22px 22px 0 0;border-top:1px solid var(--line);
+  background:var(--paper);border-radius:26px 26px 0 0;border-top:1px solid var(--line);
   padding:8px 20px calc(env(safe-area-inset-bottom) + 24px);
   transform:translateY(102%);transition:transform .26s cubic-bezier(.3,.9,.3,1);
   max-width:520px;margin:0 auto;-webkit-overflow-scrolling:touch}
@@ -330,21 +301,22 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
 .sheetx{width:34px;height:34px;border-radius:999px;background:var(--well);color:var(--ink-2);
   display:grid;place-items:center;font-size:15px;line-height:1}
 .sheetx:active{background:var(--line)}
-.sheet h2{font-family:var(--fd);font-size:20px;font-weight:600;
-  font-variation-settings:'SOFT' 50,'WONK' 1;margin:0 0 4px}
+.sheet h2{font-family:var(--fd);font-size:22px;font-weight:600;
+  font-variation-settings:'SOFT' 100,'WONK' 1;margin:0 0 4px}
 .sheet .sub{font-size:12.5px;color:var(--ink-3);margin:0 0 18px;line-height:1.55}
 .subjhead{display:flex;align-items:center;gap:8px;margin:22px 0 10px;font-size:11.5px;
   font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
 .spgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.sp{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;
-  padding:8px 8px 11px;text-align:center}
-.sp[aria-pressed="true"]{border-color:var(--sub);box-shadow:0 0 0 1px var(--sub)}
+.sp{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:8px 8px 11px;text-align:center;box-shadow:var(--shadow)}
+.sp[aria-pressed="true"]{border-color:var(--sel, var(--sub));box-shadow:0 0 0 2px var(--sel, var(--sub))}
 .sp canvas{width:100%;aspect-ratio:1;display:block}
-.sp .n{font-size:12px;font-weight:700;line-height:1.25;margin-top:4px}
-.sp .t{font-size:10.5px;color:var(--ink-3);margin-top:2px}
-.sp.locked canvas{opacity:.3;filter:grayscale(1)}
+.sp .dice{width:100%;aspect-ratio:1;display:grid;place-items:center;font-size:62px;line-height:1}
+.sp .n{font-size:13px;font-weight:700;line-height:1.25;margin-top:4px}
+.sp .t{font-size:11px;color:var(--ink-3);margin-top:2px}
+.sp.locked canvas{opacity:.35;filter:grayscale(.85)}
 .sp .cost{display:inline-flex;align-items:center;gap:4px;margin-top:4px;
-  font-size:11.5px;font-weight:700;color:var(--coin)}
+  font-size:12px;font-weight:700;color:var(--coin)}
 .sp .cost svg{width:12px;height:12px}
 .sp.cant .cost{color:var(--ink-3)}
 
@@ -363,10 +335,9 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
 .sw[aria-pressed="true"]{background:var(--sub)}
 .sw[aria-pressed="true"] i{transform:translateX(20px)}
 .help{font-size:12.5px;color:var(--ink-2);line-height:1.65;background:var(--card);
-  border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:8px}
+  border:1px solid var(--line);border-radius:16px;padding:13px 15px;margin-top:8px}
 .help b{font-weight:700;color:var(--ink)}
-.stagelist{margin-top:10px;font-size:12px;color:var(--ink-3);line-height:1.7}
-.stagelist b{color:var(--ink-2)}
+.synced{margin-top:18px;font-size:11.5px;color:var(--ink-3);text-align:center}
 
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 </style>
@@ -375,10 +346,10 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
 <div id="app">
   <div class="bar" id="bar">
     <button class="coins" id="coinsBtn">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="var(--coin)"></circle><circle cx="12" cy="12" r="5.6" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.4"></circle></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="var(--coin)"></circle><circle cx="12" cy="12" r="5.6" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.4"></circle></svg>
       <span id="coins">0</span>
     </button>
-    <div class="title" id="barTitle">EPFL Focus</div>
+    <div class="title" id="barTitle">Grove</div>
     <button class="icobtn" id="openSettings" aria-label="Settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6 17 17M7 7 5.4 5.4"></path></svg>
     </button>
@@ -389,24 +360,24 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
     <section class="view on" id="v-home">
       <div class="dialwrap" id="dialwrap">
         <svg id="dial" viewBox="0 0 300 300" aria-hidden="true">
+          <circle class="disc" cx="150" cy="150" r="119"></circle>
           <circle class="track" cx="150" cy="150" r="126"></circle>
           <path class="arc" id="arc"></path>
           <g id="handle">
-            <circle class="handle" id="hOuter" r="13"></circle>
-            <circle class="handle-dot" id="hInner" r="4.5"></circle>
+            <circle class="handle" id="hOuter" r="14"></circle>
+            <circle class="handle-dot" id="hInner" r="5"></circle>
           </g>
         </svg>
         <canvas id="preview"></canvas>
-        <button class="pickcenter" id="pickCenter" hidden>Pick<br>a course</button>
       </div>
 
       <div class="readout">
         <div class="minutes"><span id="minVal">45</span><small id="minUnit">min</small></div>
-        <button class="species" id="speciesBtn" hidden>
-          <span class="code" id="spCode"></span><span id="spName"></span><span class="chev">▾</span>
+        <button class="treebtn" id="treeBtn">
+          <span class="dotc" id="treeDot"></span><span id="treeName"></span><span class="chev">▾</span>
         </button>
         <div class="growline" id="growLine"></div>
-        <div class="stagename" id="stageName"></div>
+        <div class="stagename" id="planLine"></div>
       </div>
 
       <button class="plant" id="plant">Start</button>
@@ -414,9 +385,10 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
 
     <!-- ===================== SESSION ===================== -->
     <section class="view" id="v-session">
-      <div class="session-top"><div class="chip"><span class="code" id="sesCode"></span><span id="sesName"></span></div></div>
+      <div class="session-top"><div class="chip"><span class="dotc" id="sesDot"></span><span id="sesName"></span></div></div>
       <div class="dialwrap" id="sesWrap">
         <svg viewBox="0 0 300 300" aria-hidden="true">
+          <circle class="disc" cx="150" cy="150" r="119"></circle>
           <circle class="track" cx="150" cy="150" r="126"></circle>
           <path class="arc" id="sesArc"></path>
         </svg>
@@ -424,22 +396,32 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
       </div>
       <div class="clock" id="clock">45:00</div>
       <div class="substate" id="sesState"></div>
-      <button class="hold" id="abandon"><i id="holdFill"></i><span id="abandonLabel">Hold to give up</span></button>
+      <button class="hold" id="abandon"><i id="holdFill"></i><span id="abandonLabel">Hold to stop</span></button>
     </section>
 
     <!-- ===================== OUTCOME ===================== -->
     <section class="view" id="v-result">
-      <div class="dialwrap" id="resWrap" style="max-width:250px">
+      <div class="dialwrap" id="resWrap" style="max-width:260px">
         <canvas id="organism2" style="left:0;top:0;width:100%;height:100%"></canvas>
       </div>
       <div class="result">
         <h2 id="resTitle"></h2>
         <p id="resSub"></p>
         <div class="gain" id="resGain"></div>
-        <div class="pbar"><i id="resBar"></i></div>
-        <p id="resNote"></p>
+        <p class="note" id="resNote"></p>
         <button class="again" id="again">Continue</button>
       </div>
+    </section>
+
+    <!-- ===================== FOREST ===================== -->
+    <section class="view" id="v-forest">
+      <div class="scope" id="fscope">
+        <button data-f="today" aria-selected="false">Today</button>
+        <button data-f="week" aria-selected="true">Week</button>
+        <button data-f="month" aria-selected="false">Month</button>
+        <button data-f="all" aria-selected="false">All</button>
+      </div>
+      <div id="forestBody"></div>
     </section>
 
     <!-- ===================== STATS ===================== -->
@@ -457,19 +439,12 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
       </div>
       <div id="statsBody"></div>
     </section>
-
-    <!-- ===================== COLLECTION ===================== -->
-    <section class="view" id="v-grove"><div id="groveBody"></div></section>
-
-    <!-- ===================== RANKING ===================== -->
-    <section class="view" id="v-rank"><div id="rankBody"></div></section>
   </main>
 
   <nav id="nav">
     <button data-view="home" aria-selected="true">Timer</button>
+    <button data-view="forest" aria-selected="false">Forest</button>
     <button data-view="stats" aria-selected="false">Stats</button>
-    <button data-view="grove" aria-selected="false">Collection</button>
-    <button data-view="rank" aria-selected="false">Ranking</button>
   </nav>
 </div>
 
@@ -483,47 +458,39 @@ nav button[aria-selected="true"]{background:var(--card);color:var(--ink);box-sha
 <script>
 "use strict";
 /* =========================================================================
-   EPFL Focus — study timer. No dependencies, no network: everything lives in
-   localStorage and never leaves the phone.
+   Grove — focus timer. Pick a tree, and it grows from a seed while you stay
+   on the timer; when the time is up it is planted in your forest. No
+   dependencies, no network: everything lives in localStorage.
 
    Time is always derived from Date.now(): iOS freezes JS in the background,
    so any incremental counter would be wrong.
    ========================================================================= */
 
-const BUILD = 18;                            /* bump with sw.js CACHE */
-const STORE = 'epflfocus.v3';
+const BUILD = 19;                            /* bump with sw.js CACHE */
+const STORE = 'epflfocus.v3';                /* the key predates the rename: keep it, it holds the history */
 const COIN_PER_MIN = 1;
-const MATURE_BONUS = 150;
 const MIN_MINUTES = 5;
 const STEP_MINUTES = 5;                     /* the drag is smooth, the value moves in 5s */
 const MAX_MINUTES = 120;
-const STAGE_MIN = 180;                      /* one named part every 3 hours of study */
-const STAGE_MS = STAGE_MIN*60000;
-const LEGACY_STAGE_MS = 20*60000;           /* what a part cost before build 14 */
 const OVERTIME_MAX = 60*60000;              /* extra time a session can run on for */
 const SESSION_CAP  = 120*60000;             /* planned + overtime never goes past this */
 const POM = {block:25*60000, short:5*60000, long:15*60000, every:4};
-
-const SUBJECTS = [
-  {id:'hum428', code:'HUM-428', name:'Science, technology & env.',   hue:'#3c8d59', dark:'#4e9a52'},
-  {id:'ee411',  code:'EE-411',  name:'Inference and learning',       hue:'#467ac6', dark:'#5285d9'},
-  {id:'ee429',  code:'EE-429',  name:'VLSI design',                  hue:'#bf534e', dark:'#d15b60'},
-  {id:'cs473',  code:'CS-473',  name:'System programming for SoC',   hue:'#189a9b', dark:'#009b95'},
-  {id:'cs472',  code:'CS-472',  name:'Design technologies for IC',   hue:'#9a5fac', dark:'#a569bf'},
-  {id:'ee557',  code:'EE-557',  name:'Semiconductor devices I',      hue:'#a86b16', dark:'#b77610'},
-  {id:'ee424',  code:'EE-424',  name:'Analog VLSI design',           hue:'#b45483', dark:'#cd5586'},
-  {id:'other',  code:'OTHER',   name:'Anything else',                hue:'#6b7a70', dark:'#8b9a90'},
-];
-const SUB = Object.fromEntries(SUBJECTS.map(s => [s.id, s]));
+const MEADOW_MAX = 150;                     /* more than this and the trees get too small to read */
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MON3 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DAY3 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];   /* weeks start on Monday */
 
 /* ========================================================== DRAWING MODEL
-   A species is a builder that emits primitives tagged with the stage they
-   belong to. One stage = STAGE_MIN minutes of study, so a specimen visibly
-   gains a new, named part every few hours of work.
+   A tree is a builder that emits primitives tagged with the stage they belong
+   to, on a 1000×1000 canvas with the foot of the trunk at (500, 900). During
+   a session the stages fill in one after the other, from seed to full tree.
+     gnd  — the grass mound: always there, left out when planted in the forest
+     un   — scaffolding (seed, sprout, sapling) that fades out during the stage
+            after `un`, while the real thing grows over it
+     q    — when the item appears within its stage, 0…1; items that share a q
+            appear together, which keeps an outlined crown one clean shape
+     o    — the point a polygon grows out of (default: its centre)
    ========================================================================= */
 function emitter(){
   const items = [], names = [];
@@ -534,1035 +501,422 @@ function emitter(){
     line(x1,y1,x2,y2,o){ return push(Object.assign({k:'line',x1,y1,x2,y2}, o)); },
     path(pts,o){ return push(Object.assign({k:'path',pts}, o)); },
     curve(x1,y1,cx,cy,x2,y2,o){ return push(Object.assign({k:'curve',x1,y1,cx,cy,x2,y2}, o)); },
-    rect(x,y,w,h,o){ return push(Object.assign({k:'rect',x,y,rw:w,rh:h}, o)); },
     poly(pts,o){ return push(Object.assign({k:'poly',pts}, o)); },
     dot(x,y,r,o){ return push(Object.assign({k:'dot',x,y,r}, o)); },
     ell(x,y,rx,ry,rot,o){ return push(Object.assign({k:'ell',x,y,rx,ry,rot:rot||0}, o)); },
-    text(x,y,t,o){ return push(Object.assign({k:'text',x,y,t}, o)); },
-    arrow(x1,y1,x2,y2,o){ return push(Object.assign({k:'arrow',x1,y1,x2,y2}, o)); },
   };
   return {A, items, names};
 }
 
-/* --- shared little shapes ------------------------------------------------ */
-function boxLabel(A, x, y, w, h, label, o){
-  o = o || {};
-  A.rect(x, y, w, h, {f:o.f || 'lite', c:o.c || 'dark', w:o.w || 2.4, r:o.r != null ? o.r : 10});
-  A.text(x + w/2, y + h/2, label, {size:o.size || 26, c:o.tc || 'ink'});
-}
-function isoP(x, y, z, u, cx, cy){
-  return [cx + (x - z)*0.866*u, cy - ((x + z)*0.5 - y)*u];
-}
-
-/* ===================== EE-557 · Silicon crystal (9 stages) ================ */
-function spSiCrystal(rnd, S){
-  const {A, items, names} = emitter();
-  const u = S*0.30, cx = S*0.50, cy = S*0.56;
-  const P = (x,y,z) => isoP(x, y, z, u, cx, cy);
-  const corners = [[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]];
-  const faces = [[.5,.5,0],[.5,.5,1],[.5,0,.5],[.5,1,.5],[0,.5,.5],[1,.5,.5]];
-  const inner = [[.25,.25,.25],[.75,.75,.25],[.75,.25,.75],[.25,.75,.75]];
-  const near = p => {
-    const all = corners.concat(faces);
-    return all.map(q => ({q, d:Math.hypot(q[0]-p[0], q[1]-p[1], q[2]-p[2])}))
-      .sort((a,b) => a.d - b.d).slice(0,4).map(o => o.q);
-  };
-  const atom = (p, o) => { const [x,y] = P(...p); A.dot(x, y, S*0.026, Object.assign({f:'main', c:'dark', w:2}, o)); };
-  const bond = (a, b, o) => { const [x1,y1] = P(...a), [x2,y2] = P(...b);
-    A.line(x1, y1, x2, y2, Object.assign({c:'dark', w:3.4}, o)); };
-
-  A.stage('Si atom');
-  atom(inner[0]);
-  { const [x,y] = P(...inner[0]); A.text(x + S*0.075, y - S*0.045, 'Si', {size:49, c:'dark'}); }
-
-  A.stage('Unit cell');
-  corners.forEach(a => corners.forEach(b => {
-    const d = Math.abs(a[0]-b[0]) + Math.abs(a[1]-b[1]) + Math.abs(a[2]-b[2]);
-    if (d === 1 && a.join() < b.join()) bond(a, b, {c:'alt', w:2.2});
-  }));
-  corners.forEach(c => atom(c, {f:'lite'}));
-
-  A.stage('Face-centred atoms');
-  faces.forEach(f => atom(f, {f:'lite'}));
-
-  A.stage('Covalent bonds');
-  near(inner[0]).forEach(q => bond(inner[0], q));
-
-  A.stage('Diamond basis');
-  inner.slice(1).forEach(p => { atom(p); near(p).forEach(q => bond(p, q)); });
-
-  A.stage('a = 5.43 Å');
-  { const yb = S*0.905, xa = S*0.24, xb = S*0.76;
-    A.line(xa, yb, xb, yb, {c:'alt', w:2.2});
-    A.line(xa, yb - S*0.022, xa, yb + S*0.022, {c:'alt', w:2.2});
-    A.line(xb, yb - S*0.022, xb, yb + S*0.022, {c:'alt', w:2.2});
-    A.text(S*0.5, yb - S*0.085, 'a = 5.43 Å', {size:40, c:'alt'}); }
-
-  A.stage('Donor · P');
-  { const p = faces[2]; atom(p, {f:'cool', c:'cool'});
-    const [x,y] = P(...p);
-    A.dot(x + S*0.055, y - S*0.05, S*0.015, {f:'cool', c:'cool', w:1.6});
-    A.line(x + S*0.03, y - S*0.03, S*0.80, S*0.115, {c:'cool', w:1.8});
-    A.text(S*0.86, S*0.10, 'n · P', {size:38, c:'cool'}); }
-
-  A.stage('Acceptor · B');
-  { const p = faces[4]; atom(p, {f:'paper', c:'hot'});
-    const [x,y] = P(...p);
-    A.dot(x - S*0.055, y + S*0.05, S*0.015, {c:'hot', w:1.8});
-    A.line(x - S*0.03, y + S*0.03, S*0.16, S*0.80, {c:'hot', w:1.8});
-    A.text(S*0.13, S*0.835, 'p · B', {size:38, c:'hot'}); }
-
-  A.stage('Carriers');
-  for (let i=0;i<7;i++){
-    const a = rnd()*Math.PI*2, r = S*(0.13 + rnd()*0.18);
-    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r*0.62;
-    A.dot(x, y, S*0.013, i % 2 ? {f:'cool', c:'cool', w:1.4} : {c:'hot', w:1.6});
-  }
-  A.arrow(S*0.30, S*0.055, S*0.62, S*0.055, {c:'alt', w:2.4});
-  A.text(S*0.68, S*0.055, 'E', {size:39, c:'alt', align:'left'});
-  return {items, names};
-}
-
-/* ===================== EE-557 · MOSFET cross-section (12 stages) ========== */
-function spMosfet(rnd, S){
-  const {A, items, names} = emitter();
-  const L = S*0.10, R = S*0.90, top = S*0.44, bot = S*0.86;
-  const gx = S*0.38, gw = S*0.24;
-
-  A.stage('p-substrate');
-  A.rect(L, top, R-L, bot-top, {f:'lite', c:'dark', w:2.6, r:6});
-  A.text(S*0.5, S*0.78, 'p-Si substrate', {size:42, c:'dark'});
-
-  A.stage('Shallow trench isolation');
-  A.rect(L, top - S*0.055, S*0.13, S*0.13, {f:'altl', c:'alt', w:2.2, r:4});
-  A.rect(R - S*0.13, top - S*0.055, S*0.13, S*0.13, {f:'altl', c:'alt', w:2.2, r:4});
-  A.text(S*0.145, top - S*0.085, 'STI', {size:36, c:'alt'});
-
-  A.stage('Gate oxide');
-  A.rect(gx, top - S*0.022, gw, S*0.022, {f:'hot', c:'hot', w:1.6, r:2});
-  A.line(gx, top - S*0.011, S*0.185, S*0.245, {c:'hot', w:1.8});
-  A.text(S*0.17, S*0.215, 'SiO₂ · 2 nm', {size:34, c:'hot'});
-
-  A.stage('Poly gate');
-  A.rect(gx, top - S*0.155, gw, S*0.133, {f:'main', c:'dark', w:2.6, r:4});
-  A.text(gx + gw/2, top - S*0.088, 'poly', {size:39, c:'paper'});
-
-  A.stage('Spacers');
-  A.poly([[gx, top-S*0.022],[gx, top-S*0.13],[gx-S*0.055, top-S*0.022]], {f:'altl', c:'alt', w:2});
-  A.poly([[gx+gw, top-S*0.022],[gx+gw, top-S*0.13],[gx+gw+S*0.055, top-S*0.022]], {f:'altl', c:'alt', w:2});
-
-  A.stage('n+ source & drain');
-  A.rect(L + S*0.045, top, S*0.235, S*0.115, {f:'cool', c:'cool', w:2.2, r:5});
-  A.rect(R - S*0.28, top, S*0.235, S*0.115, {f:'cool', c:'cool', w:2.2, r:5});
-  A.text(L + S*0.163, top + S*0.058, 'n+', {size:39, c:'paper'});
-  A.text(R - S*0.163, top + S*0.058, 'n+', {size:39, c:'paper'});
-
-  A.stage('LDD extensions');
-  A.rect(L + S*0.28, top, S*0.045, S*0.045, {f:'cool', c:'cool', w:1.6, r:3});
-  A.rect(R - S*0.325, top, S*0.045, S*0.045, {f:'cool', c:'cool', w:1.6, r:3});
-
-  A.stage('Depletion edge');
-  A.path([[L+S*0.03, top+S*0.155],[S*0.32, top+S*0.115],[S*0.5, top+S*0.10],
-          [S*0.68, top+S*0.115],[R-S*0.03, top+S*0.155]], {c:'dark', w:2, dash:[8,7]});
-
-  A.stage('Silicide & contacts');
-  [L + S*0.09, R - S*0.20].forEach(x => {
-    A.rect(x, top - S*0.016, S*0.11, S*0.016, {f:'alt', c:'alt', w:1.4, r:2});
-    A.rect(x + S*0.03, top - S*0.115, S*0.05, S*0.10, {f:'alt', c:'alt', w:2, r:2});
-  });
-
-  A.stage('Metal 1');
-  A.rect(L + S*0.05, top - S*0.165, S*0.19, S*0.05, {f:'altl', c:'alt', w:2.2, r:3});
-  A.rect(R - S*0.24, top - S*0.165, S*0.19, S*0.05, {f:'altl', c:'alt', w:2.2, r:3});
-  A.text(L + S*0.145, top - S*0.14, 'S', {size:39, c:'alt'});
-  A.text(R - S*0.145, top - S*0.14, 'D', {size:39, c:'alt'});
-
-  A.stage('Inversion channel');
-  A.rect(gx, top + S*0.004, gw, S*0.028, {f:'cool', c:'cool', w:1.6, r:2});
-  for (let i=0;i<5;i++) A.dot(gx + gw*(i+.5)/5, top + S*0.018, S*0.009, {f:'cool', c:'cool', w:1.2});
-  A.text(S*0.5, top + S*0.068, 'inversion', {size:34, c:'cool'});
-
-  A.stage('Drain current');
-  A.arrow(R - S*0.145, S*0.225, L + S*0.145, S*0.225, {c:'hot', w:3.2});
-  A.text(S*0.5, S*0.165, 'ID', {size:46, c:'hot'});
-  return {items, names};
-}
-
-/* ===================== EE-411 · Central limit theorem (9 stages) ========== */
-function spCLT(rnd, S){
-  const {A, items, names} = emitter();
-  const x0 = S*0.10, x1 = S*0.90, base = S*0.80, H = S*0.52;
-  const gauss = (x, mu, sg) => Math.exp(-((x-mu)**2)/(2*sg*sg));
-  const bars = 17, bw = (x1-x0)/bars;
-
-  A.stage('Axes');
-  A.line(x0, base, x1, base, {c:'ink', w:2.4});
-  A.line(x0, base, x0, base - H, {c:'ink', w:2.4});
-  for (let i=0;i<=4;i++){
-    const x = x0 + (x1-x0)*i/4;
-    A.line(x, base, x, base + S*0.016, {c:'ink', w:2});
-  }
-  A.text(S*0.5, base + S*0.075, 'X̄ₙ', {size:42, c:'ink'});
-
-  A.stage('One draw');
-  A.dot(x0 + (x1-x0)*0.31, base - S*0.03, S*0.017, {f:'main', c:'dark', w:2});
-
-  A.stage('n = 5');
-  [0.22,0.44,0.58,0.71,0.35].forEach((t,i) =>
-    A.dot(x0 + (x1-x0)*t, base - S*0.03 - i*S*0.028, S*0.017, {f:'main', c:'dark', w:2}));
-
-  const drawBars = (sg, alpha) => {
-    for (let i=0;i<bars;i++){
-      const t = (i + .5)/bars, h = gauss(t, .5, sg)*H*0.92;
-      A.rect(x0 + i*bw + bw*0.10, base - h, bw*0.80, h, {f:alpha, c:'dark', w:1.6, r:3});
-    }
-  };
-
-  A.stage('n = 20 · histogram');
-  drawBars(0.30, 'altl');
-
-  A.stage('n = 100');
-  drawBars(0.20, 'lite');
-
-  A.stage('n = 1000');
-  drawBars(0.145, 'main');
-
-  A.stage('Gaussian limit');
-  { const pts = [];
-    for (let i=0;i<=60;i++){ const t = i/60; pts.push([x0 + (x1-x0)*t, base - gauss(t, .5, .145)*H*0.92]); }
-    A.path(pts, {c:'hot', w:4}); }
-
-  A.stage('Mean and σ');
-  { const mid = x0 + (x1-x0)*0.5;
-    A.line(mid, base, mid, base - H*0.95, {c:'ink', w:2, dash:[7,6]});
-    A.text(mid, base - H - S*0.03, 'μ', {size:45, c:'ink'});
-    [-1,1].forEach(k => {
-      const x = mid + k*(x1-x0)*0.145;
-      A.line(x, base, x, base - gauss(.5 + k*.145, .5, .145)*H*0.92, {c:'alt', w:2, dash:[5,5]});
-    });
-    A.text(mid + (x1-x0)*0.30, base - H*0.62, 'σ/√n', {size:36, c:'alt'}); }
-
-  A.stage('Tails');
-  { const pts = [];
-    for (let i=0;i<=20;i++){ const t = 0.78 + 0.22*i/20; pts.push([x0 + (x1-x0)*t, base - gauss(t, .5, .145)*H*0.92]); }
-    pts.push([x1, base], [x0 + (x1-x0)*0.78, base]);
-    A.poly(pts, {f:'hot', c:'hot', w:1.4});
-    A.text(S*0.5, S*0.13, 'CLT', {size:55, c:'hot'}); }
-  return {items, names};
-}
-
-/* ===================== EE-411 · Gradient descent (12 stages) ============== */
-function spDescent(rnd, S){
-  const {A, items, names} = emitter();
-  const cx = S*0.55, cy = S*0.58, rot = -0.5;
-  const ring = k => A.ell(cx, cy, S*0.365*k, S*0.155*k, rot, {c:'alt', w:2.2});
-  /* an elongated quadratic bowl: descent zig-zags across the narrow axis */
-  const f = (x, y) => { const dx = x-cx, dy = y-cy;
-    const u = dx*Math.cos(-rot) - dy*Math.sin(-rot), v = dx*Math.sin(-rot) + dy*Math.cos(-rot);
-    return [u, v]; };
-  const g = (u, v) => [u*0.16, v*0.95];
-
-  A.stage('Loss landscape'); ring(1);
-  A.stage('Contours');       ring(0.78); ring(0.58);
-  A.stage('Basin');          ring(0.40); ring(0.24); ring(0.11);
-
-  A.stage('Start θ₀');
-  let u = -S*0.36, v = -S*0.115;
-  const toXY = (u,v) => [cx + u*Math.cos(rot) - v*Math.sin(rot), cy + u*Math.sin(rot) + v*Math.cos(rot)];
-  let [px,py] = toXY(u,v);
-  A.dot(px, py, S*0.022, {f:'hot', c:'hot', w:2});
-  A.text(px - S*0.02, py - S*0.06, 'θ₀', {size:42, c:'hot'});
-
-  for (let s=0;s<6;s++){
-    A.stage('Step ' + (s+1));
-    const [gu,gv] = g(u,v);
-    u -= gu*1.05; v -= gv*1.85;
-    const [nx,ny] = toXY(u,v);
-    A.arrow(px, py, nx, ny, {c:'hot', w:3});
-    A.dot(nx, ny, S*0.016, {f:'hot', c:'hot', w:1.8});
-    px = nx; py = ny;
-  }
-
-  A.stage('Minimum θ*');
-  A.line(cx - S*0.03, cy - S*0.03, cx + S*0.03, cy + S*0.03, {c:'ink', w:3});
-  A.line(cx - S*0.03, cy + S*0.03, cx + S*0.03, cy - S*0.03, {c:'ink', w:3});
-  A.text(cx + S*0.085, cy + S*0.055, 'θ*', {size:45, c:'ink'});
-
-  A.stage('∇L = 0');
-  A.dot(cx, cy, S*0.055, {c:'hot', w:3});
-  A.text(S*0.24, S*0.13, '∇L = 0', {size:49, c:'hot'});
-  return {items, names};
-}
-
-/* ===================== CS-473 · 5-stage pipeline (9 stages) =============== */
-function spPipeline(rnd, S){
-  const {A, items, names} = emitter();
-  const names5 = ['IF','ID','EX','MEM','WB'];
-  const bx = S*0.30, bw = S*0.40, bh = S*0.108, gap = S*0.055;
-  const y0 = S*0.09;
-  const Y = i => y0 + i*(bh + gap);
-
-  names5.forEach((n,i) => {
-    A.stage(n === 'IF' ? 'Instruction fetch' : n === 'ID' ? 'Instruction decode'
-      : n === 'EX' ? 'Execute' : n === 'MEM' ? 'Memory' : 'Write back');
-    boxLabel(A, bx, Y(i), bw, bh, n, {f:'lite', size:45});
-    if (i){
-      A.line(S*0.5, Y(i-1) + bh, S*0.5, Y(i), {c:'dark', w:2.6});
-      A.rect(bx + bw*0.30, Y(i) - gap*0.72, bw*0.40, gap*0.44, {f:'alt', c:'alt', w:1.6, r:3});
-    }
-  });
-
-  A.stage('Register file');
-  boxLabel(A, S*0.735, Y(1) + bh*0.2, S*0.20, bh*1.6, 'RF', {f:'altl', c:'alt', size:42, tc:'alt'});
-  A.line(bx + bw, Y(1) + bh*0.5, S*0.735, Y(1) + bh*0.5, {c:'alt', w:2.2});
-  A.line(bx + bw, Y(4) + bh*0.5, S*0.90, Y(4) + bh*0.5, {c:'alt', w:2.2});
-  A.line(S*0.90, Y(4) + bh*0.5, S*0.90, Y(2) + bh*0.9, {c:'alt', w:2.2});
-  A.line(S*0.90, Y(2) + bh*0.9, S*0.835, Y(2) + bh*0.9, {c:'alt', w:2.2});
-
-  A.stage('Forwarding');
-  A.curve(bx, Y(2) + bh*0.6, S*0.10, Y(2) + bh*1.2, bx, Y(2) + bh*0.15, {c:'hot', w:3});
-  A.curve(bx, Y(3) + bh*0.6, S*0.06, Y(2) + bh*1.1, bx, Y(2) + bh*0.55, {c:'hot', w:3});
-  A.text(S*0.115, Y(2) + bh*1.75, 'bypass', {size:36, c:'hot'});
-
-  A.stage('Hazard unit');
-  boxLabel(A, S*0.05, Y(0) + bh*0.1, S*0.19, bh*0.85, 'HZD', {f:'hot', c:'hot', size:36, tc:'paper'});
-  A.line(S*0.24, Y(0) + bh*0.5, bx, Y(0) + bh*0.5, {c:'hot', w:2.2, dash:[6,5]});
-  A.text(S*0.145, Y(0) + bh*1.25, 'stall', {size:32, c:'hot'});
-
-  A.stage('Instructions in flight');
-  const flight = ['main','cool','hot','alt','dark'];
-  flight.forEach((c,i) => {
-    A.rect(bx + bw*0.055, Y(i) + bh*0.24, bw*0.14, bh*0.52, {f:c, c:'dark', w:1.8, r:4});
-    A.text(bx + bw*0.125, Y(i) + bh*0.5, String(5-i), {size:26, c:'paper'});
-  });
-  return {items, names};
-}
-
-/* ===================== CS-473 · GECKO5 SoC (12 stages) =================== */
-function spGecko(rnd, S){
-  const {A, items, names} = emitter();
-  const busY = S*0.505, busH = S*0.062;
-  const BW = S*0.165, BX = i => S*0.055 + i*S*0.188;
-  const bot = (i, label, sub) => {
-    boxLabel(A, BX(i), S*0.63, BW, S*0.185, label, {size:34});
-    A.line(BX(i) + BW/2, S*0.63, BX(i) + BW/2, busY + busH, {c:'dark', w:2.6});
-    if (sub) A.text(BX(i) + BW/2, S*0.855, sub, {size:30, c:'alt'});
-  };
-
-  A.stage('OpenRISC or1300');
-  boxLabel(A, S*0.055, S*0.115, S*0.40, S*0.275, 'or1300', {f:'main', size:49, tc:'paper'});
-  A.text(S*0.255, S*0.325, '5-stage · 32 bit', {size:30, c:'paper'});
-
-  A.stage('32-bit bus');
-  A.rect(S*0.05, busY, S*0.90, busH, {f:'dark', c:'dark', w:2, r:8});
-  A.text(S*0.135, busY - S*0.045, '32-bit bus', {size:32, c:'dark'});
-  A.line(S*0.255, S*0.39, S*0.255, busY, {c:'dark', w:3.6});
-
-  A.stage('Instruction cache');
-  boxLabel(A, S*0.485, S*0.115, S*0.21, S*0.13, 'I$', {size:38});
-  A.line(S*0.59, S*0.245, S*0.59, busY, {c:'dark', w:2.6});
-
-  A.stage('Data cache');
-  boxLabel(A, S*0.735, S*0.115, S*0.21, S*0.13, 'D$', {size:38});
-  A.line(S*0.84, S*0.245, S*0.84, busY, {c:'dark', w:2.6});
-
-  A.stage('Scratchpad');
-  bot(0, 'SPM', '2 kB');
-
-  A.stage('Bus arbiter');
-  A.rect(S*0.345, busY - S*0.042, S*0.15, busH + S*0.084, {f:'hot', c:'hot', w:2.2, r:6});
-  A.text(S*0.42, busY + busH/2, 'ARB', {size:32, c:'paper'});
-
-  A.stage('BIOS ROM');
-  bot(1, 'ROM', '8 kB');
-
-  A.stage('SDRAM controller');
-  bot(2, 'SDRAM');
-
-  A.stage('UART RS-232');
-  bot(3, 'UART');
-
-  A.stage('HDMI controller');
-  bot(4, 'HDMI');
-
-  A.stage('Bus traffic');
-  [0,1,2,3,4].forEach(i => A.dot(BX(i) + BW/2, busY + busH/2, S*0.015, {f:'paper', c:'paper', w:0}));
-  A.dot(S*0.255, busY + busH/2, S*0.019, {f:'paper', c:'paper', w:0});
-  A.dot(S*0.59, busY + busH/2, S*0.015, {f:'paper', c:'paper', w:0});
-  A.dot(S*0.84, busY + busH/2, S*0.015, {f:'paper', c:'paper', w:0});
-
-  A.stage('GECKO5 board');
-  A.rect(S*0.015, S*0.055, S*0.97, S*0.855, {c:'alt', w:2.6, dash:[9,7], r:14});
-  A.text(S*0.5, S*0.955, 'GECKO5 · EPFL edition', {size:34, c:'alt'});
-  return {items, names};
-}
-
-/* ===================== CS-472 · AND-inverter graph (9 stages) ============= */
-function spAIG(rnd, S){
-  const {A, items, names} = emitter();
-  const R = S*0.036;
-  const node = (x,y,o) => A.dot(x, y, R, Object.assign({f:'lite', c:'dark', w:2.6}, o));
-  const bub = (x,y) => A.dot(x, y, S*0.014, {f:'paper', c:'hot', w:2.2});
-  const ins = [0.14, 0.38, 0.62, 0.86].map(t => [S*t, S*0.88]);
-
-  A.stage('Primary inputs');
-  ins.forEach(([x,y],i) => { node(x, y, {f:'altl', c:'alt'});
-    A.text(x, y + S*0.075, 'abcd'[i], {size:45, c:'alt'}); });
-
-  A.stage('AND level 1');
-  const l1 = [[S*0.26, S*0.66],[S*0.74, S*0.66]];
-  l1.forEach((p,i) => { node(p[0], p[1]);
-    A.line(ins[i*2][0], ins[i*2][1] - R, p[0], p[1] + R, {c:'dark', w:2.4});
-    A.line(ins[i*2+1][0], ins[i*2+1][1] - R, p[0], p[1] + R, {c:'dark', w:2.4}); });
-
-  A.stage('Inverted edges');
-  bub(S*0.31, S*0.755); bub(S*0.69, S*0.755);
-
-  A.stage('AND level 2');
-  const l2 = [[S*0.38, S*0.45],[S*0.62, S*0.45]];
-  l2.forEach(p => { node(p[0], p[1]);
-    l1.forEach(q => A.line(q[0], q[1] - R, p[0], p[1] + R, {c:'dark', w:2.4})); });
-
-  A.stage('Output f');
-  node(S*0.50, S*0.24, {f:'main'});
-  l2.forEach(q => A.line(q[0], q[1] - R, S*0.50, S*0.24 + R, {c:'dark', w:2.4}));
-  A.text(S*0.50, S*0.155, 'f', {size:49, c:'dark'});
-
-  A.stage('Structural hashing');
-  A.ell(S*0.62, S*0.45, S*0.075, S*0.075, 0, {c:'hot', w:2.6, dash:[7,6]});
-  A.text(S*0.78, S*0.43, 'shared', {size:36, c:'hot'});
-
-  A.stage('Rewriting');
-  A.ell(S*0.26, S*0.66, S*0.085, S*0.075, 0, {c:'hot', w:2.6, dash:[7,6]});
-  A.arrow(S*0.16, S*0.55, S*0.235, S*0.60, {c:'hot', w:2.4});
-
-  A.stage('Technology mapping');
-  A.rect(S*0.16, S*0.60, S*0.30, S*0.135, {c:'alt', w:2.4, dash:[8,6], r:10});
-  A.rect(S*0.30, S*0.385, S*0.40, S*0.135, {c:'alt', w:2.4, dash:[8,6], r:10});
-
-  A.stage('Mapped netlist');
-  A.text(S*0.10, S*0.575, 'NAND2', {size:36, c:'alt', align:'left'});
-  A.text(S*0.30, S*0.355, 'AOI21', {size:36, c:'alt', align:'left'});
-  A.text(S*0.50, S*0.075, 'area 4.2 · depth 3', {size:36, c:'ink'});
-  return {items, names};
-}
-
-/* ===================== CS-472 · BDD (12 stages) ========================== */
-function spBDD(rnd, S){
-  const {A, items, names} = emitter();
-  const R = S*0.048;
-  const node = (x,y,l) => { A.dot(x, y, R, {f:'lite', c:'dark', w:2.6});
-    A.text(x, y, l, {size:42, c:'dark'}); };
-  const edge = (a,b,one) => A.line(a[0], a[1] + R, b[0], b[1] - R,
-    {c: one ? 'dark' : 'alt', w: one ? 2.8 : 2, dash: one ? null : [7,6]});
-  const N = {};
-
-  A.stage('Root x₁');
-  N.r = [S*0.50, S*0.16]; node(N.r[0], N.r[1], 'x₁');
-
-  A.stage('x₂ branches');
-  N.a = [S*0.28, S*0.38]; N.b = [S*0.72, S*0.38];
-  node(N.a[0], N.a[1], 'x₂'); node(N.b[0], N.b[1], 'x₂');
-
-  A.stage('0-edges');
-  edge(N.r, N.a, false);
-  A.text(S*0.355, S*0.265, '0', {size:36, c:'alt'});
-
-  A.stage('1-edges');
-  edge(N.r, N.b, true);
-  A.text(S*0.645, S*0.265, '1', {size:36, c:'dark'});
-
-  A.stage('x₃ level');
-  N.c = [S*0.16, S*0.60]; N.d = [S*0.44, S*0.60]; N.e = [S*0.84, S*0.60];
-  [N.c, N.d, N.e].forEach(p => node(p[0], p[1], 'x₃'));
-
-  A.stage('Level edges');
-  edge(N.a, N.c, false); edge(N.a, N.d, true);
-  edge(N.b, N.d, false); edge(N.b, N.e, true);
-
-  A.stage('Terminal 0');
-  A.rect(S*0.14, S*0.80, S*0.13, S*0.11, {f:'altl', c:'alt', w:2.4, r:4});
-  A.text(S*0.205, S*0.855, '0', {size:45, c:'alt'});
-
-  A.stage('Terminal 1');
-  A.rect(S*0.73, S*0.80, S*0.13, S*0.11, {f:'main', c:'dark', w:2.4, r:4});
-  A.text(S*0.795, S*0.855, '1', {size:45, c:'paper'});
-
-  A.stage('Terminal edges');
-  [[N.c,0],[N.d,1],[N.e,1]].forEach(([p,one]) =>
-    A.line(p[0], p[1] + R, one ? S*0.795 : S*0.205, S*0.80, {c: one ? 'dark' : 'alt', w: one ? 2.8 : 2, dash: one ? null : [7,6]}));
-  [[N.c,1],[N.d,0],[N.e,0]].forEach(([p,one]) =>
-    A.line(p[0], p[1] + R, one ? S*0.795 : S*0.205, S*0.80, {c:'alt', w:1.8, dash:[7,6]}));
-
-  A.stage('Isomorphic nodes');
-  A.ell(S*0.16, S*0.60, S*0.085, S*0.085, 0, {c:'hot', w:2.6, dash:[7,6]});
-  A.ell(S*0.84, S*0.60, S*0.085, S*0.085, 0, {c:'hot', w:2.6, dash:[7,6]});
-
-  A.stage('Reduce');
-  A.curve(S*0.245, S*0.545, S*0.50, S*0.47, S*0.755, S*0.545, {c:'hot', w:2.6, dash:[8,6]});
-  A.text(S*0.50, S*0.50, 'merge', {size:36, c:'hot'});
-
-  A.stage('ROBDD');
-  A.text(S*0.50, S*0.965, 'canonical · 6 nodes', {size:36, c:'ink'});
-  return {items, names};
-}
-
-/* ===================== EE-429 · CMOS inverter layout (9 stages) =========== */
-function spInverter(rnd, S){
-  const {A, items, names} = emitter();
-  const polyX = S*0.44, polyW = S*0.11;
-
-  A.stage('n-well');
-  A.rect(S*0.10, S*0.10, S*0.80, S*0.36, {f:'altl', c:'alt', w:2.4, dash:[9,6], r:8});
-  A.text(S*0.175, S*0.145, 'n-well', {size:36, c:'alt', align:'left'});
-
-  A.stage('p+ diffusion');
-  A.rect(S*0.20, S*0.17, S*0.60, S*0.20, {f:'main', c:'dark', w:2.6, r:5});
-  A.text(S*0.74, S*0.30, 'p+', {size:39, c:'paper'});
-
-  A.stage('n+ diffusion');
-  A.rect(S*0.20, S*0.60, S*0.60, S*0.20, {f:'cool', c:'cool', w:2.6, r:5});
-  A.text(S*0.74, S*0.73, 'n+', {size:39, c:'paper'});
-
-  A.stage('Poly gate');
-  A.rect(polyX, S*0.11, polyW, S*0.78, {f:'hot', c:'hot', w:2.4, r:4});
-  A.text(polyX + polyW/2, S*0.475, 'poly', {size:32, c:'paper', rot:-Math.PI/2});
-
-  A.stage('Contacts');
-  [[S*0.25, S*0.21],[S*0.25, S*0.64],[S*0.65, S*0.21],[S*0.65, S*0.64]].forEach(([x,y]) => {
-    A.rect(x, y, S*0.055, S*0.055, {f:'alt', c:'ink', w:2, r:2});
-    A.line(x, y, x + S*0.055, y + S*0.055, {c:'ink', w:1.4});
-    A.line(x + S*0.055, y, x, y + S*0.055, {c:'ink', w:1.4});
-  });
-
-  A.stage('VDD rail');
-  A.rect(S*0.06, S*0.035, S*0.88, S*0.055, {f:'altl', c:'alt', w:2.2, r:3});
-  A.line(S*0.278, S*0.09, S*0.278, S*0.21, {c:'alt', w:5});
-  A.text(S*0.10, S*0.062, 'VDD', {size:36, c:'alt', align:'left'});
-
-  A.stage('GND rail');
-  A.rect(S*0.06, S*0.905, S*0.88, S*0.055, {f:'altl', c:'alt', w:2.2, r:3});
-  A.line(S*0.278, S*0.695, S*0.278, S*0.905, {c:'alt', w:5});
-  A.text(S*0.10, S*0.932, 'GND', {size:36, c:'alt', align:'left'});
-
-  A.stage('Output metal');
-  A.line(S*0.678, S*0.235, S*0.678, S*0.667, {c:'alt', w:6});
-  A.line(S*0.678, S*0.45, S*0.93, S*0.45, {c:'alt', w:6});
-  A.dot(S*0.93, S*0.45, S*0.022, {f:'alt', c:'ink', w:2});
-  A.text(S*0.90, S*0.395, 'Y', {size:45, c:'ink'});
-
-  A.stage('Input & symbol');
-  A.line(S*0.495, S*0.475, S*0.075, S*0.475, {c:'hot', w:5});
-  A.dot(S*0.075, S*0.475, S*0.022, {f:'hot', c:'ink', w:2});
-  A.text(S*0.115, S*0.425, 'A', {size:45, c:'ink'});
-  A.poly([[S*0.60, S*0.845],[S*0.60, S*0.955],[S*0.70, S*0.90]], {f:'paper', c:'ink', w:2.4});
-  A.dot(S*0.725, S*0.90, S*0.017, {f:'paper', c:'ink', w:2.2});
-  return {items, names};
-}
-
-/* ===================== EE-429 · Clock H-tree (12 stages) ================== */
-function spHTree(rnd, S){
-  const {A, items, names} = emitter();
-  const buf = (x, y) => {
-    const r = S*0.017;
-    A.poly([[x - r, y - r],[x - r, y + r],[x + r*1.5, y]], {f:'paper', c:'hot', w:2});
-  };
-  const levels = [[], [], [], []];
-  (function h(x, y, len, d){
-    if (d > 3) return;
-    levels[d].push({x, y, len});
-    [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sy]) => h(x + sx*len, y + sy*len, len/2, d+1));
-  })(S*0.5, S*0.5, S*0.20, 1);
-
-  A.stage('Clock source');
-  A.rect(S*0.415, S*0.455, S*0.17, S*0.09, {f:'main', c:'dark', w:2.4, r:6});
-  A.text(S*0.5, S*0.50, 'CLK', {size:34, c:'paper'});
-
-  for (let d=1; d<=3; d++){
-    A.stage('H level ' + d);
-    levels[d].forEach(n => {
-      A.line(n.x - n.len, n.y, n.x + n.len, n.y, {c:'dark', w:5 - d});
-      A.line(n.x - n.len, n.y - n.len, n.x - n.len, n.y + n.len, {c:'dark', w:5 - d});
-      A.line(n.x + n.len, n.y - n.len, n.x + n.len, n.y + n.len, {c:'dark', w:5 - d});
-    });
-    A.stage('Buffers L' + d);
-    levels[d].forEach(n => { buf(n.x - n.len, n.y); buf(n.x + n.len, n.y); });
-  }
-
-  const leaves = [];
-  levels[3].forEach(n => [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sy]) =>
-    leaves.push([n.x + sx*n.len, n.y + sy*n.len])));
-  [['Sinks · NW', l => l[0] < S*0.5 && l[1] < S*0.5],
-   ['Sinks · NE', l => l[0] >= S*0.5 && l[1] < S*0.5],
-   ['Sinks · SW', l => l[0] < S*0.5 && l[1] >= S*0.5],
-   ['Sinks · SE', l => l[0] >= S*0.5 && l[1] >= S*0.5]].forEach(([n, f]) => {
-    A.stage(n);
-    leaves.filter(f).forEach(([x,y]) =>
-      A.rect(x - S*0.016, y - S*0.016, S*0.032, S*0.032, {f:'cool', c:'cool', w:1.6, r:2}));
-  });
-
-  A.stage('Die & skew');
-  A.rect(S*0.045, S*0.045, S*0.91, S*0.83, {c:'alt', w:2.6, dash:[9,7], r:10});
-  A.text(S*0.5, S*0.945, 'skew 12 ps · 64 sinks', {size:34, c:'ink'});
-  return {items, names};
-}
-
-/* ===================== HUM-428 · Oak (9 stages) ========================== */
-function spOak(rnd, S){
-  const {A, items, names} = emitter();
-  const gy = S*0.90, tx = S*0.50;
-  const blob = (x, y, r, o) => {
-    for (let i=0;i<5;i++){
-      const a = i/5*Math.PI*2 + rnd();
-      A.ell(x + Math.cos(a)*r*0.45, y + Math.sin(a)*r*0.34, r*0.72, r*0.58, rnd()*0.8,
-        Object.assign({f:'main', c:'dark', w:2}, o));
-    }
-  };
-  A.stage('Acorn');
-  A.ell(tx, gy - S*0.03, S*0.028, S*0.036, 0, {f:'dark', c:'dark', w:2});
-  A.ell(tx, gy - S*0.055, S*0.030, S*0.016, 0, {f:'alt', c:'dark', w:2});
-  A.ell(tx, gy + S*0.012, S*0.16, S*0.022, 0, {f:'altl', c:null, w:0});
-
-  A.stage('Roots');
-  [-1,1].forEach(s => {
-    A.curve(tx, gy, tx + s*S*0.06, gy + S*0.045, tx + s*S*0.17, gy + S*0.055, {c:'dark', w:5});
-    A.curve(tx, gy, tx + s*S*0.10, gy + S*0.02, tx + s*S*0.09, gy + S*0.075, {c:'dark', w:3.4});
-  });
+/* --- shared pieces -------------------------------------------------------- */
+function prelude(A){
+  A.stage('Seed');
+  A.ell(500, 908, 250, 40, 0, {f:'grass', c:'grassd', w:4, gnd:1});
+  A.ell(430, 895, 95, 12, -0.04, {f:'grassl', c:null, w:0, gnd:1, op:.75});
+  A.ell(500, 898, 54, 11, 0, {f:'soil', c:null, w:0, gnd:1});
+  A.ell(500, 884, 17, 23, 0.35, {f:'seed', c:'barkd', w:3, un:0});
 
   A.stage('Sprout');
-  A.line(tx, gy, tx, gy - S*0.16, {c:'dark', w:7});
-  A.ell(tx - S*0.042, gy - S*0.145, S*0.033, S*0.020, -0.5, {f:'main', c:'dark', w:1.8});
-  A.ell(tx + S*0.042, gy - S*0.155, S*0.033, S*0.020, 0.5, {f:'main', c:'dark', w:1.8});
+  A.curve(500, 898, 492, 855, 503, 812, {c:'sproutd', w:8, un:1});
+  A.ell(470, 812, 32, 15, -0.45, {f:'sprout', c:'sproutd', w:3, un:1});
+  A.ell(534, 804, 32, 15, 0.45, {f:'sprout', c:'sproutd', w:3, un:1});
 
+  A.stage('Sapling');
+  A.line(500, 898, 500, 660, {c:'sproutd', w:11, un:2});
+  [[462,770,-.5],[538,745,.5],[464,705,-.5],[536,682,.5]].forEach(([x,y,r]) =>
+    A.ell(x, y, 38, 17, r, {f:'sprout', c:'sproutd', w:3, un:2}));
+  A.ell(500, 640, 20, 36, 0, {f:'sprout', c:'sproutd', w:3, un:2});
+}
+function trunk(A, pts, o){
+  A.poly(pts, Object.assign({f:'bark', c:'barkd', w:4, o:[500,900]}, o));
+}
+/* all the dark undersides first, then the bark: crossings stay clean */
+function limbs(A, list){
+  const n = list.length;
+  list.forEach(([x1,y1,cx,cy,x2,y2,w], i) => A.curve(x1,y1,cx,cy,x2,y2, {c:'barkd', w:w+8, q:i/n}));
+  list.forEach(([x1,y1,cx,cy,x2,y2,w], i) => A.curve(x1,y1,cx,cy,x2,y2, {c:'bark', w, q:i/n}));
+}
+/* a crown made of overlapping blobs that reads as one outlined shape */
+function cloud(A, blobs, o){
+  o = o || {};
+  const n = blobs.length;
+  const fk = i => Array.isArray(o.f) ? o.f[i % o.f.length] : (o.f || 'leaf');
+  const top = Math.min(...blobs.map(b => b[1] - b[3]));
+  blobs.forEach(([x,y,rx,ry], i) => A.ell(x, y, rx + 11, ry + 11, 0, {f:o.d || 'leafd', c:null, w:0, q:i/n}));
+  blobs.forEach(([x,y,rx,ry], i) => A.ell(x, y, rx, ry, 0, {f:fk(i), c:null, w:0, q:i/n}));
+  blobs.forEach(([x,y,rx,ry], i) => {
+    if (y - ry > top + 70) return;           /* only the blobs on top catch the light */
+    A.ell(x - rx*.28, y - ry*.34, rx*.42, ry*.26, -0.35, {f:o.l || 'leafl', c:null, w:0, op:.55, q:i/n});
+  });
+}
+function scatter(rnd, cx, cy, rx, ry, n, gap){
+  const out = [];
+  for (let tries = 0; out.length < n && tries < n*60; tries++){
+    const a = rnd()*Math.PI*2, r = Math.sqrt(rnd());
+    const x = cx + Math.cos(a)*r*rx, y = cy + Math.sin(a)*r*ry;
+    if (out.every(([u,v]) => Math.hypot(u-x, v-y) > gap)) out.push([x, y]);
+  }
+  return out;
+}
+function flower(A, x, y, r, fk, ck, o){
+  for (let j=0;j<5;j++){
+    const a = j/5*Math.PI*2 - Math.PI/2;
+    A.dot(x + Math.cos(a)*r, y + Math.sin(a)*r, r*.62, Object.assign({f:fk, c:null, w:0}, o));
+  }
+  A.dot(x, y, r*.45, Object.assign({f:ck, c:null, w:0}, o));
+}
+function star(A, x, y, r, rot, fk){
+  const pts = [];
+  for (let j=0;j<10;j++){
+    const a = rot - Math.PI/2 + j*Math.PI/5, rr = j % 2 ? r*.46 : r;
+    pts.push([x + Math.cos(a)*rr, y + Math.sin(a)*rr]);
+  }
+  A.poly(pts, {f:fk, c:'leafd', w:2.2});
+}
+const jitter = rnd => (v, a) => v + (rnd() - .5)*a;
+
+/* ================================================================ OAK (8) */
+function trOak(rnd){
+  const {A, items, names} = emitter(), J = jitter(rnd);
+  prelude(A);
   A.stage('Trunk');
-  A.poly([[tx - S*0.055, gy],[tx - S*0.032, gy - S*0.34],
-          [tx + S*0.032, gy - S*0.34],[tx + S*0.055, gy]], {f:'lite', c:'dark', w:3});
-  A.line(tx - S*0.012, gy - S*0.05, tx - S*0.006, gy - S*0.30, {c:'dark', w:1.6});
+  trunk(A, [[452,900],[476,610],[478,560],[522,560],[524,610],[548,900]]);
+  A.poly([[460,868],[416,906],[476,899]], {f:'bark', c:'barkd', w:4, o:[462,900]});
+  A.poly([[540,868],[584,906],[524,899]], {f:'bark', c:'barkd', w:4, o:[538,900]});
+  A.line(490, 865, 487, 650, {c:'barkd', w:3, op:.4});
 
-  const limbs = [];
-  A.stage('Primary limbs');
-  [[-1, 0.72], [1, 0.62], [-1, 0.30]].forEach(([s, len], i) => {
-    const y0 = gy - S*0.34 + i*S*0.02;
-    const ex = tx + s*S*0.19*len*1.5, ey = y0 - S*0.19*len;
-    A.curve(tx + s*S*0.02, y0, tx + s*S*0.10, y0 - S*0.10, ex, ey, {c:'dark', w:5.5});
-    limbs.push([ex, ey, s]);
-  });
-  A.line(tx, gy - S*0.34, tx, gy - S*0.52, {c:'dark', w:5.5});
-  limbs.push([tx, gy - S*0.52, 0]);
+  const e = [[J(360,40),J(495,30)], [J(645,40),J(480,30)], [J(495,30),J(385,20)]];
+  A.stage('Branches');
+  limbs(A, [[494,655,430,610,...e[0],22], [506,635,580,575,...e[1],20], [500,610,505,500,...e[2],18]]);
 
-  A.stage('Secondary branches');
-  limbs.forEach(([x,y,s]) => {
-    for (let i=0;i<2;i++){
-      const ex = x + (s || (i ? 1 : -1))*S*0.07 + (rnd()-.5)*S*0.05, ey = y - S*0.09 - rnd()*S*0.05;
-      A.line(x, y, ex, ey, {c:'dark', w:3.2});
-    }
-  });
-
-  A.stage('Canopy');
-  limbs.forEach(([x,y]) => blob(x, y - S*0.05, S*0.115));
+  A.stage('Leaves');
+  cloud(A, e.map(([x,y]) => [x, y - 10, 95, 80]));
 
   A.stage('Crown');
-  blob(tx, gy - S*0.62, S*0.15);
-  blob(tx - S*0.20, gy - S*0.50, S*0.11);
-  blob(tx + S*0.20, gy - S*0.50, S*0.11);
+  cloud(A, [[J(500,20),J(330,20),170,140],[J(355,20),J(425,20),140,115],[J(645,20),J(415,20),145,118],
+            [J(430,20),J(280,16),120,100],[J(575,20),J(280,16),120,100],[500,J(475,16),175,90],
+            [J(300,14),470,90,70],[J(700,14),465,90,70]], {f:['leaf','leaf','leaf2']});
 
   A.stage('Acorns');
-  for (let i=0;i<7;i++){
-    const a = 0.15 + rnd()*2.85, r = S*(0.26 + rnd()*0.05);
-    const ax = tx + Math.cos(a)*r, ay = gy - S*0.50 + Math.sin(a)*r*0.62;
-    A.line(ax, ay - S*0.022, ax, ay, {c:'dark', w:2});
-    A.ell(ax, ay + S*0.016, S*0.017, S*0.022, 0, {f:'lite', c:'dark', w:1.8});
-    A.ell(ax, ay + S*0.004, S*0.019, S*0.010, 0, {f:'dark', c:'dark', w:1.4});
+  scatter(rnd, 500, 400, 230, 150, 7, 64).forEach(([x,y]) => {
+    A.line(x, y - 16, x + 3, y - 27, {c:'barkd', w:3});
+    A.ell(x, y + 6, 14, 18, 0, {f:'fruit', c:'fruitd', w:3});
+    A.ell(x, y - 8, 17, 9, 0, {f:'barkd', c:null, w:0});
+  });
+  return {items, names};
+}
+
+/* =============================================================== PINE (8) */
+function trPine(rnd){
+  const {A, items, names} = emitter(), J = jitter(rnd);
+  prelude(A);
+  A.stage('Trunk');
+  trunk(A, [[474,900],[490,330],[510,330],[526,900]]);
+  const tier = (name, yb, hw, apex) => {
+    A.stage(name);
+    const pts = [[500, apex]], N = 6;
+    for (let j=0;j<=N;j++) pts.push([500 - hw + 2*hw*j/N, yb + (j % 2 ? 26 : 0)]);
+    A.poly(pts, {f:'leaf', c:'leafd', w:9, o:[500, (yb + apex)/2]});
+    A.poly([[500, apex + 40],[500 - hw*.62, yb - 16],[500 - hw*.28, yb - 24]],
+      {f:'leafl', c:null, w:0, op:.45, o:[500, apex + 40]});
+  };
+  tier('Lower boughs', 790, J(245,24), 470);
+  tier('Middle boughs', 620, J(195,20), 300);
+  tier('Treetop', 450, J(135,16), 145);
+  A.stage('Cones');
+  [[375,812],[615,808],[420,640],[585,636],[462,470],[540,468]].forEach(([x,y]) => {
+    const cx = J(x, 30), cy = J(y, 10);
+    A.ell(cx, cy, 13, 21, 0, {f:'fruit', c:'fruitd', w:3});
+    A.line(cx - 8, cy - 4, cx + 8, cy - 4, {c:'fruitd', w:2, op:.6});
+    A.line(cx - 8, cy + 6, cx + 8, cy + 6, {c:'fruitd', w:2, op:.6});
+  });
+  return {items, names};
+}
+
+/* ============================================================= CHERRY (8) */
+function trCherry(rnd){
+  const {A, items, names} = emitter(), J = jitter(rnd);
+  prelude(A);
+  A.stage('Trunk');
+  trunk(A, [[452,900],[480,650],[470,600],[522,590],[532,650],[550,900]]);
+  A.line(497, 870, 494, 640, {c:'barkd', w:3, op:.4});
+
+  const e = [[J(275,30),J(520,24)], [J(730,30),J(505,24)], [J(395,24),J(395,24)], [J(615,24),J(385,24)], [J(505,20),J(320,16)]];
+  A.stage('Branches');
+  limbs(A, [[490,632,400,585,...e[0],18], [510,622,610,565,...e[1],18], [495,612,460,505,...e[2],15],
+            [505,606,570,495,...e[3],15], [500,600,500,455,...e[4],12]]);
+
+  A.stage('Buds');
+  e.forEach(([x,y]) => { for (let k=0;k<3;k++) A.dot(J(x,70), J(y - 10,40), 10, {f:'fruit', c:'fruitd', w:2}); });
+
+  A.stage('Blossom');
+  cloud(A, [[e[0][0], e[0][1] - 20, 112, 80], [e[1][0], e[1][1] - 20, 112, 80], [e[2][0], e[2][1], 118, 92],
+            [e[3][0], e[3][1], 118, 92], [e[4][0], e[4][1] + 10, 125, 88], [500, 445, 175, 88]],
+        {f:['leaf','leaf','fruitl']});
+  scatter(rnd, 500, 420, 255, 125, 16, 46).forEach(([x,y]) => flower(A, x, y, 10, 'white', 'fruit'));
+
+  A.stage('Petals');
+  for (let i=0;i<13;i++){
+    const ground = i > 9;
+    const x = ground ? 330 + rnd()*340 : 230 + rnd()*540;
+    const y = ground ? 896 + rnd()*14 : 570 + rnd()*300;
+    A.ell(x, y, 11, 6, rnd()*3, {f:'leaf', c:'fruitd', w:1.6});
   }
   return {items, names};
 }
 
-/* ===================== HUM-428 · Wind farm (12 stages) =================== */
-function spWind(rnd, S){
-  const {A, items, names} = emitter();
-  const gy = S*0.86;
-  const turbine = (x, h, sc, phase) => {
-    A.poly([[x - S*0.016*sc, gy],[x - S*0.008*sc, gy - h],
-            [x + S*0.008*sc, gy - h],[x + S*0.016*sc, gy]], {f:'lite', c:'dark', w:2.4});
-    A.ell(x, gy - h, S*0.022*sc, S*0.016*sc, 0, {f:'main', c:'dark', w:2.2});
-    for (let b=0;b<3;b++){
-      const a = phase + b*Math.PI*2/3;
-      const L = S*0.20*sc;
-      A.poly([[x, gy - h],
-              [x + Math.cos(a)*L - Math.sin(a)*S*0.012*sc, gy - h + Math.sin(a)*L + Math.cos(a)*S*0.012*sc],
-              [x + Math.cos(a)*L + Math.sin(a)*S*0.006*sc, gy - h + Math.sin(a)*L - Math.cos(a)*S*0.006*sc]],
-        {f:'lite', c:'dark', w:2});
-    }
-  };
-  A.stage('Horizon');
-  A.line(S*0.04, gy, S*0.96, gy, {c:'dark', w:3});
-  A.path([[S*0.04, gy - S*0.03],[S*0.22, gy - S*0.07],[S*0.40, gy - S*0.035],
-          [S*0.62, gy - S*0.08],[S*0.82, gy - S*0.04],[S*0.96, gy - S*0.06]], {c:'alt', w:2, dash:[8,7]});
-
-  A.stage('Foundation');
-  A.rect(S*0.44, gy - S*0.02, S*0.12, S*0.03, {f:'altl', c:'alt', w:2, r:3});
-
-  A.stage('Tower');
-  A.poly([[S*0.484, gy],[S*0.492, gy - S*0.38],[S*0.508, gy - S*0.38],[S*0.516, gy]],
-    {f:'lite', c:'dark', w:2.6});
-
-  A.stage('Nacelle');
-  A.ell(S*0.50, gy - S*0.38, S*0.026, S*0.018, 0, {f:'main', c:'dark', w:2.4});
-
-  ['Blade A','Blade B','Blade C'].forEach((n, b) => {
-    A.stage(n);
-    const a = -Math.PI/2 + b*Math.PI*2/3, L = S*0.22;
-    A.poly([[S*0.50, gy - S*0.38],
-            [S*0.50 + Math.cos(a)*L - Math.sin(a)*S*0.014, gy - S*0.38 + Math.sin(a)*L + Math.cos(a)*S*0.014],
-            [S*0.50 + Math.cos(a)*L + Math.sin(a)*S*0.007, gy - S*0.38 + Math.sin(a)*L - Math.cos(a)*S*0.007]],
-      {f:'lite', c:'dark', w:2.2});
-  });
-
-  A.stage('Second turbine');
-  turbine(S*0.20, S*0.27, 0.72, -Math.PI/2 + 0.7);
-
-  A.stage('Third turbine');
-  turbine(S*0.80, S*0.23, 0.62, -Math.PI/2 + 1.6);
-
-  A.stage('Collector cables');
-  A.path([[S*0.20, gy],[S*0.35, gy + S*0.03],[S*0.50, gy],[S*0.66, gy + S*0.03],[S*0.80, gy]],
-    {c:'alt', w:2.2, dash:[7,6]});
-
-  A.stage('Substation');
-  A.rect(S*0.06, gy + S*0.02, S*0.13, S*0.07, {f:'altl', c:'alt', w:2.2, r:4});
-  A.line(S*0.10, gy + S*0.02, S*0.10, gy - S*0.05, {c:'alt', w:2.2});
-  A.line(S*0.15, gy + S*0.02, S*0.15, gy - S*0.05, {c:'alt', w:2.2});
-
-  A.stage('9 MW');
-  A.text(S*0.50, S*0.115, '9 MW', {size:55, c:'main'});
-  A.text(S*0.50, S*0.175, 'grid connected', {size:36, c:'alt'});
-  return {items, names};
-}
-
-/* ===================== OTHER · Bonsai (9 stages) ========================= */
-function spBonsai(rnd, S){
-  const {A, items, names} = emitter();
-  const py = S*0.86, px = S*0.50;
-  const pad = (x, y, r) => {
-    A.ell(x, y, r, r*0.52, 0, {f:'main', c:'dark', w:2.4});
-    A.ell(x - r*0.35, y - r*0.18, r*0.5, r*0.34, 0, {f:'lite', c:null, w:0});
-  };
-  A.stage('Pot');
-  A.poly([[px - S*0.19, py],[px + S*0.19, py],[px + S*0.155, py + S*0.09],[px - S*0.155, py + S*0.09]],
-    {f:'altl', c:'alt', w:2.8, r:4});
-  A.rect(px - S*0.205, py - S*0.028, S*0.41, S*0.032, {f:'alt', c:'alt', w:2, r:3});
-
-  A.stage('Soil & moss');
-  A.ell(px, py - S*0.03, S*0.155, S*0.022, 0, {f:'dark', c:null, w:0});
-  for (let i=0;i<5;i++) A.ell(px + (rnd()-.5)*S*0.24, py - S*0.038, S*0.028, S*0.014, 0,
-    {f:'main', c:null, w:0});
-
+/* ============================================================== BIRCH (9) */
+function trBirch(rnd){
+  const {A, items, names} = emitter(), J = jitter(rnd);
+  prelude(A);
   A.stage('Trunk');
-  A.curve(px + S*0.03, py - S*0.03, px - S*0.13, py - S*0.20, px + S*0.02, py - S*0.32, {c:'dark', w:14});
-  A.curve(px + S*0.03, py - S*0.03, px - S*0.11, py - S*0.19, px + S*0.02, py - S*0.31, {c:'lite', w:5});
+  trunk(A, [[476,900],[488,320],[507,320],[520,900]]);
+  trunk(A, [[512,900],[562,470],[575,474],[530,900]]);
 
-  A.stage('First bend');
-  A.curve(px + S*0.02, py - S*0.32, px + S*0.14, py - S*0.40, px + S*0.09, py - S*0.47, {c:'dark', w:10});
+  A.stage('Bark');
+  for (let y = 862, k = 0; y > 360; y -= 50, k++){
+    const hw = 9 + (y - 320)/580*13;
+    if (k % 2) A.line(498 - hw, y, 498 - hw*.1, y - 4, {c:'barkd', w:6});
+    else A.line(498 + hw*.1, y, 498 + hw, y + 4, {c:'barkd', w:6});
+  }
+  [[530,820],[545,700],[558,580]].forEach(([x,y]) => A.line(x - 6, y, x + 6, y - 3, {c:'barkd', w:5}));
 
-  A.stage('Left branch');
-  A.curve(px + S*0.02, py - S*0.33, px - S*0.12, py - S*0.38, px - S*0.22, py - S*0.36, {c:'dark', w:6});
+  A.stage('Branches');
+  [[495,560,J(415,20),J(470,20)],[502,505,J(588,20),J(432,20)],[498,435,J(445,16),J(352,16)],
+   [500,400,J(562,16),J(335,16)],[562,520,J(628,16),J(468,16)]].forEach(([x1,y1,x2,y2]) =>
+    A.line(x1, y1, x2, y2, {c:'barkd', w:7}));
 
-  A.stage('Right branch');
-  A.curve(px + S*0.06, py - S*0.41, px + S*0.20, py - S*0.44, px + S*0.27, py - S*0.41, {c:'dark', w:5});
+  A.stage('Leaves');
+  cloud(A, [[415,455,70,58],[590,420,70,58],[445,345,62,52],[565,330,62,52]]);
 
-  A.stage('Foliage pads');
-  pad(px - S*0.24, py - S*0.38, S*0.115);
-  pad(px + S*0.28, py - S*0.43, S*0.10);
+  A.stage('Crown');
+  cloud(A, [[J(500,16),250,95,78],[J(425,16),318,92,80],[J(580,16),318,92,80],[395,J(418,16),85,72],
+            [610,J(405,16),90,72],[455,J(498,12),92,62],[560,J(492,12),92,62],[500,375,115,100],[J(640,16),482,60,50]],
+        {f:['leaf','leaf2']});
 
-  A.stage('Apex');
-  pad(px + S*0.09, py - S*0.52, S*0.135);
-
-  A.stage('Stone & signature');
-  A.ell(px - S*0.255, py + S*0.075, S*0.05, S*0.028, -0.25, {f:'alt', c:'alt', w:2});
-  A.text(px + S*0.30, py + S*0.055, '盆栽', {size:39, c:'alt'});
+  A.stage('Catkins');
+  scatter(rnd, 505, 410, 175, 150, 9, 52).forEach(([x,y]) => {
+    A.line(x, y - 14, x + 2, y, {c:'barkd', w:2.5});
+    A.ell(x + 2, y + 14, 6, 17, 0.1, {f:'fruit', c:'fruitd', w:2});
+  });
   return {items, names};
 }
 
-/* ===================== OTHER · Fern (12 stages) ========================== */
-function spFern(rnd, S){
-  const {A, items, names} = emitter();
-  const bx = S*0.50, by = S*0.90;
-  const frond = (ang, len, open) => {
-    /* the rachis is a logarithmic spiral that unrolls as `open` goes to 1 */
-    const pts = [], N = 26, curl = (1 - open)*2.6;
+/* =============================================================== PALM (8) */
+function trPalm(rnd){
+  const {A, items, names} = emitter(), J = jitter(rnd);
+  prelude(A);
+  const tx = J(585, 40), cxp = J(462, 30);
+  const B  = t => { const u = 1 - t; return [u*u*500 + 2*u*t*cxp + t*t*tx, u*u*900 + 2*u*t*610 + t*t*330]; };
+  const dB = t => [2*(1-t)*(cxp - 500) + 2*t*(tx - cxp), 2*(1-t)*(610 - 900) + 2*t*(330 - 610)];
+  const L = [], R = [], M = [];
+  for (let i=0;i<=12;i++){
+    const t = i/12, [x,y] = B(t), [dx,dy] = dB(t), l = Math.hypot(dx, dy), w = 30 - 12*t;
+    const nx = -dy/l, ny = dx/l;
+    L.push([x + nx*w, y + ny*w]); R.push([x - nx*w, y - ny*w]); M.push([x, y, dx/l, dy/l]);
+  }
+  A.stage('Trunk');
+  trunk(A, L.concat(R.slice().reverse()));
+
+  A.stage('Rings');
+  for (let i=1;i<12;i++){
+    const [x,y,tx2,ty2] = M[i];
+    A.path([L[i], [x - tx2*9, y - ty2*9], R[i]], {c:'barkd', w:3, op:.55});
+  }
+
+  const frond = (a, len, droop) => {
+    const N = 16, up = [], dn = [], spine = [];
     for (let i=0;i<=N;i++){
       const t = i/N;
-      const a = ang + t*t*curl*1.4;
-      const r = len*t;
-      pts.push([bx + Math.cos(a)*r, by - Math.sin(a)*r]);
+      const x = tx + Math.cos(a)*len*t, y = 330 + Math.sin(a)*len*t + droop*t*t;
+      const dx = Math.cos(a)*len, dy = Math.sin(a)*len + 2*droop*t, l = Math.hypot(dx, dy);
+      const w = len*.17*Math.pow(Math.sin(Math.PI*Math.min(1, t*1.05)), .7)*(i % 2 ? 1 : .55);
+      up.push([x - dy/l*w, y + dx/l*w]); dn.push([x + dy/l*w, y - dx/l*w]); spine.push([x, y]);
     }
-    A.path(pts, {c:'dark', w:4.5});
-    for (let i=4;i<N;i+=2){
-      const t = i/N, [x,y] = pts[i];
-      const a = ang + t*t*curl*1.4;
-      const pl = len*0.20*Math.sin(t*Math.PI)*open;
-      [1,-1].forEach(s => {
-        const na = a + s*1.15;
-        A.ell(x + Math.cos(na)*pl*0.6, y - Math.sin(na)*pl*0.6, pl*0.62, pl*0.26, -na,
-          {f:'main', c:'dark', w:1.6});
-      });
-    }
+    A.poly(up.concat(dn.reverse()), {f:'leaf', c:'leafd', w:4, o:[tx, 330]});
+    A.path(spine, {c:'leafd', w:4});
   };
-  A.stage('Crown');
-  A.ell(bx, by, S*0.10, S*0.035, 0, {f:'dark', c:'dark', w:2});
-  A.ell(bx, by + S*0.035, S*0.20, S*0.028, 0, {f:'altl', c:null, w:0});
+  A.stage('Fronds');
+  frond(-2.75, J(300,20), 190); frond(-0.35, J(290,20), 180); frond(-1.75, J(230,20), 120);
+  A.stage('More fronds');
+  frond(2.75, J(260,20), 110); frond(0.45, J(260,20), 100); frond(-2.25, J(250,20), 150); frond(-1.0, J(250,20), 150);
 
-  A.stage('Fiddlehead');
-  { const pts = [];
-    for (let i=0;i<=30;i++){ const t = i/30, a = -Math.PI/2 + t*t*7, r = S*0.13*t + S*0.02;
-      pts.push([bx + Math.cos(a)*r*0.5, by - S*0.06 - Math.sin(a)*r*0.5]); }
-    A.path(pts, {c:'dark', w:4.5}); }
-
-  const angs = [1.9, 1.25, 2.5, 0.75, 2.95, 1.57, 0.45, 2.1, 1.05];
-  angs.forEach((a, i) => {
-    A.stage('Frond ' + (i+1));
-    frond(a, S*(0.36 + (i % 3)*0.06), 1);
+  A.stage('Coconuts');
+  [[-20,22],[17,20],[-1,42]].forEach(([dx,dy]) => {
+    A.dot(tx + dx, 330 + dy, 21, {f:'fruit', c:'fruitd', w:3});
+    A.ell(tx + dx - 7, 330 + dy - 7, 6, 4, -.6, {f:'white', c:null, w:0, op:.45});
   });
+  return {items, names};
+}
 
-  A.stage('Spores');
-  for (let i=0;i<14;i++){
-    const a = 0.5 + rnd()*2.2, r = S*(0.20 + rnd()*0.22);
-    A.dot(bx + Math.cos(a)*r, by - Math.sin(a)*r, S*0.008, {f:'alt', c:null, w:0});
+/* ============================================================== APPLE (9) */
+function trApple(rnd){
+  const {A, items, names} = emitter(), J = jitter(rnd);
+  prelude(A);
+  A.stage('Trunk');
+  trunk(A, [[456,900],[478,650],[476,610],[524,610],[522,650],[544,900]]);
+  A.line(492, 868, 490, 660, {c:'barkd', w:3, op:.4});
+
+  const e = [[J(380,30),J(520,20)], [J(625,30),J(510,20)], [J(500,20),J(420,16)]];
+  A.stage('Branches');
+  limbs(A, [[494,660,440,620,...e[0],20], [506,650,570,600,...e[1],20], [500,630,502,540,...e[2],16]]);
+
+  A.stage('Leaves');
+  cloud(A, e.map(([x,y]) => [x, y - 6, 92, 76]));
+
+  A.stage('Crown');
+  cloud(A, [[500,J(400,16),205,165],[J(345,16),465,115,95],[J(655,16),465,115,95],
+            [J(420,16),300,115,92],[J(580,16),300,115,92],[500,545,165,62]], {f:['leaf','leaf2']});
+
+  A.stage('Blossom');
+  scatter(rnd, 500, 400, 215, 140, 12, 58).forEach(([x,y]) => flower(A, x, y, 10, 'white', 'fruitl', {un:7}));
+
+  A.stage('Apples');
+  scatter(rnd, 500, 415, 205, 135, 9, 64).forEach(([x,y]) => {
+    A.line(x, y - 20, x + 4, y - 34, {c:'barkd', w:4});
+    A.ell(x + 14, y - 31, 11, 5, -.5, {f:'sprout', c:null, w:0});
+    A.dot(x, y, 22, {f:'fruit', c:'fruitd', w:3});
+    A.ell(x - 8, y - 8, 6, 4, -.6, {f:'white', c:null, w:0, op:.75});
+  });
+  return {items, names};
+}
+
+/* ============================================================== MAPLE (8) */
+function trMaple(rnd){
+  const {A, items, names} = emitter(), J = jitter(rnd);
+  prelude(A);
+  A.stage('Trunk');
+  trunk(A, [[454,900],[477,610],[478,565],[522,565],[523,610],[546,900]]);
+  A.line(491, 866, 488, 650, {c:'barkd', w:3, op:.4});
+
+  const e = [[J(355,40),J(490,30)], [J(648,40),J(478,30)], [J(498,30),J(380,20)]];
+  A.stage('Branches');
+  limbs(A, [[494,655,428,608,...e[0],21], [506,636,582,572,...e[1],20], [500,610,506,498,...e[2],17]]);
+
+  A.stage('Leaves');
+  cloud(A, e.map(([x,y]) => [x, y - 10, 92, 78]), {f:'sprout', d:'sproutd', l:'grassl'});
+
+  A.stage('Autumn crown');
+  cloud(A, [[500,J(335,16),180,148],[J(340,16),430,130,108],[J(660,16),430,130,108],
+            [J(420,16),262,112,90],[J(588,16),262,112,90],[500,J(482,12),180,88],[J(290,12),478,80,62],[J(710,12),474,80,62]],
+        {f:['leaf','fruit','gold','leaf','fruit','leaf','gold','fruit']});
+
+  A.stage('Falling leaves');
+  const cols = ['leaf','fruit','gold'];
+  for (let i=0;i<12;i++){
+    const ground = i > 8;
+    const x = ground ? 320 + rnd()*360 : 220 + rnd()*560;
+    const y = ground ? 898 + rnd()*12 : 590 + rnd()*280;
+    star(A, x, y, ground ? 13 : 16, rnd()*1.2 - .6, cols[i % 3]);
   }
   return {items, names};
 }
 
-/* ===================== EE-424 · analog building blocks =================== */
-/* One shared MOS symbol: gate plate, channel, drain and source stubs.
-   Returns the terminal points so the two schematics can wire themselves. */
-function mos(A, cx, cy, u, o){
-  o = o || {};
-  const f = o.flip ? -1 : 1;
-  const gx = cx - f*u*0.55, chx = cx - f*u*0.20;
-  A.line(gx, cy - u*0.78, gx, cy + u*0.78, {c:'dark', w:4});
-  A.line(chx, cy - u*0.78, chx, cy + u*0.78, {c:'dark', w:4});
-  A.line(chx, cy - u*0.62, cx + f*u*0.55, cy - u*0.62, {c:'dark', w:3.4});
-  A.line(cx + f*u*0.55, cy - u*0.62, cx + f*u*0.55, cy - u*1.15, {c:'dark', w:3.4});
-  A.line(chx, cy + u*0.62, cx + f*u*0.55, cy + u*0.62, {c:'dark', w:3.4});
-  A.line(cx + f*u*0.55, cy + u*0.62, cx + f*u*0.55, cy + u*1.15, {c:'dark', w:3.4});
-  A.line(gx, cy, gx - f*u*(o.p ? 0.75 : 0.55), cy, {c:'dark', w:3.4});
-  if (o.p) A.dot(gx - f*u*0.19, cy, u*0.12, {f:'paper', c:'dark', w:2.6});
-  if (o.label) A.text(cx + f*u*0.78, cy - u*0.10, o.label, {size:32, c:'ink', align: o.flip ? 'right' : 'left'});
-  return {d:[cx + f*u*0.55, cy - u*1.15], s:[cx + f*u*0.55, cy + u*1.15],
-          g:[gx - f*u*(o.p ? 0.75 : 0.55), cy], gp:[gx, cy]};
-}
-function ground(A, x, y, u){
-  A.line(x, y, x, y + u*0.3, {c:'dark', w:3.4});
-  A.line(x - u*0.34, y + u*0.3, x + u*0.34, y + u*0.3, {c:'dark', w:4});
-  A.line(x - u*0.20, y + u*0.44, x + u*0.20, y + u*0.44, {c:'dark', w:3.4});
-  A.line(x - u*0.08, y + u*0.56, x + u*0.08, y + u*0.56, {c:'dark', w:3});
-}
+/* ============================================================= WILLOW (8) */
+function trWillow(rnd){
+  const {A, items, names} = emitter(), J = jitter(rnd);
+  prelude(A);
+  A.stage('Trunk');
+  trunk(A, [[446,900],[474,625],[470,592],[530,592],[526,625],[554,900]]);
+  A.line(490, 866, 487, 640, {c:'barkd', w:3, op:.4});
 
-function wire(A, pts, o){ A.path(pts, Object.assign({c:'dark', w:3.4}, o)); }
-function junction(A, x, y, u){ A.dot(x, y, u*0.10, {f:'dark', c:'dark', w:0}); }
-function isrc(A, x, y, r, label, o){
-  o = o || {};
-  A.dot(x, y, r, {c:'main', w:3.4});
-  A.line(x, y - r*0.55, x, y + r*0.5, {c:'main', w:3});
-  A.line(x - r*0.30, y + r*0.14, x, y + r*0.5, {c:'main', w:3});
-  A.line(x + r*0.30, y + r*0.14, x, y + r*0.5, {c:'main', w:3});
-  if (label) A.text(x + (o.left ? -r*1.5 : r*1.5), y, label,
-    {size:32, c:'main', align: o.left ? 'right' : 'left'});
-}
+  A.stage('Arches');
+  limbs(A, [[494,622,400,470,J(285,20),J(520,20),16], [506,622,600,470,J(715,20),J(520,20),16],
+            [498,602,470,470,J(420,16),J(400,16),13], [502,602,535,470,J(590,16),J(400,16),13]]);
 
-function spMirror(rnd, S){
-  const {A, items, names} = emitter();
-  const u = S*0.145;
-  const x1 = S*0.32, x2 = S*0.70, yl = S*0.62, gnd = S*0.88;
-  /* M1 is mirrored so the two gate leads face each other */
-  const d1 = x1 - u*0.55, d2 = x2 + u*0.55;          /* drain/source columns */
-  const g1 = x1 + u*1.10, g2 = x2 - u*1.10;          /* gate lead ends */
-  const yTop = yl - u*1.15, yBot = yl + u*1.15;
-  const yDiode = yl - u*1.55;
+  A.stage('Canopy');
+  cloud(A, [[500,J(385,12),218,125],[J(330,12),468,118,86],[J(670,12),468,118,86],[500,J(305,10),150,86]],
+        {f:['leaf','leaf2']});
 
-  A.stage('Ground rail');
-  A.line(d1, gnd, d2, gnd, {c:'dark', w:3.4});
-  ground(A, (d1 + d2)/2, gnd, u);
-
-  A.stage('M1 diode-connected');
-  mos(A, x1, yl, u, {flip:true, label:'M1'});
-  wire(A, [[d1, yBot],[d1, gnd]]);
-
-  A.stage('Diode connection');
-  wire(A, [[g1, yl],[g1, yDiode],[d1, yDiode],[d1, yTop]]);
-  junction(A, d1, yDiode, u);
-
-  A.stage('Reference current');
-  isrc(A, d1, S*0.22, u*0.34, 'IREF', {left:true});
-  wire(A, [[d1, S*0.22 + u*0.34],[d1, yDiode]]);
-
-  A.stage('M2 output device');
-  mos(A, x2, yl, u, {label:'M2'});
-  wire(A, [[d2, yBot],[d2, gnd]]);
-
-  A.stage('Gate bus');
-  wire(A, [[g1, yl],[g2, yl]]);
-  junction(A, g1, yl, u);
-
-  A.stage('Output branch');
-  wire(A, [[d2, yTop],[d2, S*0.30]]);
-  A.arrow(d2, S*0.19, d2, S*0.29, {c:'hot', w:3.4});
-  A.text(d2 + u*0.28, S*0.225, 'IOUT', {size:34, c:'hot', align:'left'});
-
-  A.stage('Sizing');
-  A.text(x1, S*0.965, '(W/L)', {size:32, c:'alt'});
-  A.text(x2, S*0.965, 'N · (W/L)', {size:32, c:'alt'});
-  A.text(S*0.50, S*0.115, 'IOUT = N · IREF', {size:36, c:'ink'});
-
-  A.stage('Output resistance');
-  A.text(S*0.50, S*0.175, 'rout = ro2 = 1 / (λ·ID)', {size:32, c:'main'});
+  const strand = (x, len) => {
+    const y0 = 438 + 64*(1 - Math.pow((x - 500)/250, 2));
+    const sway = (rnd() - .5)*34, pts = [];
+    for (let i=0;i<=10;i++){ const t = i/10; pts.push([x + sway*Math.sin(t*Math.PI*.9)*t, y0 + len*t]); }
+    A.path(pts, {c:'leafd', w:9});
+    A.path(pts, {c:'leaf', w:5});
+    for (let i=2;i<=10;i+=2){ const [px,py] = pts[i], s = i % 4 ? 1 : -1;
+      A.ell(px + s*7, py, 10, 4.5, s*.9, {f:'leaf2', c:null, w:0}); }
+  };
+  A.stage('Strands');
+  for (let x = 272; x <= 730; x += 42) strand(x, 140 + rnd()*60);
+  A.stage('Long strands');
+  for (let x = 293; x <= 710; x += 42) strand(x, 270 + rnd()*100);
   return {items, names};
 }
 
-function spOTA(rnd, S){
-  const {A, items, names} = emitter();
-  const u = S*0.092;
-  const vdd = S*0.10, vss = S*0.925;
-  const xa = S*0.28, xb = S*0.54, xo = S*0.80, xt = S*0.41;
-  const yp = S*0.27, yn = S*0.53, ym = S*0.75;
-  const colA = xa + u*0.55, colB = xb - u*0.55, colO = xo + u*0.55;
-  const gA = xa - u*1.10, gB = xb + u*1.10, gO = xo - u*1.10;
-  const yPbot = yp + u*1.15, yPtop = yp - u*1.15;
-  const yNtop = yn - u*1.15, yNbot = yn + u*1.15;
-  const yMtop = ym - u*1.15, yMbot = ym + u*1.15;
-  const yNode = (yPbot + yNtop)/2;
+/* ========================================================== JACARANDA (8) */
+function trJacaranda(rnd){
+  const {A, items, names} = emitter(), J = jitter(rnd);
+  prelude(A);
+  A.stage('Trunk');
+  trunk(A, [[456,900],[480,665],[476,632],[524,632],[520,665],[544,900]]);
+  A.line(492, 868, 490, 670, {c:'barkd', w:3, op:.4});
 
-  A.stage('Supply rails');
-  A.line(S*0.06, vdd, S*0.94, vdd, {c:'alt', w:4});
-  A.line(S*0.06, vss, S*0.94, vss, {c:'alt', w:4});
-  A.text(S*0.075, vdd - S*0.035, 'VDD', {size:30, c:'alt', align:'left'});
-  A.text(S*0.075, vss + S*0.04, 'VSS', {size:30, c:'alt', align:'left'});
+  const e = [[J(290,24),J(432,16)], [J(710,24),J(432,16)], [J(420,16),J(345,16)], [J(585,16),J(340,16)]];
+  A.stage('Branches');
+  limbs(A, [[492,652,420,560,...e[0],18], [508,652,590,560,...e[1],18], [496,642,470,470,...e[2],14], [504,642,535,470,...e[3],14]]);
 
-  A.stage('Tail current source');
-  isrc(A, xt, ym, u*0.42, 'IB', {left:true});
-  wire(A, [[xt, ym + u*0.42],[xt, vss]]);
+  A.stage('Leaves');
+  cloud(A, e.map(([x,y]) => [x, y, 78, 58]), {f:'sprout', d:'sproutd', l:'grassl'});
 
-  A.stage('Differential pair');
-  mos(A, xa, yn, u, {label:'M1'});
-  mos(A, xb, yn, u, {flip:true, label:'M2'});
-  wire(A, [[colA, yNbot],[colA, S*0.66],[colB, S*0.66],[colB, yNbot]]);
-  wire(A, [[xt, S*0.66],[xt, ym - u*0.42]]);
-  junction(A, xt, S*0.66, u);
+  A.stage('Purple crown');
+  cloud(A, [[500,J(362,10),245,104],[J(296,12),412,126,82],[J(704,12),412,126,82],
+            [J(402,12),306,135,88],[J(598,12),306,135,88],[500,J(290,10),150,84]], {f:['leaf','fruit','leaf']});
+  scatter(rnd, 500, 360, 250, 95, 14, 52).forEach(([x,y]) => A.dot(x, y, 7, {f:'leafd', c:null, w:0, op:.55}));
 
-  A.stage('Inputs');
-  wire(A, [[gA, yn],[S*0.085, yn]]);
-  A.dot(S*0.085, yn, u*0.13, {f:'paper', c:'dark', w:3});
-  A.text(S*0.085, yn - S*0.055, 'V−', {size:32, c:'ink'});
-  wire(A, [[gB, yn],[S*0.655, yn],[S*0.655, S*0.66]]);
-  A.dot(S*0.655, S*0.66, u*0.13, {f:'paper', c:'dark', w:3});
-  A.text(S*0.685, S*0.665, 'V+', {size:32, c:'ink', align:'left'});
-
-  A.stage('Mirror load');
-  mos(A, xa, yp, u, {p:true, label:'M3'});
-  mos(A, xb, yp, u, {flip:true, p:true, label:'M4'});
-  wire(A, [[colA, yPtop],[colA, vdd]]);
-  wire(A, [[colB, yPtop],[colB, vdd]]);
-
-  A.stage('Gate bus');
-  wire(A, [[gA - u*0.2, yp],[S*0.16, yp],[S*0.16, S*0.175],[S*0.62, S*0.175],[S*0.62, yp],[gB + u*0.2, yp]]);
-
-  A.stage('Diode connection');
-  wire(A, [[S*0.16, yp],[S*0.16, yPbot + S*0.03],[colA, yPbot + S*0.03]]);
-  junction(A, S*0.16, yp, u);
-  junction(A, colA, yPbot + S*0.03, u);
-
-  A.stage('First-stage output');
-  wire(A, [[colA, yPbot],[colA, yNtop]]);
-  wire(A, [[colB, yPbot],[colB, yNtop]]);
-  wire(A, [[colB, yNode],[gO, yNode],[gO, yp]]);
-  junction(A, colB, yNode, u);
-
-  A.stage('Second stage');
-  mos(A, xo, yp, u, {p:true, label:'M6'});
-  wire(A, [[colO, yPtop],[colO, vdd]]);
-
-  A.stage('Output current source');
-  mos(A, xo, ym, u, {label:'M7'});
-  wire(A, [[colO, yMbot],[colO, vss]]);
-  wire(A, [[gO, ym],[S*0.60, ym]]);
-  A.text(S*0.585, ym - S*0.045, 'VB', {size:30, c:'ink', align:'right'});
-  wire(A, [[colO, yPbot],[colO, yMtop]]);
-  A.dot(S*0.945, S*0.50, u*0.13, {f:'paper', c:'dark', w:3});
-  wire(A, [[colO, S*0.50],[S*0.945, S*0.50]]);
-  junction(A, colO, S*0.50, u);
-  A.text(S*0.945, S*0.445, 'VOUT', {size:30, c:'ink'});
-
-  A.stage('Miller compensation');
-  const yc = S*0.62;
-  wire(A, [[gO, yNode],[gO, yc],[S*0.72, yc]], {c:'hot'});
-  A.rect(S*0.655, yc - S*0.026, S*0.062, S*0.052, {f:'paper', c:'hot', w:3, r:3});
-  A.text(S*0.686, yc - S*0.062, 'Rz', {size:28, c:'hot'});
-  A.line(S*0.755, yc - S*0.032, S*0.755, yc + S*0.032, {c:'hot', w:5});
-  A.line(S*0.785, yc - S*0.032, S*0.785, yc + S*0.032, {c:'hot', w:5});
-  A.text(S*0.77, yc - S*0.068, 'Cc', {size:28, c:'hot'});
-  wire(A, [[S*0.785, yc],[colO, yc]], {c:'hot'});
-  junction(A, gO, yNode, u);
-  junction(A, colO, yc, u);
-
-  A.stage('Specs');
-  A.text(S*0.50, S*0.985, 'A0 70 dB · GBW 10 MHz · PM 60°', {size:32, c:'ink'});
+  A.stage('Falling flowers');
+  for (let i=0;i<16;i++){
+    const ground = i > 9;
+    const x = ground ? 320 + rnd()*360 : 230 + rnd()*540;
+    const y = ground ? 896 + rnd()*14 : 520 + rnd()*350;
+    A.ell(x, y, 8, 11, rnd()*3, {f: i % 2 ? 'leaf' : 'fruit', c:'leafd', w:1.8});
+  }
   return {items, names};
 }
 
-/* ------------------------------------------------------------- catalogue */
-const BUILDERS = {
-  sd_crystal:spSiCrystal, sd_mosfet:spMosfet,
-  il_clt:spCLT,           il_descent:spDescent,
-  soc_pipe:spPipeline,    soc_gecko:spGecko,
-  dt_aig:spAIG,           dt_bdd:spBDD,
-  vl_inv:spInverter,      vl_htree:spHTree,
-  en_oak:spOak,           en_wind:spWind,
-  ot_bonsai:spBonsai,     ot_fern:spFern,
-  an_mirror:spMirror,     an_ota:spOTA,
-};
-const SPECIES = [
-  {id:'soc_pipe',   sub:'cs473',  name:'5-stage pipeline',    stages:9,  cost:0},
-  {id:'soc_gecko',  sub:'cs473',  name:'GECKO5 SoC',          stages:12, cost:500},
-  {id:'dt_aig',     sub:'cs472',  name:'AND-inverter graph',  stages:9,  cost:0},
-  {id:'dt_bdd',     sub:'cs472',  name:'Binary decision diagram', stages:12, cost:500},
-  {id:'il_clt',     sub:'ee411',  name:'Central limit theorem', stages:9, cost:0},
-  {id:'il_descent', sub:'ee411',  name:'Gradient descent',    stages:12, cost:500},
-  {id:'sd_crystal', sub:'ee557',  name:'Silicon crystal',     stages:9,  cost:0},
-  {id:'sd_mosfet',  sub:'ee557',  name:'MOSFET cross-section',stages:12, cost:500},
-  {id:'vl_inv',     sub:'ee429',  name:'CMOS inverter layout',stages:9,  cost:0},
-  {id:'vl_htree',   sub:'ee429',  name:'Clock H-tree',        stages:12, cost:500},
-  {id:'en_oak',     sub:'hum428', name:'Oak',                 stages:9,  cost:0},
-  {id:'en_wind',    sub:'hum428', name:'Wind farm',           stages:12, cost:500},
-  {id:'an_mirror',  sub:'ee424',  name:'Current mirror',      stages:9,  cost:0},
-  {id:'an_ota',     sub:'ee424',  name:'Two-stage OTA',       stages:12, cost:500},
-  {id:'ot_bonsai',  sub:'other',  name:'Bonsai',              stages:9,  cost:0},
-  {id:'ot_fern',    sub:'other',  name:'Fern',                stages:12, cost:500},
+/* ------------------------------------------------------------- catalogue
+   ui / uid are the accent in light and dark (buttons, ring, bars): deeper
+   than the leaves, so white text on them stays readable. */
+const TREES = [
+  {id:'oak',       name:'Oak',            build:trOak,       cost:0,   leaf:'#62b04f', bark:'#8b5d3c', fruit:'#b9813f', ui:'#4c9a43', uid:'#5fae54'},
+  {id:'pine',      name:'Pine',           build:trPine,      cost:0,   leaf:'#37936a', bark:'#7b5236', fruit:'#9c6b3f', ui:'#2f8a63', uid:'#3fa676'},
+  {id:'cherry',    name:'Cherry blossom', build:trCherry,    cost:0,   leaf:'#f6b5cc', bark:'#6e4837', fruit:'#e5719c', ui:'#d45f8c', uid:'#e07aa1'},
+  {id:'birch',     name:'Birch',          build:trBirch,     cost:0,   leaf:'#a8cf4c', bark:'#f3eee4', barkd:'#3e3833', fruit:'#e3b743', ui:'#7a9a2c', uid:'#93b43c'},
+  {id:'palm',      name:'Palm',           build:trPalm,      cost:0,   leaf:'#45aa5e', bark:'#bf9160', fruit:'#7b5433', ui:'#1f9a8a', uid:'#2fb3a1'},
+  {id:'apple',     name:'Apple tree',     build:trApple,     cost:300, leaf:'#5aad4c', bark:'#87593b', fruit:'#e24a3f', ui:'#d6493f', uid:'#e8665b'},
+  {id:'maple',     name:'Maple',          build:trMaple,     cost:300, leaf:'#ef8b35', bark:'#7c4d33', fruit:'#da4a3b', ui:'#d9661f', uid:'#ec8238'},
+  {id:'willow',    name:'Willow',         build:trWillow,    cost:300, leaf:'#8fc455', bark:'#735c40', fruit:'#c9de7a', ui:'#55985e', uid:'#6cb174'},
+  {id:'jacaranda', name:'Jacaranda',      build:trJacaranda, cost:300, leaf:'#a78ae8', bark:'#6b4b3b', fruit:'#c6b1f4', ui:'#8a62c9', uid:'#a07ddc'},
 ];
-SPECIES.forEach(s => { s.growth = s.stages * STAGE_MIN; });
-const SP = Object.fromEntries(SPECIES.map(s => [s.id, s]));
+const TREE = Object.fromEntries(TREES.map(t => [t.id, t]));
+
+/* longer sessions grow bigger trees: 5 min is two thirds of a 2 hour one */
+const kOf = min => 0.62 + 0.38*Math.pow(Math.min(1, Math.max(0, min)/MAX_MINUTES), 0.7);
+const kOfMs = ms => kOf(ms/60000);
+const sizeWord = min => min < 20 ? 'little' : min < 45 ? 'young' : min < 90 ? 'tall' : 'mighty';
 
 /* ------------------------------------------------------------- storage */
 const blank = () => ({
-  v:3, coins:0, unlocked:{}, growing:{}, grove:[], sessions:[], active:null,
-  prefs:{sp:null, minutes:45, sound:true, grace:15, away:'pause', pomodoro:false},
+  v:3, coins:0, owned:{}, forest:[], sessions:[], active:null,
+  prefs:{tree:'oak', surprise:false, minutes:45, sound:true, grace:15, away:'pause', pomodoro:false},
 });
 let DB = blank();
 (function load(){
   try {
     const raw = localStorage.getItem(STORE);
     if (raw){
-      DB = Object.assign(blank(), JSON.parse(raw));
+      const old = JSON.parse(raw);
+      DB = Object.assign(blank(), old);
       DB.prefs = Object.assign(blank().prefs, DB.prefs);
+      if (!Array.isArray(old.forest)) DB.forest = null;   /* history from before the trees */
       return;
     }
     const old = JSON.parse(localStorage.getItem('crescita.v2') || 'null');
-    if (old){                                  /* species were redrawn: remap by course */
-      const remap = {cs473:'soc_pipe', cs472:'dt_aig', ee411:'il_clt', ee557:'sd_crystal',
-                     ee429:'vl_inv', hum428:'en_oak', other:'ot_bonsai'};
+    if (old){
       DB.coins = old.coins || 0;
-      DB.sessions = (old.sessions || []).map(s => ({...s, sp: remap[s.subject] || 'ot_bonsai'}));
-      DB.grove = (old.grove || []).map(g => ({...g, sp: remap[g.sub] || 'ot_bonsai'}));
+      DB.sessions = old.sessions || [];
       DB.prefs.minutes = (old.prefs && old.prefs.minutes) || 45;
+      DB.forest = null;
     }
   } catch (e) {
     /* never lose the bytes: keep whatever could not be parsed */
@@ -1575,15 +929,26 @@ if (DB.prefs.strict !== undefined){                 /* migrate the old on/off sw
   DB.prefs.away = DB.prefs.strict ? 'kill' : 'pause';
   delete DB.prefs.strict;
 }
-/* build 14 went from 20 minutes a part to 3 hours. Everything already in the
-   ground stays on the old pace, so nothing shrinks and nothing is lost. */
-Object.keys(DB.growing || {}).forEach(id => {
-  const g = DB.growing[id];
-  if (g && !g.per) g.per = g.ms > 0 ? LEGACY_STAGE_MS : STAGE_MS;
-});
-(DB.grove || []).forEach(g => {
-  if (!g.gm && SP[g.sp]) g.gm = SP[g.sp].stages * LEGACY_STAGE_MS;
-});
+/* Build 19 dropped the courses and the leaderboard. Every session completed
+   before then becomes a tree, so the forest opens already grown; the old
+   collection stays in the JSON untouched. */
+(function migrate(){
+  delete DB.board; delete DB.pushed; delete DB.syncedAt;
+  try { localStorage.removeItem('epflfocus.session'); } catch (e) {}
+  DB.owned = DB.owned || {};
+  if (!TREE[DB.prefs.tree]) DB.prefs.tree = 'oak';
+  delete DB.prefs.sp;
+  if (!Array.isArray(DB.forest)){
+    const free = TREES.filter(t => !t.cost).map(t => t.id);
+    DB.forest = [];
+    DB.sessions.forEach(s => {
+      if (!TREE[s.tree]) s.tree = s.sp === 'en_oak' ? 'oak' : free[Math.floor(s.startAt/60000) % free.length];
+      if (s.status === 'done')
+        DB.forest.push({tree:s.tree, seed:(s.startAt % 2147483646) + 1,
+          at:s.endAt || s.startAt + s.actualMs, ms:s.actualMs, sid:s.startAt});
+    });
+  }
+})();
 const AWAY_MODES = {
   count: 'Keeps counting',
   pause: 'Pauses the clock',
@@ -1597,39 +962,34 @@ function save(allowEmpty){
   knownSessions = DB.sessions.length;
   try { localStorage.setItem(STORE, JSON.stringify(DB)); } catch (e) {}
 }
+save();
 
-const isUnlocked = id => SP[id].cost === 0 || !!DB.unlocked[id];
-/* A specimen keeps the pace it was started with: slowing growth down must
-   never take parts away from one that is already half built. */
-const stageMsOf = id => (DB.growing[id] && DB.growing[id].per) || STAGE_MS;
-const growthMs = id => SP[id].stages * stageMsOf(id);
-const graveGrowth = g => g.gm || SP[g.sp].stages * LEGACY_STAGE_MS;
-const newSeed = () => ((Date.now() ^ (Math.random()*1e9 | 0)) >>> 0) % 2147483647;
-function specimen(id){
-  if (!DB.growing[id]) DB.growing[id] = {ms:0, seed:newSeed(), per:STAGE_MS};
-  return DB.growing[id];
+const isOwned = id => !TREE[id].cost || !!DB.owned[id];
+const newSeed = () => ((Date.now() ^ (Math.random()*1e9 | 0)) >>> 0) % 2147483646 + 1;
+function randomOwned(not){
+  const ids = TREES.filter(t => isOwned(t.id)).map(t => t.id);
+  const pool = ids.length > 1 ? ids.filter(id => id !== not) : ids;
+  return pool[Math.floor(Math.random()*pool.length)];
 }
 
 /* ---------------------------------------------------------------- utils */
 const $ = s => document.querySelector(s);
-/* iOS paints the notch strip with theme-color: keep it identical to the paper
-   the page is actually using, or the top of the screen reads as a darker band */
 /* iOS paints the strip above the page with theme-color and keeps it, so it has
-   to stay exactly the paper the page is using. Nothing is allowed to cover it. */
+   to stay exactly the sky the page starts with. Nothing is allowed to cover it. */
 function syncStatusBar(){
-  const paper = (getComputedStyle(document.documentElement).getPropertyValue('--paper') || '').trim() || '#e9ede3';
+  const sky = (getComputedStyle(document.documentElement).getPropertyValue('--sky') || '').trim() || '#d6eeff';
   const light = document.querySelector('#themeColor'), dark = document.querySelector('#themeColorDark');
   if (dark) dark.remove();
-  if (light && light.getAttribute('content') !== paper){
+  if (light && light.getAttribute('content') !== sky){
     light.removeAttribute('media');
-    light.setAttribute('content', paper);
+    light.setAttribute('content', sky);
   }
 }
 function clamp(v,a,b){ return v < a ? a : v > b ? b : v; }
 const pad2 = n => String(n).padStart(2,'0');
 const isDark = () => document.documentElement.dataset.theme === 'dark' ||
   (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
-const hueOf = id => isDark() ? SUB[id].dark : SUB[id].hue;
+const uiOf = id => TREE[id] ? (isDark() ? TREE[id].uid : TREE[id].ui) : 'var(--ink-3)';
 
 function fmtClock(ms){
   const t = Math.max(0, Math.ceil(ms/1000));
@@ -1662,57 +1022,44 @@ const hex2rgb = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), pars
 const mixc = (a,b,t) => { const A = Array.isArray(a) ? a : hex2rgb(a), B = Array.isArray(b) ? b : hex2rgb(b);
   return A.map((v,i) => Math.round(v + (B[i]-v)*t)); };
 const rgba = (c,a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
-const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-function buildOrganism(spId, seed){
-  const S = 1000;
-  const {items, names} = BUILDERS[spId](mulberry32(seed || 1), S);
-  return {items, names, S, sp:spId, sub:SP[spId].sub, nst:SP[spId].stages, seed};
+const ORG_CACHE = new Map();
+function buildTree(id, seed){
+  const key = id + ':' + seed;
+  if (ORG_CACHE.has(key)) return ORG_CACHE.get(key);
+  const {items, names} = TREE[id].build(mulberry32(seed || 1));
+  const org = {items, names, S:1000, tree:id, nst:names.length, seed};
+  if (ORG_CACHE.size > 400) ORG_CACHE.clear();
+  ORG_CACHE.set(key, org);
+  return org;
 }
+const stageName = (org, p) => org.names[clamp(Math.floor(p*org.nst), 0, org.nst - 1)];
 
 /* -------------------------------------------------------------- painting */
-function palette(subId, decay){
-  const paper = cssVar('--card') || '#f4f7ef';
-  const ink   = cssVar('--ink')  || '#1e2a21';
-  const dk    = isDark();
-  const base  = hueOf(subId);
-  const grey  = dk ? '#5b6a5f' : '#a3afa4';
-  const g = c => mixc(c, grey, decay);
+function treePalette(id){
+  const t = TREE[id], dk = isDark();
+  const D = '#2a201b', W = '#ffffff';
+  const n = c => { const a = Array.isArray(c) ? c : hex2rgb(c); return dk ? mixc(a, '#2b2a4a', .12) : a; };
+  const grass = dk ? '#5f9e57' : '#9fd472', sprout = '#7cc35a', gold = '#f4b942';
   return {
-    main: g(base),
-    dark: g(mixc(base, ink, .42)),
-    lite: g(mixc(base, paper, .58)),
-    alt:  g(dk ? '#8a9aa6' : '#66747f'),
-    altl: g(dk ? '#39434a' : '#dfe4e6'),
-    cool: g(dk ? '#5f92d8' : '#3f74b8'),
-    hot:  g(dk ? '#dd7a6a' : '#c05a45'),
-    ink:  g(ink),
-    paper:hex2rgb(paper),
+    leaf:n(t.leaf), leaf2:n(mixc(t.leaf, gold, .28)), leafd:n(mixc(t.leaf, D, .4)), leafl:n(mixc(t.leaf, W, .42)),
+    bark:n(t.bark), barkd:n(t.barkd || mixc(t.bark, D, .45)), barkl:n(mixc(t.bark, W, .3)),
+    fruit:n(t.fruit), fruitd:n(mixc(t.fruit, D, .38)), fruitl:n(mixc(t.fruit, W, .5)),
+    gold:n(gold), sprout:n(sprout), sproutd:n(mixc(sprout, D, .4)),
+    grass:n(grass), grassd:n(mixc(grass, D, .3)), grassl:n(mixc(grass, W, .35)),
+    soil:n('#a9785a'), seed:n('#b98552'), white:n('#fffaf2'),
   };
 }
 
-function drawOrganism(canvas, org, p, opt){
+/* draw a tree into a square box of the given size. `k` shrinks it around the
+   foot of the trunk, so a smaller tree still stands on the same ground. */
+function drawOrg(ctx, org, p, bx, by, size, opt){
   opt = opt || {};
-  const decay = opt.decay || 0;
   const solid = opt.alpha != null ? opt.alpha : 1;
-  const hasGhost = opt.ghost != null && opt.ghost > p;
-  const ghost = hasGhost ? opt.ghost : p;
-  const dpr = Math.min(2.5, window.devicePixelRatio || 1);
-  const box = canvas.getBoundingClientRect();
-  const side = Math.round(Math.min(box.width, box.height));
-  if (side < 24) return;
-  if (canvas.width !== Math.round(side*dpr)) canvas.width = canvas.height = Math.round(side*dpr);
-  const ctx = canvas.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, side, side);
-
-  const s = side*0.98/org.S, ox = (side - org.S*s)/2, oy = (side - org.S*s)/2;
-  const X = x => ox + x*s, Y = y => oy + y*s, L = v => v*s;
-  const P = palette(org.sub, decay);
-  const fade = (1 - decay*0.45)*solid;
-  const drop = decay*decay*org.S*0.045;
-
-  const stF = p*org.nst, stG = ghost*org.nst;
+  const k = opt.k || 1, s = size/org.S;
+  const X = x => bx + (500 + (x - 500)*k)*s, Y = y => by + (900 + (y - 900)*k)*s, L = v => v*k*s;
+  const P = opt.pal || treePalette(org.tree);
+  const stF = clamp(p, 0, 1)*org.nst;
   const stage = Math.floor(stF), frac = stF - stage;
 
   /* per-stage item index, so a stage builds up piece by piece */
@@ -1720,108 +1067,84 @@ function drawOrganism(canvas, org, p, opt){
   org.items.forEach(it => { cntIn[it.st] = (cntIn[it.st] || 0) + 1; });
 
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-
   for (const it of org.items){
     const i = (idxIn[it.st] = (idxIn[it.st] || 0)), n = cntIn[it.st];
     idxIn[it.st]++;
-    let g = 1, alpha = fade;
-    if (it.st > stage){
-      if (!hasGhost || it.st >= stG) continue;
-      alpha = fade*0.16;                     /* only when a ghost was asked for */
-    } else if (it.st === stage){
-      const t0 = (i/n)*0.55;
-      g = clamp((frac - t0)/0.45, 0, 1);
-      if (g <= 0.001) continue;              /* this piece simply is not there yet */
+    if (it.gnd && opt.noGround) continue;
+    let g = 1, alpha = solid*(it.op != null ? it.op : 1);
+    if (!it.gnd){
+      if (it.st > stage) continue;
+      if (it.st === stage){
+        const t0 = (it.q != null ? it.q : i/n)*0.55;
+        g = clamp((frac - t0)/0.45, 0, 1);
+        if (g <= 0.001) continue;              /* this piece simply is not there yet */
+      }
+      if (it.un != null){
+        if (stage > it.un + 1) continue;
+        if (stage === it.un + 1){ alpha *= 1 - clamp(frac/0.5, 0, 1); if (alpha <= 0.01) continue; }
+      }
     }
 
-    const dy = drop*(1 + (it.st % 3)*0.4);
-    const stroke = it.c === null ? null : P[it.c || 'dark'];
+    const stroke = it.c === null ? null : P[it.c || 'barkd'];
     const fill = it.f ? P[it.f] : null;
-    const lw = Math.max(0.9, L(it.w != null ? it.w : 2.4));
-    ctx.setLineDash(it.dash ? it.dash.map(v => L(v)) : []);
-
+    const lw = Math.max(0.6, L(it.w != null ? it.w : 2.4));
     const strokeIt = () => { if (!stroke || !it.w) return; ctx.strokeStyle = rgba(stroke, alpha); ctx.lineWidth = lw; ctx.stroke(); };
-    const fillIt = () => { if (!fill) return; ctx.fillStyle = rgba(fill, alpha*(it.f === 'paper' ? 1 : 0.9)); ctx.fill(); };
+    const fillIt = () => { if (!fill) return; ctx.fillStyle = rgba(fill, alpha); ctx.fill(); };
 
+    ctx.beginPath();
     if (it.k === 'line'){
-      ctx.beginPath();
-      ctx.moveTo(X(it.x1), Y(it.y1) + dy);
-      ctx.lineTo(X(it.x1 + (it.x2-it.x1)*g), Y(it.y1 + (it.y2-it.y1)*g) + dy);
+      ctx.moveTo(X(it.x1), Y(it.y1));
+      ctx.lineTo(X(it.x1 + (it.x2-it.x1)*g), Y(it.y1 + (it.y2-it.y1)*g));
       strokeIt();
-    } else if (it.k === 'arrow'){
-      const ax = it.x1 + (it.x2-it.x1)*g, ay = it.y1 + (it.y2-it.y1)*g;
-      ctx.beginPath(); ctx.moveTo(X(it.x1), Y(it.y1) + dy); ctx.lineTo(X(ax), Y(ay) + dy); strokeIt();
-      if (g > 0.6 && stroke){
-        const a = Math.atan2(ay - it.y1, ax - it.x1), h = org.S*0.026;
-        ctx.beginPath();
-        ctx.moveTo(X(ax), Y(ay) + dy);
-        ctx.lineTo(X(ax - Math.cos(a-0.42)*h), Y(ay - Math.sin(a-0.42)*h) + dy);
-        ctx.lineTo(X(ax - Math.cos(a+0.42)*h), Y(ay - Math.sin(a+0.42)*h) + dy);
-        ctx.closePath();
-        ctx.fillStyle = rgba(stroke, alpha); ctx.fill();
-      }
     } else if (it.k === 'path'){
       const n2 = Math.max(2, Math.round(it.pts.length*g));
-      ctx.beginPath();
-      it.pts.slice(0, n2).forEach(([x,y], j) => j ? ctx.lineTo(X(x), Y(y) + dy) : ctx.moveTo(X(x), Y(y) + dy));
+      it.pts.slice(0, n2).forEach(([x,y], j) => j ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y)));
       fillIt(); strokeIt();
     } else if (it.k === 'curve'){
-      ctx.beginPath();
-      ctx.moveTo(X(it.x1), Y(it.y1) + dy);
-      ctx.quadraticCurveTo(X(it.cx), Y(it.cy) + dy,
-        X(it.x1 + (it.x2-it.x1)*g), Y(it.y1 + (it.y2-it.y1)*g) + dy);
+      /* the first g of the curve, split exactly (de Casteljau) */
+      const u = 1 - g;
+      const cx = it.x1 + (it.cx - it.x1)*g, cy = it.y1 + (it.cy - it.y1)*g;
+      const ex = u*u*it.x1 + 2*u*g*it.cx + g*g*it.x2, ey = u*u*it.y1 + 2*u*g*it.cy + g*g*it.y2;
+      ctx.moveTo(X(it.x1), Y(it.y1));
+      ctx.quadraticCurveTo(X(cx), Y(cy), X(ex), Y(ey));
       strokeIt();
-    } else if (it.k === 'rect'){
-      const gw = it.rw*g, gh = it.rh*g;
-      const x = it.x + (it.rw - gw)/2, y = it.y + (it.rh - gh)/2;
-      ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(X(x), Y(y) + dy, L(gw), L(gh), L(it.r != null ? it.r : 0));
-      else ctx.rect(X(x), Y(y) + dy, L(gw), L(gh));
-      fillIt(); strokeIt();
     } else if (it.k === 'poly'){
-      const cx = it.pts.reduce((a,q) => a + q[0], 0)/it.pts.length;
-      const cy = it.pts.reduce((a,q) => a + q[1], 0)/it.pts.length;
-      ctx.beginPath();
+      const o = it.o || [it.pts.reduce((a,q) => a + q[0], 0)/it.pts.length,
+                         it.pts.reduce((a,q) => a + q[1], 0)/it.pts.length];
       it.pts.forEach(([x,y], j) => {
-        const px = cx + (x-cx)*g, py = cy + (y-cy)*g;
-        j ? ctx.lineTo(X(px), Y(py) + dy) : ctx.moveTo(X(px), Y(py) + dy);
+        const px = o[0] + (x - o[0])*g, py = o[1] + (y - o[1])*g;
+        j ? ctx.lineTo(X(px), Y(py)) : ctx.moveTo(X(px), Y(py));
       });
       ctx.closePath();
       fillIt(); strokeIt();
     } else if (it.k === 'dot'){
-      ctx.beginPath();
-      ctx.arc(X(it.x), Y(it.y) + dy, Math.max(0.8, L(it.r*g)), 0, 6.2832);
+      ctx.arc(X(it.x), Y(it.y), Math.max(0.5, L(it.r*g)), 0, 6.2832);
       fillIt(); strokeIt();
     } else if (it.k === 'ell'){
-      ctx.beginPath();
-      ctx.ellipse(X(it.x), Y(it.y) + dy, Math.max(0.5, L(it.rx*g)), Math.max(0.5, L(it.ry*g)),
-        it.rot || 0, 0, 6.2832);
+      ctx.ellipse(X(it.x), Y(it.y), Math.max(0.4, L(it.rx*g)), Math.max(0.4, L(it.ry*g)), it.rot || 0, 0, 6.2832);
       fillIt(); strokeIt();
-    } else if (it.k === 'text'){
-      const size = L(it.size || 24);
-      if (size < 4.5) continue;
-      ctx.save();
-      ctx.translate(X(it.x), Y(it.y) + dy);
-      if (it.rot) ctx.rotate(it.rot);
-      ctx.font = `700 ${size}px Karla, ui-sans-serif, sans-serif`;
-      ctx.textAlign = it.align || 'center';
-      ctx.fillStyle = rgba(P[it.c || 'ink'], alpha*g);
-      ctx.fillText(it.t, 0, 0);
-      ctx.restore();
     }
   }
-  ctx.setLineDash([]);
 }
-
-function stageInfo(spId, ms){
-  const sp = SP[spId], per = stageMsOf(spId);
-  const idx = clamp(Math.floor(ms/per), 0, sp.stages-1);
-  const org = ORG_CACHE[spId] || (ORG_CACHE[spId] = buildOrganism(spId, 1));
-  return {index:idx, name:org.names[idx] || '', total:sp.stages,
-    next: org.names[Math.min(idx+1, sp.stages-1)] || ''};
+function fitCanvas(canvas){
+  const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  const box = canvas.getBoundingClientRect();
+  const w = Math.round(box.width), h = Math.round(box.height);
+  if (w < 24 || h < 24) return null;
+  if (canvas.width !== Math.round(w*dpr) || canvas.height !== Math.round(h*dpr)){
+    canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr);
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  return {ctx, w, h};
 }
-const ORG_CACHE = {};
+function drawOrganism(canvas, org, p, opt){
+  const c = fitCanvas(canvas);
+  if (!c) return;
+  const side = Math.min(c.w, c.h);
+  drawOrg(c.ctx, org, p, (c.w - side)/2, (c.h - side)/2, side, opt);
+}
 
 /* ================================================================== DIAL
    Continuous: 0 min at 12 o'clock, 120 min after a full turn, no snapping.
@@ -1859,7 +1182,7 @@ function paintDial(degOverride){
   const angleAt = e => { const [dx,dy] = rel(e); return (Math.atan2(dy, dx)*180/Math.PI + 90 + 360) % 360; };
   const inRing = e => { const [dx,dy,R] = rel(e); const d = Math.hypot(dx, dy)/R; return d > 0.56 && d < 1.20; };
   wrap.addEventListener('pointerdown', e => {
-    if (!DB.prefs.sp || !inRing(e)) return;
+    if (!inRing(e)) return;
     dragging = true;
     try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
     acc = minToDeg(DB.prefs.minutes);
@@ -1886,48 +1209,23 @@ function paintDial(degOverride){
 })();
 
 /* =================================================================== HOME */
-let previewOrg = null;
-
-function applySubjectColor(subId){
-  document.documentElement.style.setProperty('--sub',
-    subId ? hueOf(subId) : (isDark() ? '#8b9a90' : '#6b7a70'));
+function applyTreeColor(id){
+  document.documentElement.style.setProperty('--sub', uiOf(id));
 }
 
+/* home shows the tree you are about to grow, full size for the minutes on the
+   dial: turn the dial and it gets bigger */
 function paintPreview(){
-  const id = DB.prefs.sp;
+  const t = TREE[DB.prefs.tree], min = DB.prefs.minutes;
+  applyTreeColor(t.id);
   $('#coins').textContent = DB.coins;
-  $('#pickCenter').hidden = !!id;
-  $('#speciesBtn').hidden = !id;
-  $('#plant').disabled = !id;
-  $('#preview').style.visibility = id ? 'visible' : 'hidden';
-  $('#dial').style.opacity = id ? '1' : '.3';
-  if (!id){
-    applySubjectColor(null);
-    $('#growLine').textContent = 'Tap the middle to choose';
-    $('#stageName').textContent = '';
-    return;
-  }
-  const sp = SP[id], spec = specimen(id), gm = growthMs(id);
-  applySubjectColor(sp.sub);
-  $('#spCode').textContent = SUB[sp.sub].code;
-  $('#spName').textContent = sp.name;
-  if (!previewOrg || previewOrg.sp !== id || previewOrg.seed !== spec.seed)
-    previewOrg = buildOrganism(id, spec.seed);
-  /* home always shows at least the first part, so the ring is never blank */
-  const target = clamp((spec.ms + DB.prefs.minutes*60000)/gm, 0, 1);
-  drawOrganism($('#preview'), previewOrg, Math.max(target, 1/sp.stages), {});
-
-  const st = stageInfo(id, spec.ms);
-  const per = stageMsOf(id);
-  const gained = Math.floor((spec.ms + DB.prefs.minutes*60000)/per) - Math.floor(spec.ms/per);
-  $('#growLine').innerHTML = `<b>${fmtDur(spec.ms)}</b> / ${fmtDur(gm)} · stage <b>${st.index+1}</b>/${st.total}`;
-  const plan = pomPlan(DB.prefs.minutes*60000);
-  $('#stageName').innerHTML = (gained > 0
-      ? `+${gained} part${gained > 1 ? 's' : ''} · next: ${st.next}`
-      : `not enough for a new part`)
-    + (DB.prefs.pomodoro && plan.breaks
-        ? ` · <b>${plan.blocks}×25′</b> with ${plan.breaks} break${plan.breaks > 1 ? 's' : ''}`
-        : '');
+  $('#treeName').textContent = (DB.prefs.surprise ? '🎲 ' : '') + t.name;
+  $('#treeDot').style.background = uiOf(t.id);
+  drawOrganism($('#preview'), buildTree(t.id, 7), 1, {k:kOf(min)});
+  $('#growLine').innerHTML = `Grows a <b>${sizeWord(min)}</b> ${t.name.toLowerCase()}`;
+  const plan = pomPlan(min*60000);
+  $('#planLine').innerHTML = DB.prefs.pomodoro && plan.breaks
+    ? `<b>${plan.blocks}×25′</b> with ${plan.breaks} break${plan.breaks > 1 ? 's' : ''}` : '';
 }
 
 /* =============================================================== SESSION */
@@ -1935,9 +1233,9 @@ function paintPreview(){
    and no API separates them. So it is a choice, not a detection:
      count — hidden time still counts (right when Guided Access is on, because
              then the only way to hide the page is the power button)
-     pause — hidden time is not studied, the clock stops
-     kill  — hidden longer than the grace period ends the session, and its
-             minutes are forfeited (the specimen itself is never lost)       */
+     pause — hidden time is not focus time, the clock stops
+     kill  — hidden longer than the grace period ends the session, and it
+             plants nothing                                                   */
 /* Past the planned time the session keeps running on its own — overtime —
    until Finish is tapped, the app is left, or the cap is reached. */
 const capOf = a => Math.min(a.plannedMs + OVERTIME_MAX, SESSION_CAP);
@@ -1973,19 +1271,20 @@ function resolve(a, now, graceMs, mode){
 
 let ORG = null, rafId = 0;
 
+function setSessionChip(id){
+  $('#sesDot').style.background = uiOf(id);
+  $('#sesName').textContent = TREE[id].name;
+}
 function startSession(){
-  if (!DB.prefs.sp) return;
   unlockAudio();
-  const id = DB.prefs.sp, spec = specimen(id), now = Date.now();
-  DB.active = {sp:id, subject:SP[id].sub, startAt:now, plannedMs:Math.round(DB.prefs.minutes)*60000,
-    seed:spec.seed, baseMs:spec.ms, per:stageMsOf(id), awayAt:null, pausedMs:0, hiddenMs:0, seen:now,
-    chimed:false, escapes:0,
+  const id = DB.prefs.tree, now = Date.now();
+  DB.active = {tree:id, seed:newSeed(), startAt:now, plannedMs:Math.round(DB.prefs.minutes)*60000,
+    awayAt:null, pausedMs:0, hiddenMs:0, seen:now, chimed:false, escapes:0,
     pom: !!DB.prefs.pomodoro, breakStart:null, breakLen:0, breakMs:0, blocksDone:0};
   save();
-  ORG = buildOrganism(id, spec.seed);
-  applySubjectColor(SP[id].sub);
-  $('#sesCode').textContent = SUB[SP[id].sub].code;
-  $('#sesName').textContent = SP[id].name;
+  ORG = buildTree(id, DB.active.seed);
+  applyTreeColor(id);
+  setSessionChip(id);
   setOvertime(false); setBreak(false);
   show('session');
   requestWakeLock();
@@ -1996,44 +1295,28 @@ function endSession(status, at, studied, awayMs){
   const a = DB.active;
   if (!a) return;
   const actual = Math.max(0, Math.round(studied));
-  const gm = growthMs(a.sp), spec = specimen(a.sp);
   const ok = status === 'done';
   const out = {status, actual, coins: ok ? Math.round(actual/60000)*COIN_PER_MIN : 0,
-    matured:false, deadAt:0, sp:a.sp, seed:a.seed, awayMs, baseMs:a.baseMs,
-    gm, per: a.per || stageMsOf(a.sp),
-    pausedMs:a.pausedMs || 0, hiddenMs:a.hiddenMs || 0,
-    overMs: Math.max(0, Math.round(studied) - a.plannedMs)};
+    tree:a.tree, seed:a.seed, awayMs, p: clamp(actual/a.plannedMs, 0, 1),
+    pausedMs:a.pausedMs || 0, overMs: Math.max(0, actual - a.plannedMs), n:0};
 
+  /* a lost session plants nothing, but nothing already planted is ever lost */
   if (ok){
-    spec.ms += actual;
     DB.coins += out.coins;
-    if (spec.ms >= gm){
-      out.matured = true;
-      DB.coins += MATURE_BONUS;
-      out.coins += MATURE_BONUS;
-      DB.grove.push({sp:a.sp, sub:a.subject, ms:gm, gm, at, seed:a.seed, dead:false});
-      DB.growing[a.sp] = {ms: spec.ms - gm, seed:newSeed(), per:STAGE_MS};
-    }
-  } else {
-    /* a lost session costs the session, not the specimen: the minutes are
-       forfeited, but what was already built stays exactly where it was.
-       Holds for giving up and for leaving the app alike. */
-    out.deadAt = spec.ms;
+    DB.forest.push({tree:a.tree, seed:a.seed, at, ms:actual, sid:a.startAt});
+    out.n = DB.forest.length;
   }
-
-  DB.sessions.push({id:a.startAt, subject:a.subject, sp:a.sp, startAt:a.startAt, endAt:at,
+  DB.sessions.push({id:a.startAt, tree:a.tree, startAt:a.startAt, endAt:at,
     plannedMs:a.plannedMs, actualMs:actual, pausedMs:a.pausedMs || 0,
     hiddenMs:a.hiddenMs || 0, status, coins:out.coins, escapes:a.escapes});
   DB.active = null;
   save();
   releaseWakeLock();
   stopLoop();
-  previewOrg = null;
   showResult(out);
-  if (SESSION) syncUp().catch(() => {});      /* fire and forget: offline is fine */
 }
 
-let tickId = 0, lastDrawP = -1, lastDrawA = -1, lastDrawAt = 0;
+let tickId = 0, lastDrawP = -1, lastDrawK = -1, lastDrawAt = 0;
 function loop(){
   stopLoop();
   const tick = () => {
@@ -2041,11 +1324,11 @@ function loop(){
     if (!a) return;
     const now = Date.now();
     const r = resolve(a, now, DB.prefs.grace*1000, DB.prefs.away);
-    if (r.kind === 'lost'){ beep('dead'); endSession('escaped', r.at, r.studied, DB.prefs.grace*1000); return; }
+    if (r.kind === 'lost'){ beep('lost'); endSession('escaped', r.at, r.studied, DB.prefs.grace*1000); return; }
     if (r.kind === 'done'){ beep('done'); endSession('done', r.at, r.studied, 0); return; }
 
     if (r.kind === 'break'){
-      if (now >= r.until){                       /* break over, back to work */
+      if (now >= r.until){                       /* break over, back to it */
         a.breakMs = (a.breakMs || 0) + a.breakLen;
         a.breakStart = null; a.breakLen = 0;
         beep('done'); save();
@@ -2055,17 +1338,17 @@ function loop(){
         setBreak(true);
         $('#clock').textContent = fmtClock(left);
         $('#sesArc').setAttribute('d', arcPath(clamp(1 - left/a.breakLen, 0, 1)*359.9));
-        $('#sesState').innerHTML = `break · back to block <b>${a.blocksDone + 1}</b> in a moment`;
+        $('#sesState').innerHTML = `break time · block <b>${a.blocksDone + 1}</b> starts in a moment`;
         if (now - (a.seen || 0) > 15000){ a.seen = now; save(); }
         return;
       }
     }
     setBreak(false);
 
-    const studied = studiedOf(a, now), gm = growthMs(a.sp), cap = capOf(a);
+    const studied = studiedOf(a, now), cap = capOf(a);
     const over = studied >= a.plannedMs && cap > a.plannedMs;
 
-    /* a whole block done and more work to come: take the break */
+    /* a whole block done and more to come: take the break */
     if (a.pom && !over && studied < a.plannedMs){
       const blocks = Math.floor(studied/POM.block);
       if (blocks > (a.blocksDone || 0)){
@@ -2083,26 +1366,21 @@ function loop(){
     $('#sesArc').setAttribute('d', arcPath(clamp(over
       ? (studied - a.plannedMs)/(cap - a.plannedMs)
       : studied/a.plannedMs, 0, 1)*359.9));
-    const grown = a.baseMs + studied;
-    const st = stageInfo(a.sp, Math.min(grown, gm - 1));
+    const p = clamp(studied/a.plannedMs, 0, 1);
     $('#sesState').innerHTML = over
-      ? `overtime · up to <b>+${fmtDur(cap - a.plannedMs)}</b>`
-      : grown >= gm
-      ? 'Complete · extra minutes go to the next one'
-      : `stage ${st.index+1}/${st.total} · <b>${st.name}</b>` +
-        (a.pausedMs > 30000 ? ` · ${fmtDur(a.pausedMs)} paused` : '');
+      ? `fully grown · overtime up to <b>+${fmtDur(cap - a.plannedMs)}</b>`
+      : `<b>${stageName(ORG, p)}</b>` + (a.pausedMs > 30000 ? ` · ${fmtDur(a.pausedMs)} paused` : '');
 
     /* between one second and the next the drawing changes by an amount nobody
        can see, so it is repainted on a real change, not on every frame */
-    const p = clamp(grown/gm, 0, 1);
-    const alpha = 0.3 + 0.7*clamp(studied/a.plannedMs, 0, 1);
-    if (Math.abs(p - lastDrawP) > 0.0012 || Math.abs(alpha - lastDrawA) > 0.02 || now - lastDrawAt > 8000){
-      drawOrganism($('#organism'), ORG, p, {alpha});
-      lastDrawP = p; lastDrawA = alpha; lastDrawAt = now;
+    const k = kOfMs(Math.max(a.plannedMs, studied));
+    if (Math.abs(p - lastDrawP) > 0.0012 || Math.abs(k - lastDrawK) > 0.004 || now - lastDrawAt > 8000){
+      drawOrganism($('#organism'), ORG, p, {k});
+      lastDrawP = p; lastDrawK = k; lastDrawAt = now;
     }
     if (now - (a.seen || 0) > 15000){ a.seen = now; save(); }  /* heartbeat: survives a hard kill */
   };
-  lastDrawP = lastDrawA = -1; lastDrawAt = 0;
+  lastDrawP = lastDrawK = -1; lastDrawAt = 0;
   tick();
   tickId = setInterval(tick, 1000);
 }
@@ -2112,46 +1390,39 @@ function stopLoop(){
 }
 
 function showResult(o){
-  const sp = SP[o.sp], gm = o.gm || growthMs(o.sp);
-  applySubjectColor(sp.sub);
-  const org = buildOrganism(o.sp, o.seed);
+  const t = TREE[o.tree], org = buildTree(o.tree, o.seed);
+  applyTreeColor(o.tree);
   const ok = o.status === 'done';
   const gave = o.status === 'abandoned';      /* own decision, as opposed to leaving */
-  const pStart = clamp(o.baseMs/gm, 0, 1);
-  const pEnd = clamp((o.baseMs + o.actual)/gm, 0, 1);
-  const per = o.per || STAGE_MS;
-  const partsGained = Math.floor((o.baseMs + o.actual)/per) - Math.floor(o.baseMs/per);
+  const k = kOfMs(Math.max(o.actual, 60000));
 
-  $('#resTitle').textContent = o.matured ? sp.name + ' complete'
-    : ok ? 'Session done'
-    : gave ? 'Given up' : 'Session lost';
-  $('#resTitle').style.color = ok ? 'var(--ink)' : 'var(--bad)';
-  $('#resSub').textContent = o.matured
-    ? 'Fully built. It goes to the collection and a new one starts.'
-    : ok ? (o.pausedMs > 30000 ? `Done, with ${fmtDur(o.pausedMs)} paused along the way.`
-                                : 'You stayed here the whole time.')
-    : gave ? 'You ended it yourself, so these minutes do not count. The specimen survives.'
-    : `You were out of the app for more than ${DB.prefs.grace} seconds, so these minutes do not count. The specimen survives.`;
+  $('#resTitle').textContent = ok ? `${t.name} planted!` : gave ? 'Stopped early' : 'You wandered off';
+  $('#resTitle').style.color = ok ? 'var(--sub)' : 'var(--ink)';
+  $('#resSub').textContent = ok
+    ? (o.pausedMs > 30000 ? `It's in your forest now, with ${fmtDur(o.pausedMs)} paused along the way.`
+                          : `It's in your forest now. You stayed with it the whole time.`)
+    : gave ? `This one stays a ${stageName(org, o.p).toLowerCase()} for now. Your forest is just as you left it.`
+    : `You were away for more than ${DB.prefs.grace} seconds, so it didn't take root. Your forest is just as you left it.`;
   $('#resGain').innerHTML =
     `<span class="pill">${fmtDur(o.actual)}</span>` +
     (o.overMs > 30000 ? `<span class="pill">+${fmtDur(o.overMs)} overtime</span>` : '') +
-    (ok && partsGained ? `<span class="pill">+${partsGained} part${partsGained > 1 ? 's' : ''}</span>` : '') +
     (o.coins ? `<span class="pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="var(--coin)"></circle></svg>+${o.coins}</span>` : '');
-  $('#resBar').style.width = (ok ? pEnd : pStart)*100 + '%';
   $('#resNote').textContent = ok
-    ? (o.matured ? 'Maturity bonus included.'
-       : `${fmtDur(o.baseMs + o.actual)} of ${fmtDur(gm)} built.`)
-    : `Still ${fmtDur(o.baseMs)} of ${fmtDur(gm)} built. The time stays in the stats, it just does not grow anything.`;
+    ? `Tree number ${o.n} in your forest.`
+    : 'The minutes still show in your stats.';
 
-  /* the specimen starts drawing when the view lands, not while it is still away */
+  /* the tree starts drawing when the view lands, not while it is still away */
   go('result', () => {
     show('result');
+    const wrap = $('#resWrap');
+    wrap.classList.remove('pop');
+    if (ok){ void wrap.offsetWidth; wrap.classList.add('pop'); }
     const t0 = performance.now();
     const anim = now => {
       const dt = now - t0;
-      const p = ok ? pStart + (pEnd - pStart)*clamp(dt/1400, 0, 1) : pStart;
-      drawOrganism($('#organism2'), org, p, {decay: 0});
-      if (ok && dt < 1600) rafId = requestAnimationFrame(anim);
+      const p = ok ? 0.8 + 0.2*clamp(dt/900, 0, 1) : o.p;
+      drawOrganism($('#organism2'), org, p, {k, alpha: ok ? 1 : .55});
+      if (ok && dt < 1000) rafId = requestAnimationFrame(anim);
     };
     rafId = requestAnimationFrame(anim);
   });
@@ -2180,7 +1451,7 @@ function handleReturn(){
   if (!a || a.awayAt == null) return;
   const now = Date.now(), away = now - a.awayAt, mode = DB.prefs.away;
   const r = resolve(a, now, DB.prefs.grace*1000, mode);
-  if (r.kind === 'lost'){ save(); beep('dead'); endSession('escaped', r.at, r.studied, away); return; }
+  if (r.kind === 'lost'){ save(); beep('lost'); endSession('escaped', r.at, r.studied, away); return; }
 
   a.hiddenMs = (a.hiddenMs || 0) + away;
   if (mode === 'pause' && a.breakStart == null) a.pausedMs = (a.pausedMs || 0) + away;
@@ -2216,17 +1487,17 @@ function unlockAudio(){
 function beep(kind){
   if (!AC || !DB.prefs.sound) return;
   try {
-    const t = AC.currentTime, notes = kind === 'done' ? [523.25, 659.25, 783.99] : [196, 138.59];
+    const t = AC.currentTime, notes = kind === 'done' ? [523.25, 659.25, 783.99, 1046.5] : [392, 329.63];
     notes.forEach((f,i) => {
       const o = AC.createOscillator(), g = AC.createGain();
-      o.type = kind === 'done' ? 'sine' : 'triangle';
+      o.type = 'sine';
       o.frequency.value = f;
-      const t0 = t + i*(kind === 'done' ? .16 : .34);
+      const t0 = t + i*(kind === 'done' ? .13 : .3);
       g.gain.setValueAtTime(0, t0);
-      g.gain.linearRampToValueAtTime(kind === 'done' ? .22 : .3, t0 + .02);
-      g.gain.exponentialRampToValueAtTime(.0001, t0 + (kind === 'done' ? .5 : 1.1));
+      g.gain.linearRampToValueAtTime(kind === 'done' ? .2 : .18, t0 + .02);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + (kind === 'done' ? .55 : .8));
       o.connect(g); g.connect(AC.destination);
-      o.start(t0); o.stop(t0 + 1.2);
+      o.start(t0); o.stop(t0 + 1);
     });
   } catch (e) {}
 }
@@ -2305,29 +1576,27 @@ function show(v){
   currentView = v;
   syncStatusBar();
   $('#coins').textContent = DB.coins;
-  ['home','session','result','stats','grove','rank'].forEach(k => $('#v-'+k).classList.toggle('on', k === v));
+  ['home','session','result','forest','stats'].forEach(k => $('#v-'+k).classList.toggle('on', k === v));
   const locked = v === 'session' || v === 'result';
   $('#nav').style.display = locked ? 'none' : '';
   $('#bar').style.display = v === 'session' ? 'none' : 'flex';
   $('#openSettings').style.visibility = locked ? 'hidden' : 'visible';
   document.querySelectorAll('#nav button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.view === v)));
-  $('#barTitle').textContent = v === 'stats' ? 'Stats' : v === 'grove' ? 'Collection'
-    : v === 'rank' ? 'Ranking' : 'EPFL Focus';
+  $('#barTitle').textContent = v === 'stats' ? 'Stats' : v === 'forest' ? 'Forest' : 'Grove';
   if (v === 'home'){ paintDial(); paintPreview(); }
   if (v === 'stats') renderStats();
-  if (v === 'grove') renderGrove();
-  if (v === 'rank'){ renderRank(); refreshRank(); }
+  if (v === 'forest') renderForest();
   if (!locked) stopLoop();
 }
 
-/* hold to give up: leaving has to cost a gesture */
+/* hold to stop: leaving has to cost a gesture */
 let inBreak = false;
 function setBreak(on){
   if (on === inBreak) return;
   inBreak = on;
   $('#sesWrap').classList.toggle('paused', on);
   $('#abandon').classList.toggle('finish', on);
-  $('#abandonLabel').textContent = on ? 'Skip the break' : 'Hold to give up';
+  $('#abandonLabel').textContent = on ? 'Skip the break' : 'Hold to stop';
 }
 let inOvertime = false;
 function setOvertime(on){
@@ -2335,7 +1604,7 @@ function setOvertime(on){
   inOvertime = on;
   $('#sesWrap').classList.toggle('over', on);
   $('#abandon').classList.toggle('finish', on);
-  $('#abandonLabel').textContent = on ? 'Finish and keep the time' : 'Hold to give up';
+  $('#abandonLabel').textContent = on ? 'Plant it now' : 'Hold to stop';
 }
 (function(){
   const btn = $('#abandon'), fill = $('#holdFill');
@@ -2356,7 +1625,7 @@ function setOvertime(on){
       save(); setBreak(false); loop();
       return;
     }
-    if (inOvertime){                       /* the work is already done: one tap banks it */
+    if (inOvertime){                       /* the tree is already grown: one tap plants it */
       const n = Date.now();
       endSession('done', n, studiedOf(DB.active, n), 0);
       return;
@@ -2367,10 +1636,14 @@ function setOvertime(on){
 })();
 
 tap($('#plant'), () => go('session', startSession));
-tap($('#again'), () => go('home', () => { stopLoop(); show('home'); }));
-$('#pickCenter').onclick = openSpecies;
-$('#speciesBtn').onclick = openSpecies;
-$('#coinsBtn').onclick = openSpecies;
+tap($('#again'), () => go('home', () => {
+  stopLoop();
+  if (DB.prefs.surprise){ DB.prefs.tree = randomOwned(DB.prefs.tree); save(); }
+  show('home');
+}));
+$('#treeBtn').onclick = openPicker;
+$('#coinsBtn').onclick = openPicker;
+$('#preview').onclick = openPicker;
 
 /* =================================================================== SHEET */
 function openSheet(html){
@@ -2390,53 +1663,54 @@ $('#backdrop').onclick = closeSheet;
 $('#sheetClose').onclick = closeSheet;
 
 function paintMinis(root){
-  root.querySelectorAll('canvas[data-sp]').forEach(c => {
-    const org = buildOrganism(c.dataset.sp, +c.dataset.seed);
-    requestAnimationFrame(() => drawOrganism(c, org, +c.dataset.p, {decay: c.dataset.dead === '1' ? .8 : 0}));
+  root.querySelectorAll('canvas[data-tree]').forEach(c => {
+    const org = buildTree(c.dataset.tree, +c.dataset.seed || 7);
+    requestAnimationFrame(() => drawOrganism(c, org, 1, {}));
   });
 }
 
-function openSpecies(){
-  let html = `<h2>What you are building</h2>
-    <p class="sub">One minute of study, one coin. A specimen gains a new named part every
-    ${fmtDur(STAGE_MS)}; the bigger ones have more parts and take longer.</p>`;
-  SUBJECTS.forEach(sub => {
-    html += `<div class="subjhead"><span class="dotc" style="background:${hueOf(sub.id)}"></span>${sub.code} · ${sub.name}</div><div class="spgrid">`;
-    SPECIES.filter(s => s.sub === sub.id).forEach(s => {
-      const un = isUnlocked(s.id), cant = !un && DB.coins < s.cost;
-      html += `<button class="sp ${un ? '' : 'locked'} ${cant ? 'cant' : ''}" data-id="${s.id}"
-        aria-pressed="${String(DB.prefs.sp === s.id)}">
-        <canvas data-sp="${s.id}" data-seed="7" data-p="1"></canvas>
-        <div class="n">${s.name}</div>
-        <div class="t">${s.stages} parts · ${fmtDur(s.growth*60000)}</div>
-        ${un ? '' : `<div class="cost"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"></circle></svg>${s.cost}</div>`}
+const coinSvg = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"></circle></svg>`;
+function openPicker(){
+  const cur = DB.prefs.surprise ? null : DB.prefs.tree;
+  let html = `<h2>Pick a tree</h2>
+    <p class="sub">It grows from a seed while you focus and gets planted in your forest when the
+    timer ends. Longer sessions grow bigger trees. One coin per minute; coins unlock new ones.</p>
+    <div class="spgrid">
+      <button class="sp" id="spRandom" aria-pressed="${!!DB.prefs.surprise}" style="--sel:var(--coin)">
+        <div class="dice">🎲</div><div class="n">Surprise me</div><div class="t">a different one each time</div>
       </button>`;
-    });
-    html += `</div>`;
+  TREES.forEach(t => {
+    const own = isOwned(t.id), cant = !own && DB.coins < t.cost;
+    html += `<button class="sp ${own ? '' : 'locked'} ${cant ? 'cant' : ''}" data-id="${t.id}"
+      aria-pressed="${String(cur === t.id)}" style="--sel:${uiOf(t.id)}">
+      <canvas data-tree="${t.id}" data-seed="7"></canvas>
+      <div class="n">${t.name}</div>
+      ${own ? '' : `<div class="cost">${coinSvg}${t.cost}</div>`}
+    </button>`;
   });
-  openSheet(html);
+  openSheet(html + `</div>`);
   const body = $('#sheetBody');
   paintMinis(body);
-  body.querySelectorAll('.sp').forEach(b => tap(b, () => {
-    const s = SP[b.dataset.id];
-    if (isUnlocked(s.id)){
-      DB.prefs.sp = s.id; save(); closeSheet();
-      previewOrg = null; paintDial(); paintPreview();
-    } else if (DB.coins >= s.cost){
-      DB.coins -= s.cost; DB.unlocked[s.id] = true; DB.prefs.sp = s.id; save();
-      closeSheet(); previewOrg = null; paintDial(); paintPreview();
-      flashOk(`${s.name} unlocked`);
+  const picked = () => { save(); closeSheet(); paintPreview(); bump($('#treeBtn')); };
+  tap($('#spRandom'), () => {
+    DB.prefs.surprise = true; DB.prefs.tree = randomOwned(DB.prefs.tree); picked();
+  });
+  body.querySelectorAll('.sp[data-id]').forEach(b => tap(b, () => {
+    const t = TREE[b.dataset.id];
+    if (isOwned(t.id)){
+      DB.prefs.tree = t.id; DB.prefs.surprise = false; picked();
+    } else if (DB.coins >= t.cost){
+      DB.coins -= t.cost; DB.owned[t.id] = true; DB.prefs.tree = t.id; DB.prefs.surprise = false; picked();
+      flashOk(`${t.name} unlocked!`);
     } else {
-      flash(`${s.cost - DB.coins} coins short`);
+      flash(`${t.cost - DB.coins} more coins to go`, true);
     }
   }));
 }
 
 function openSettings(){
   const themeName = {light:'Light', dark:'Dark'}[localStorage.getItem('epflfocus.theme')] || 'System';
-  const cur = DB.prefs.sp ? SP[DB.prefs.sp] : null;
-  const curOrg = cur ? (ORG_CACHE[cur.id] || (ORG_CACHE[cur.id] = buildOrganism(cur.id, 1))) : null;
-  openSheet(`<h2>Settings</h2><p class="sub">The rules of the game, explained once.</p>
+  openSheet(`<h2>Settings</h2><p class="sub">How the garden works, explained once.</p>
     <div class="setrow">
       <div><div class="k">When the app is off screen</div><div class="d">iOS reports a dark screen and
         another app exactly the same way, so this is your call, not a detection.
@@ -2445,55 +1719,47 @@ function openSettings(){
       <div class="ctl"><button class="mini" id="setAway">${AWAY_MODES[DB.prefs.away]}</button></div>
     </div>
     <div class="setrow">
-      <div><div class="k">Grace period</div><div class="d">How long you can be away before the session is lost. Only used by "Ends the session".</div></div>
+      <div><div class="k">Grace period</div><div class="d">How long you can be away before the session ends. Only used by "Ends the session".</div></div>
       <div class="ctl"><button class="mini" id="setGrace">${DB.prefs.grace} s</button></div>
     </div>
     <div class="setrow">
       <div><div class="k">Pomodoro</div><div class="d">Cuts the session into blocks of 25 minutes with
-        a 5 minute break between them, and 15 minutes after every fourth. Breaks are not counted as
-        study and nothing can die during one.</div></div>
+        a 5 minute break between them, and 15 minutes after every fourth. Breaks don't count as focus
+        time, and nothing can go wrong during one.</div></div>
       <div class="ctl"><button class="sw" id="setPom" aria-pressed="${!!DB.prefs.pomodoro}" aria-label="Pomodoro"><i></i></button></div>
     </div>
     <div class="setrow">
-      <div><div class="k">Sound</div><div class="d">A chord when a session ends, a low note when it dies.</div></div>
+      <div><div class="k">Sound</div><div class="d">A happy chord when a tree is planted, two soft notes when a session is lost.</div></div>
       <div class="ctl"><button class="sw" id="setSound" aria-pressed="${DB.prefs.sound}" aria-label="Sound"><i></i></button></div>
     </div>
     <div class="setrow">
-      <div><div class="k">Theme</div><div class="d">Light paper, night paper, or whatever the phone says.</div></div>
+      <div><div class="k">Theme</div><div class="d">Sunny sky, starry night, or whatever the phone says.</div></div>
       <div class="ctl"><button class="mini" id="setTheme">${themeName}</button></div>
     </div>
     <div class="setrow">
-      <div><div class="k">Backup</div><div class="d">Data lives on this phone only. Copy the JSON and keep it somewhere.</div></div>
+      <div><div class="k">Backup</div><div class="d">Everything lives on this phone only. Copy the JSON and keep it somewhere.</div></div>
       <div class="ctl"><button class="mini" id="setExport">Copy</button></div>
     </div>
     <div class="setrow">
-      <div><div class="k">Start over</div><div class="d">Wipes sessions, collection and coins. No way back.</div></div>
+      <div><div class="k">Start over</div><div class="d">Wipes sessions, forest and coins. No way back.</div></div>
       <div class="ctl"><button class="mini danger" id="setReset">Reset</button></div>
     </div>
 
-    ${curOrg ? `<div class="subjhead">${cur.name} · ${cur.stages} parts</div>
-      <div class="stagelist">${curOrg.names.map((n,i) => `<b>${fmtDur((i+1)*stageMsOf(cur.id))}</b> ${n}`).join(' · ')}</div>` : ''}
-
     <div class="subjhead">How it works</div>
+    <div class="help">Pick a tree, turn the dial, tap <b>Start</b>. The tree grows from a seed while
+      you stay here, and when the time is up it is <b>planted in your forest</b>. The longer the
+      session, the bigger the tree. Each minute is a coin, and coins unlock new trees — or tap
+      <b>Surprise me</b> and get a different one every time.</div>
+    <div class="help">When the timer runs out the session does not stop: it keeps going in
+      <b>overtime</b>, up to <b>+60 minutes</b> and never past <b>2 hours</b> in total. Tap
+      <b>Plant it now</b> when you are done, or just leave — the overtime is kept either way.</div>
+    <div class="help">Stop early, or leave the app with <b>Ends the session</b> on, and that session
+      plants nothing. Nothing already in your forest is ever lost.</div>
     <div class="help"><b>iOS puts up the wall, not this app.</b> No app can block another one:
       before you start, <b>triple-click the side button</b> to turn on Guided Access, then tap Start.
-      The phone stays nailed here until you type the code.</div>
-    <div class="help">The side button is the <b>long one at the top right</b> — not the small smooth
-      Camera Control below it, which just opens the camera. Turn the feature on first in
+      The phone stays here until you type the code. Turn it on first in
       <b>Settings → Accessibility → Guided Access</b>: set a passcode, set Display Auto-Lock to Never,
-      and under Accessibility Shortcut tick Guided Access only, so the triple-click goes straight in.</div>
-    <div class="help">A web page on iOS is told only that it is <b>hidden</b>. A dark screen and a
-      different app look identical from in here, and no API separates them — so the setting above is
-      a choice. With Guided Access on the question disappears: you cannot leave the app, so hidden
-      can only mean the screen went dark, and <b>Keeps counting</b> is exactly right.</div>
-    <div class="help">When the timer runs out the session does not stop: it keeps going in
-      <b>overtime</b>, up to <b>+60 minutes</b> and never past <b>2 hours</b> in total. Tap Finish
-      when you are done, or just leave — the overtime you earned is kept either way.</div>
-    <div class="help">A specimen grows across <b>several sessions</b>. When every part is built it
-      goes to the collection, pays a <b>${MATURE_BONUS} coin</b> bonus, and a new one starts.</div>
-    <div class="help"><b>A lost session costs the session, not the specimen.</b> Give up, or leave
-      the app on <b>Ends the session</b>, and the minutes you did are forfeited — no coins, no
-      growth — but what was already built stays exactly where it was. Nothing ever dies.</div>
+      and under Accessibility Shortcut tick Guided Access only.</div>
     <div class="help">No sound with the screen off, no notifications, no haptics: it is a web app,
       not an alarm clock. Keep the phone in sight.</div>
     <div class="synced">build ${BUILD}</div>`);
@@ -2526,7 +1792,7 @@ function openSettings(){
     e.currentTarget.textContent = {light:'Light', dark:'Dark', system:'System'}[next];
     bump(e.currentTarget);
     syncStatusBar();
-    previewOrg = null; paintPreview();
+    repaintAll();
   };
   $('#setExport').onclick = async e => {
     const t = e.currentTarget;
@@ -2536,7 +1802,7 @@ function openSettings(){
   };
   $('#setReset').onclick = e => {
     const t = e.currentTarget;
-    if (t.dataset.sure){ DB = blank(); save(true); closeSheet(); previewOrg = null; show('home'); return; }
+    if (t.dataset.sure){ DB = blank(); save(true); closeSheet(); show('home'); return; }
     t.dataset.sure = '1'; t.textContent = 'Sure?';
   };
 }
@@ -2639,7 +1905,7 @@ function bindBars(values, labels){
   });
 }
 /* Minutes per hour of the day. A session is spread over the wall clock it
-   actually spans, so the studied time lands in the hours it happened in;
+   actually spans, so the focused time lands in the hours it happened in;
    pauses and breaks stretch that span, which is why it is a share and not
    a straight copy of actualMs. */
 function hourValues(list){
@@ -2659,25 +1925,13 @@ function hourValues(list){
   });
   return v.map(x => Math.min(x, 3600000));
 }
-function subjectSplit(list){
-  const by = {};
-  list.forEach(s => { by[s.subject] = (by[s.subject] || 0) + s.actualMs; });
-  const rows = SUBJECTS.filter(s => by[s.id]).sort((a,b) => by[b.id] - by[a.id]);
-  if (!rows.length) return '';
-  const max = Math.max(...rows.map(s => by[s.id]));
-  return `<div class="split"><h3>By course</h3>` + rows.map(s => `
-    <div class="srow"><span class="dotc" style="background:${hueOf(s.id)}"></span>
-      <span class="code">${s.code}</span>
-      <span class="track2"><i style="width:${by[s.id]/max*100}%;background:${hueOf(s.id)}"></i></span>
-      <span class="v">${fmtDur(by[s.id])}</span></div>`).join('') + `</div>`;
-}
 
 function renderStats(){
   $('#periodLabel').textContent = periodLabel();
   $('#next').disabled = isFuture();
   document.querySelectorAll('#scope button').forEach(b =>
     b.setAttribute('aria-selected', String(b.dataset.scope === scope)));
-  applySubjectColor(null);
+  applyTreeColor(DB.prefs.tree);
 
   const [from, to] = periodRange();
   const list = DB.sessions.filter(s => s.startAt >= from && s.startAt < to).sort((a,b) => a.startAt - b.startAt);
@@ -2685,10 +1939,10 @@ function renderStats(){
   const done = list.filter(s => s.status === 'done').length;
   const lost = list.length - done;
 
-  let html = `<div class="hero"><span class="v">${fmtDur(total)}</span><span class="u">studied</span></div>
+  let html = `<div class="hero"><span class="v">${fmtDur(total)}</span><span class="u">of focus</span></div>
     <div class="kpis">
-      <div class="kpi"><div class="v">${done}</div><div class="k">completed</div></div>
-      <div class="kpi ${lost ? 'bad' : ''}"><div class="v">${lost}</div><div class="k">lost</div></div>
+      <div class="kpi"><div class="v">${done}</div><div class="k">trees planted</div></div>
+      <div class="kpi"><div class="v">${lost}</div><div class="k">stopped early</div></div>
       <div class="kpi"><div class="v">${streakDays()}</div><div class="k">day streak</div></div>
     </div>`;
 
@@ -2700,15 +1954,15 @@ function renderStats(){
       html += barChart(values, labels, ['00:00','06:00','12:00','18:00','24:00'],
         'Time per hour', {max:3600000, scale:'full bar = 1h'});
     }
-    html += subjectSplit(list) + `<div class="slist"><h3>Sessions</h3>`;
-    if (!list.length) html += `<div class="empty">Nothing yet.</div>`;
+    html += `<div class="slist"><h3>Sessions</h3>`;
+    if (!list.length) html += `<div class="empty">Nothing yet today.<br>A tree is one session away.</div>`;
     else list.forEach(s => {
       const ko = s.status !== 'done';
       html += `<div class="sess ${ko ? 'ko' : ''}">
         <span class="when">${new Date(s.startAt).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'})}</span>
-        <span class="dotc" style="background:${hueOf(s.subject)}"></span>
-        <span class="code">${SUB[s.subject].code}</span>
-        ${ko ? `<span class="tag">${s.status === 'escaped' ? 'escaped' : 'gave up'}</span>` : ''}
+        <span class="dotc" style="background:${uiOf(s.tree)}"></span>
+        <span class="nm">${TREE[s.tree] ? TREE[s.tree].name : 'Session'}</span>
+        ${ko ? `<span class="tag">${s.status === 'escaped' ? 'wandered off' : 'stopped early'}</span>` : ''}
         <span class="len">${fmtDur(s.actualMs)}</span></div>`;
     });
     html += `</div>`;
@@ -2717,23 +1971,22 @@ function renderStats(){
     values = Array(7).fill(0);
     labels = DAY3.map((n,i) => `${n} ${addDays(a, i).getDate()}`);
     list.forEach(s => { values[(new Date(s.startAt).getDay() + 6) % 7] += s.actualMs; });
-    html += barChart(values, labels, ['Mon','Thu','Sun'], 'Time per day') + subjectSplit(list);
+    html += barChart(values, labels, ['Mon','Thu','Sun'], 'Time per day');
   } else if (scope === 'month'){
     const y = anchor.getFullYear(), m = anchor.getMonth(), days = new Date(y, m+1, 0).getDate();
     values = Array(days).fill(0);
     labels = Array.from({length:days}, (_,i) => `${MON3[m]} ${i+1}`);
     list.forEach(s => { values[new Date(s.startAt).getDate()-1] += s.actualMs; });
-    html += barChart(values, labels, ['1', String(Math.ceil(days/2)), String(days)], 'Time per day') + subjectSplit(list);
+    html += barChart(values, labels, ['1', String(Math.ceil(days/2)), String(days)], 'Time per day');
   } else {
     values = Array(12).fill(0);
     labels = MONTHS.slice();
     list.forEach(s => { values[new Date(s.startAt).getMonth()] += s.actualMs; });
-    html += barChart(values, labels, ['Jan','Jun','Dec'], 'Time per month') + subjectSplit(list);
+    html += barChart(values, labels, ['Jan','Jun','Dec'], 'Time per month');
   }
 
   const allTime = DB.sessions.reduce((n,s) => n + s.actualMs, 0);
-  const grown = DB.grove.filter(g => !g.dead).length;
-  html += `<div class="foot">${fmtDur(allTime)} in total · ${DB.sessions.length} sessions · ${grown} completed specimens</div>`;
+  html += `<div class="foot">${fmtDur(allTime)} in total · ${DB.sessions.length} sessions · ${DB.forest.length} trees</div>`;
   $('#statsBody').innerHTML = html;
   if (values) bindBars(values, labels);
 }
@@ -2747,444 +2000,160 @@ const step = dir => swap($('#statsBody'), () => { shift(dir); bump($('#periodLab
 tap($('#prev'), () => step(-1));
 tap($('#next'), () => step(1));
 
-/* ============================================================== COLLECTION */
-/* Grouped by species, not by month: the question the collection answers is
-   "how much of this have I actually grown". The same reading works on the
-   losses — dead time is quoted as the fraction of a specimen it would have
-   been worth, which is the only honest way to feel it. */
-function renderGrove(){
-  applySubjectColor(null);
-  const rowOf = new Map();
-  const row = id => {
-    if (!rowOf.has(id)) rowOf.set(id, {id, ok:0, okMs:0, lost:0, lostMs:0, lostWorth:0, live:0, seed:7, at:0});
-    return rowOf.get(id);
-  };
-  DB.grove.filter(g => SP[g.sp]).forEach(g => {
-    const r = row(g.sp);
-    if (g.dead){ r.lost++; r.lostMs += g.ms; r.lostWorth += g.ms/graveGrowth(g); }
-    else { r.ok++; r.okMs += g.ms; if (g.at >= r.at){ r.at = g.at; r.seed = g.seed; } }
-  });
-  for (const id of Object.keys(DB.growing || {}))
-    if (SP[id] && DB.growing[id].ms > 0){ const r = row(id); r.live = DB.growing[id].ms; }
-
-  const rows = [...rowOf.values()].sort((a,b) => (b.okMs + b.lostMs + b.live) - (a.okMs + a.lostMs + a.live));
-  if (!rows.length){
-    $('#groveBody').innerHTML = `<div class="empty">The collection is empty.<br>
-      A specimen lands here when every part is built —<br>or when it dies, and then the gap shows.</div>`;
-    return;
-  }
-  const sum = k => rows.reduce((n,r) => n + r[k], 0);
-  const okN = sum('ok'), lostN = sum('lost'), lostMs = sum('lostMs');
-
-  let html = `<div class="kpis two">
-      <div class="kpi"><div class="v">${okN}</div><div class="k">grown · ${fmtDur(sum('okMs'))}</div></div>
-      <div class="kpi ${lostN ? 'bad' : ''}"><div class="v">${lostN}</div><div class="k">lost · ${fmtDur(lostMs)}</div></div>
-    </div>
-    <div class="gsec">${rows.length} specimen${rows.length > 1 ? 's' : ''}</div>`;
-
-  rows.forEach(r => {
-    const sp = SP[r.id];
-    const worth = n => (Math.round(n*10)/10).toFixed(1).replace(/\.0$/, '');
-    html += `<button class="spcard ${r.ok ? '' : 'gone'}" data-id="${r.id}">
-      <canvas data-sp="${r.id}" data-seed="${r.seed}" data-p="1"
-        data-dead="${r.ok ? 0 : 1}"></canvas>
-      <span class="body">
-        <span class="n">${sp.name}</span>
-        <span class="c"><i class="dotc" style="background:${hueOf(sp.sub)}"></i>${SUB[sp.sub].code}
-          · ${sp.stages} parts · ${fmtDur(growthMs(r.id))} each</span>
-        <span class="figs">
-          <span class="fig"><b>×${r.ok}</b> · ${fmtDur(r.okMs)}</span>
-          ${r.lost ? `<span class="fig bad"><b>${fmtDur(r.lostMs)}</b> lost · ${worth(r.lostWorth)}×</span>` : ''}
-          ${r.live ? `<span class="fig">growing · ${fmtDur(r.live)}</span>` : ''}
-        </span>
-      </span></button>`;
-  });
-  html += `<div class="foot">One named part every ${fmtDur(STAGE_MS)} of study.
-    ${lostN ? `The multiplier reads lost time as the specimen it would have finished:
-      ${worth0(rows)} thrown away.` : 'Nothing lost so far.'}</div>`;
-
-  $('#groveBody').innerHTML = html;
-  paintMinis($('#groveBody'));
-  $('#groveBody').querySelectorAll('.spcard').forEach(b =>
-    tap(b, () => openSpecimens(b.dataset.id)));
+/* ================================================================== FOREST */
+let fscope = 'week';
+function forestRange(){
+  const n = new Date(), today = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  if (fscope === 'today') return [today.getTime(), addDays(today, 1).getTime()];
+  if (fscope === 'week'){ const a = weekStart(n); return [a.getTime(), addDays(a, 7).getTime()]; }
+  if (fscope === 'month') return [new Date(n.getFullYear(), n.getMonth(), 1).getTime(),
+                                  new Date(n.getFullYear(), n.getMonth() + 1, 1).getTime()];
+  return [0, Infinity];
 }
-/* lost time across species has no single growth time: quote it in whole
-   specimens of the species it was actually lost on */
-function worth0(rows){
-  const n = rows.reduce((t,r) => t + r.lostWorth, 0);
-  return (Math.round(n*10)/10) + ' specimen' + (Math.round(n*10)/10 === 1 ? '' : 's');
-}
-
-function openSpecimens(id){
-  const sp = SP[id], gm = growthMs(id);
-  const perLive = stageMsOf(id);
-  const list = DB.grove.filter(g => g.sp === id).sort((a,b) => b.at - a.at);
-  const live = DB.growing[id] && DB.growing[id].ms > 0 ? DB.growing[id] : null;
-  let html = `<h2>${sp.name}</h2>
-    <p class="sub">${SUB[sp.sub].code} · one new part every ${fmtDur(perLive)},
-      ${sp.stages} parts and ${fmtDur(gm)} to finish one.</p>`;
-  if (live){
-    const st = stageInfo(id, live.ms);
-    html += `<div class="readbox"><span>Growing now · stage ${st.index+1}/${sp.stages} · ${st.name}</span>
-      <b>${fmtDur(live.ms)}</b></div>`;
-  }
-  html += list.length
-    ? `<div class="grid" style="margin-top:16px">` + list.map(g => `
-        <div class="spec ${g.dead ? 'dead' : ''}">
-          <canvas data-sp="${g.sp}" data-seed="${g.seed}" data-dead="${g.dead ? 1 : 0}"
-            data-p="${g.dead ? clamp(g.ms/graveGrowth(g), .12, 1) : 1}"></canvas>
-          <div class="n">${new Date(g.at).toLocaleDateString('en-GB', {day:'numeric', month:'short'})}${
-            g.dead ? ' · ' + fmtDur(g.ms) : ''}</div>
-        </div>`).join('') + `</div>`
-    : `<div class="empty">Nothing finished yet — the first one lands here at ${fmtDur(gm)}.</div>`;
-  openSheet(html);
-  paintMinis($('#sheetBody'));
-}
-
-/* ============================================================== LEADERBOARD
-   Supabase: email + password with a confirmation mail, and one row per user
-   per day. The publishable key and the URL are meant to ship in the page —
-   the row level security policies are what protect the data.
-   Everything here fails soft: with no network the app carries on offline.
-   ========================================================================= */
-const SB_URL = 'https://dbksmoqcanofzruszwpk.supabase.co';
-const SB_KEY = 'sb_publishable_Nc5Q1U87DHL2mhl_29U9Bg_N-XOPrk3';
-const SESSION_KEY = 'epflfocus.session';
-/* Accounts are name + surname. Supabase needs an address, so one is derived from
-   the name in the reserved .invalid TLD: nothing is ever sent to it, and the
-   project must have "Confirm email" switched off. */
-const MAIL_DOMAIN = 'epflfocus.invalid';
-const slug = t => (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  .toLowerCase().replace(/[^a-z0-9]/g, '');
-const tidy = t => (t || '').trim().replace(/\s+/g, ' ');
-const addressFor = (first, last) => slug(first) + '.' + slug(last) + '@' + MAIL_DOMAIN;
-
-let SESSION = null;
-try { SESSION = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) {}
-function saveSession(v){
-  SESSION = v;
-  try { v ? localStorage.setItem(SESSION_KEY, JSON.stringify(v)) : localStorage.removeItem(SESSION_KEY); } catch (e) {}
-}
-function mkSession(d){
-  const meta = (d.user && d.user.user_metadata) || {};
-  const had = SESSION || {};
-  return {access_token:d.access_token, refresh_token:d.refresh_token || had.refresh_token,
-          expires_at: Date.now() + (d.expires_in || 3600)*1000,
-          user_id: (d.user && d.user.id) || had.user_id,
-          email: (d.user && d.user.email) || had.email,
-          name: meta.name || had.name || ''};
-}
-
-/* Every request goes through here, so the token is renewed here: an access
-   token lasts an hour and the app sits idle for far longer than that. */
-async function sb(path, opt){
-  opt = opt || {};
-  const authed = opt.auth !== false && !!SESSION;
-  if (authed && !(await freshSession()))
-    throw Object.assign(new Error('your session expired — sign in again'), {status:401});
-  try { return await sbRaw(path, opt); }
-  catch (e) {
-    if (!authed || !expiredErr(e) || !(await freshSession(true))) throw e;
-    return await sbRaw(path, opt);          /* the clock was off: one retry */
-  }
-}
-const expiredErr = e => e.status === 401 || e.code === 'PGRST301' ||
-  /jwt expired|invalid jwt|token is expired/i.test(e.message || '');
-
-async function sbRaw(path, opt){
-  const h = Object.assign({apikey:SB_KEY, 'Content-Type':'application/json'}, opt.headers || {});
-  if (opt.auth !== false && SESSION) h.Authorization = 'Bearer ' + SESSION.access_token;
-  const res = await fetch(SB_URL + path, {
-    method: opt.method || 'GET', headers: h,
-    body: opt.body != null ? JSON.stringify(opt.body) : undefined,
-  });
-  const txt = await res.text();
-  let data = null;
-  try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = txt; }
-  if (!res.ok){
-    const msg = (data && (data.msg || data.message || data.error_description)) || ('HTTP ' + res.status);
-    throw Object.assign(new Error(msg), {code: data && (data.error_code || data.code), status: res.status});
-  }
-  return data;
-}
-
-/* One refresh at a time: several calls can find the token stale together. */
-let refreshing = null;
-function freshSession(force){
-  if (!SESSION) return Promise.resolve(false);
-  if (!force && SESSION.expires_at && Date.now() < SESSION.expires_at - 120000)
-    return Promise.resolve(true);
-  if (!SESSION.refresh_token){ saveSession(null); return Promise.resolve(false); }
-  if (!refreshing) refreshing = (async () => {
-    try {
-      saveSession(mkSession(await sbRaw('/auth/v1/token?grant_type=refresh_token',
-        {method:'POST', auth:false, body:{refresh_token:SESSION.refresh_token}})));
-      return true;
-    } catch (e) {
-      if (e.status >= 400 && e.status < 500) saveSession(null);   /* token really is dead */
-      return false;
-    } finally { refreshing = null; }
-  })();
-  return refreshing;
-}
-
-async function ensureProfile(){
-  if (!SESSION) return;
-  await sb('/rest/v1/profiles', {method:'POST',
-    headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
-    body:[{id:SESSION.user_id, name:(SESSION.name || 'anon').slice(0,24)}]});
-}
-
-function dayTotals(){
-  const by = {};
-  DB.sessions.forEach(s => {
-    const k = dayKey(s.startAt);
-    const r = by[k] || (by[k] = {minutes:0, completed:0, lost:0});
-    r.minutes += Math.round(s.actualMs/60000);
-    if (s.status === 'done') r.completed++; else r.lost++;
-  });
-  return by;
-}
-
-/* push only the days whose totals changed since last time */
-async function syncUp(){
-  if (!SESSION || !(await freshSession())) return false;
-  const agg = dayTotals();
-  DB.pushed = DB.pushed || {};
-  const rows = [];
-  for (const day of Object.keys(agg)){
-    const r = agg[day], sig = r.minutes + '/' + r.completed + '/' + r.lost;
-    if (DB.pushed[day] === sig) continue;
-    rows.push({user_id:SESSION.user_id, day, minutes:Math.min(1440, r.minutes),
-               completed:r.completed, lost:r.lost, _sig:sig});
-  }
-  if (!rows.length){ await pushBackup(); return true; }
-  await sb('/rest/v1/days', {method:'POST',
-    headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
-    body: rows.map(({_sig, ...r}) => r)});
-  rows.forEach(r => { DB.pushed[r.day] = r._sig; });
-  DB.syncedAt = Date.now();
-  save();
-  await pushBackup();
-  return true;
-}
-
-/* The account is the backup: the phone can be wiped, replaced or have its
-   storage evicted, and the history comes back on the next sign-in. */
-function backupPayload(){
-  const out = {};
-  for (const k of Object.keys(DB)) if (k !== 'board') out[k] = DB[k];
-  out.active = null;
-  return out;
-}
-async function pushBackup(){
-  if (!SESSION) return;
-  try {
-    await sb('/rest/v1/backups', {method:'POST',
-      headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
-      body:[{user_id:SESSION.user_id, data:backupPayload(),
-             sessions:DB.sessions.length, updated_at:new Date().toISOString()}]});
-  } catch (e) { /* table not created yet, or offline: the app carries on */ }
-}
-async function restoreIfBehind(){
-  if (!SESSION) return false;
-  let row = null;
-  try {
-    const rows = await sb('/rest/v1/backups?select=data,sessions&user_id=eq.' + SESSION.user_id);
-    row = rows && rows[0];
-  } catch (e) { return false; }
-  if (!row || !row.data) return false;
-  const remote = row.data, rn = (remote.sessions || []).length;
-  if (rn <= DB.sessions.length) return false;
-  const keepSp = DB.prefs && DB.prefs.sp;
-  DB = Object.assign(blank(), remote);
-  DB.prefs = Object.assign(blank().prefs, DB.prefs || {});
-  if (keepSp && SP[keepSp]) DB.prefs.sp = keepSp;
-  DB.active = null;
-  knownSessions = DB.sessions.length;
-  save(true);
-  previewOrg = null;
-  flashOk(`Restored ${rn} sessions from your account`);
-  return true;
-}
-
-const RANK_PERIODS = {
-  today: {label:'Today',  from:() => dayKey(Date.now())},
-  week:  {label:'Week',   from:() => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return dayKey(d.getTime()); }},
-  all:   {label:'All time', from:() => '2000-01-01'},
+const FOREST_EMPTY = {
+  today: 'Nothing planted today yet.<br>Your first tree is one session away.',
+  week:  'A brand new week, a bare hill.<br>Plant something!',
+  month: 'No trees this month yet.<br>Time to start a grove.',
+  all:   'Your forest is waiting for its first tree.',
 };
-let rankPeriod = 'week', rankBusy = false, authMode = 'in';
-
-async function loadBoard(){
-  if (!(await freshSession())) return null;
-  const rows = await sb('/rest/v1/rpc/leaderboard', {method:'POST',
-    body:{p_from: RANK_PERIODS[rankPeriod].from(), p_to: dayKey(Date.now())}});
-  DB.board = DB.board || {};
-  DB.board[rankPeriod] = {at:Date.now(), rows};
-  save();
-  return rows;
+function forestList(){
+  const [from, to] = forestRange();
+  return DB.forest.filter(t => TREE[t.tree] && t.at >= from && t.at < to).sort((a,b) => a.at - b.at);
 }
+function renderForest(){
+  document.querySelectorAll('#fscope button').forEach(b =>
+    b.setAttribute('aria-selected', String(b.dataset.f === fscope)));
+  applyTreeColor(DB.prefs.tree);
+  const list = forestList();
+  const ms = list.reduce((n,t) => n + t.ms, 0);
 
-function renderRank(){
-  applySubjectColor(null);
-  const box = $('#rankBody');
+  let html = `<div class="hero"><span class="v">${list.length}</span>
+      <span class="u">${list.length === 1 ? 'tree' : 'trees'}${list.length ? ' · ' + fmtDur(ms) + ' of focus' : ''}</span></div>
+    <div class="meadow"><canvas id="meadow"></canvas>
+      ${list.length ? '' : `<div class="mempty">${FOREST_EMPTY[fscope]}</div>`}
+      ${list.length > MEADOW_MAX ? `<div class="more">latest ${MEADOW_MAX} of ${list.length}</div>` : ''}</div>`;
 
-  if (!SESSION){
-    const isUp = authMode === 'up';
-    box.innerHTML = `<div class="auth">
-      <h3>${isUp ? 'Create an account' : 'Sign in'}</h3>
-      <p>${isUp
-        ? 'Your name and a password, nothing else — no email, no confirmation. Your daily minutes join a shared board; everything else stays on this phone.'
-        : 'The same name and password you signed up with. Works on any device.'}</p>
-      <div class="field"><label for="au-first">First name</label>
-        <input id="au-first" type="text" autocomplete="given-name" maxlength="20" placeholder="Luigi"></div>
-      <div class="field"><label for="au-last">Last name</label>
-        <input id="au-last" type="text" autocomplete="family-name" maxlength="20" placeholder="Colella"></div>
-      <div class="field"><label for="au-pass">Password</label>
-        <input id="au-pass" type="password" autocomplete="${isUp ? 'new-password' : 'current-password'}" placeholder="at least 6 characters"></div>
-      <button class="authbtn" id="au-go">${isUp ? 'Create account' : 'Sign in'}</button>
-      <div class="authswap">${isUp ? 'Already have one?' : 'No account yet?'}
-        <button id="au-swap">${isUp ? 'Sign in' : 'Create one'}</button></div>
-      <div id="au-msg"></div>
-    </div>`;
-    tap($('#au-swap'), () => { authMode = isUp ? 'in' : 'up'; swap(box, renderRank); });
-    $('#au-go').onclick = () => doAuth(isUp);
-    box.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => {
-      if (e.key === 'Enter') doAuth(isUp);
-    }));
-    return;
+  const by = {};
+  list.forEach(t => { const r = by[t.tree] || (by[t.tree] = {n:0, ms:0, seed:t.seed}); r.n++; r.ms += t.ms; r.seed = t.seed; });
+  const rows = Object.keys(by).sort((a,b) => by[b].n - by[a].n || by[b].ms - by[a].ms);
+  if (rows.length){
+    html += `<div class="gsec">In this patch</div>` + rows.map(id => `
+      <div class="spcard" style="--sub:${uiOf(id)}">
+        <canvas data-tree="${id}" data-seed="${by[id].seed}"></canvas>
+        <span class="body"><span class="n">${TREE[id].name}</span>
+          <span class="c">${fmtDur(by[id].ms)} of focus</span></span>
+        <span class="x">×${by[id].n}</span></div>`).join('');
+  }
+  const all = DB.forest.reduce((n,t) => n + t.ms, 0);
+  html += `<div class="foot">${DB.forest.length} trees in your whole forest · ${fmtDur(all)}</div>`;
+  $('#forestBody').innerHTML = html;
+  paintMeadow($('#meadow'), list.slice(-MEADOW_MAX));
+  paintMinis($('#forestBody'));
+}
+document.querySelectorAll('#fscope button').forEach(b => tap(b, () => {
+  if (b.getAttribute('aria-selected') === 'true') return;
+  fscope = b.dataset.f;
+  swap($('#forestBody'), renderForest);
+}));
+
+/* A hill under a sky, and every tree of the period planted on it in rows:
+   the back rows smaller, the front ones overlapping them. The order on the
+   hill is shuffled, so neighbours are not just consecutive sessions. */
+function paintMeadow(canvas, list){
+  const c = fitCanvas(canvas);
+  if (!c) return;
+  const {ctx, w:W, h:H} = c, dk = isDark();
+
+  /* sun or moon */
+  const sx = W*.85, sy = H*.15, sr = H*.065;
+  const glow = ctx.createRadialGradient(sx, sy, sr*.5, sx, sy, sr*3);
+  glow.addColorStop(0, dk ? 'rgba(230,230,255,.28)' : 'rgba(255,214,102,.55)');
+  glow.addColorStop(1, 'rgba(255,214,102,0)');
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H*.5);
+  ctx.fillStyle = dk ? '#f3efd9' : '#ffd25e';
+  ctx.beginPath(); ctx.arc(sx, sy, sr, 0, 6.2832); ctx.fill();
+
+  const hill = (y0, c1, c2, y3, col) => {
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.moveTo(0, H*y0);
+    ctx.bezierCurveTo(W*.3, H*c1, W*.62, H*c2, W, H*y3);
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+  };
+  hill(.40, .27, .31, .36, dk ? '#477f48' : '#a9da7c');
+  hill(.66, .55, .62, .58, dk ? '#3d7041' : '#93cc69');
+
+  const rf = mulberry32(42);
+  const petals = dk ? ['#e8e3ff','#f6d77a','#e9a6c4'] : ['#ffffff','#ffd75e','#ff9fbf'];
+  for (let i=0;i<34;i++){
+    ctx.fillStyle = petals[i % 3];
+    ctx.beginPath(); ctx.arc(rf()*W, H*(.44 + rf()*.54), 1.6 + rf()*1.4, 0, 6.2832); ctx.fill();
   }
 
-  const cached = (DB.board && DB.board[rankPeriod]) || null;
-  const rows = cached ? cached.rows : [];
-  const max = Math.max(1, ...rows.map(r => r.minutes));
-  const me = (SESSION.name || '').toLowerCase();
-  box.innerHTML = `
-    <div class="whoami">
-      <div class="n">${SESSION.name || SESSION.email}<small>${SESSION.email}</small></div>
-      <button class="mini" id="rk-out">Sign out</button>
-    </div>
-    <div class="scope" id="rk-scope">${Object.keys(RANK_PERIODS).map(k =>
-      `<button data-p="${k}" aria-selected="${k === rankPeriod}">${RANK_PERIODS[k].label}</button>`).join('')}</div>
-    ${rows.length ? rows.map((r, i) => `
-      <div class="lbrow ${r.name.toLowerCase() === me ? 'me' : ''}">
-        <span class="pos">${i+1}</span>
-        <span class="lbcell"><span class="nm">${r.name}</span>
-          <span class="lbbar"><i style="width:${r.minutes/max*100}%"></i></span></span>
-        <span class="mn">${fmtDur(r.minutes*60000)}</span>
-      </div>`).join('')
-      : `<div class="empty">${rankBusy ? 'Loading…' : 'Nobody has studied in this period yet.'}</div>`}
-    <div class="synced" id="rk-sync">${cached
-      ? 'updated ' + new Date(cached.at).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'})
-      : 'not loaded yet'}</div>`;
-  tap($('#rk-out'), () => { saveSession(null); swap(box, renderRank); });
-  box.querySelectorAll('#rk-scope button').forEach(b => tap(b, () => {
-    if (b.getAttribute('aria-selected') === 'true') return;
-    rankPeriod = b.dataset.p;
-    swap(box, () => { renderRank(); refreshRank(); });
-  }));
-}
+  const N = list.length;
+  if (!N) return;
+  const x0 = W*.07, x1 = W*.93, y0 = H*.42, y1 = H*.96;
+  const cols = Math.min(N, Math.max(1, Math.ceil(Math.sqrt(N*(x1 - x0)/(y1 - y0)*.9))));
+  const rows = Math.ceil(N/cols);
+  const cellW = (x1 - x0)/cols, cellH = (y1 - y0)/rows;
+  const base = Math.min(cellW*1.55, cellH*2.3, H*.6);
 
-async function refreshRank(){
-  if (!SESSION || rankBusy) return;
-  rankBusy = true;
-  const note = $('#rk-sync');
-  if (note) note.textContent = 'updating…';
-  try {
-    await ensureProfile();
-    if (await restoreIfBehind()) renderStats();
-    await syncUp();
-    await loadBoard();
-    if (currentView === 'rank') renderRank();
-  } catch (e) {
-    rankBusy = false;
-    if (currentView !== 'rank') return;
-    if (!SESSION){ renderRank(); return; }        /* signed out mid-flight */
-    const n = $('#rk-sync');
-    if (n) n.textContent = navigator.onLine ? 'could not update: ' + e.message : 'offline — showing the last list';
-  } finally { rankBusy = false; }
-}
-
-async function doAuth(isUp){
-  const btn = $('#au-go'), msg = $('#au-msg');
-  const first = tidy($('#au-first').value), last = tidy($('#au-last').value);
-  const pass = $('#au-pass').value || '';
-  const fail = t => { msg.className = 'authmsg err'; msg.textContent = t; };
-  if (slug(first).length < 2) return fail('Type your first name.');
-  if (slug(last).length < 2) return fail('Type your last name.');
-  const name = (first + ' ' + last).slice(0, 24);
-  const email = addressFor(first, last);
-  if (pass.length < 6) return fail('The password needs at least 6 characters.');
-
-  btn.disabled = true;
-  msg.className = ''; msg.textContent = '';
-  try {
-    if (isUp){
-      const d = await sb('/auth/v1/signup', {method:'POST', auth:false,
-        body:{email, password:pass, data:{name}}});
-      if (!d || !d.access_token){
-        msg.className = 'authmsg err';
-        msg.textContent = 'The account exists but the project is still waiting for a mail confirmation it can never receive. Turn off "Confirm email" in Supabase, then sign in.';
-        authMode = 'in';
-        return;
-      }
-      saveSession(mkSession(d));
-    } else {
-      saveSession(mkSession(await sb('/auth/v1/token?grant_type=password',
-        {method:'POST', auth:false, body:{email, password:pass}})));
+  const order = list.slice(), rs = mulberry32(N*7919 + 17);
+  for (let i = order.length - 1; i > 0; i--){ const j = Math.floor(rs()*(i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  const pals = {};
+  for (let r = 0; r < rows; r++){
+    const inRow = r === rows - 1 ? N - r*cols : cols;
+    const depth = rows === 1 ? 1 : 0.74 + 0.26*r/(rows - 1);
+    for (let col = 0; col < inRow; col++){
+      const t = order[r*cols + col], rr = mulberry32(t.seed);
+      const size = base*depth*kOfMs(t.ms);
+      let x = W/2 + (col - (inRow - 1)/2)*cellW + (rr() - .5)*cellW*.35 + (r % 2 && inRow === cols ? cellW*.22 : 0);
+      x = clamp(x, size*.32, W - size*.32);
+      const y = y0 + (r + .5)*cellH + (rr() - .5)*cellH*.3;
+      ctx.fillStyle = dk ? 'rgba(0,0,0,.22)' : 'rgba(40,70,20,.16)';
+      ctx.beginPath(); ctx.ellipse(x, y + 1, size*.17, size*.035, 0, 0, 6.2832); ctx.fill();
+      const pal = pals[t.tree] || (pals[t.tree] = treePalette(t.tree));
+      drawOrg(ctx, buildTree(t.tree, t.seed), 1, x - size/2, y - size*.9, size, {noGround:true, pal});
     }
-    renderRank();
-    refreshRank();
-    return;
-  } catch (e) {
-    fail(e.code === 'email_not_confirmed'
-         ? 'This project still requires a mail confirmation. Turn off "Confirm email" in Supabase.'
-       : e.code === 'invalid_credentials' ? 'No account with that name, or the password is wrong.'
-       : e.code === 'user_already_exists' || /already/i.test(e.message)
-         ? 'Someone already signed up with that exact name. Add a middle name, or sign in if it was you.'
-       : e.code === 'over_email_send_rate_limit' || /rate limit/i.test(e.message)
-         ? 'Supabase is still trying to send confirmation mails. Turn off "Confirm email" in the project and try again.'
-       : e.code === 'weak_password' ? 'That password is too weak.'
-       : navigator.onLine ? e.message : 'No connection.');
-  } finally { btn.disabled = false; }
+  }
 }
 
 /* ==================================================================== BOOT */
+function repaintAll(){
+  if (currentView === 'home') paintPreview();
+  else if (currentView === 'forest') renderForest();
+  else if (currentView === 'stats') renderStats();
+  else if (currentView === 'session'){ if (DB.active) applyTreeColor(DB.active.tree); lastDrawP = -1; }
+}
 (function initTheme(){
   const t = localStorage.getItem('epflfocus.theme');
   if (t) document.documentElement.dataset.theme = t;
   syncStatusBar();
 })();
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-  syncStatusBar();
-  previewOrg = null;
-  if (currentView === 'home') paintPreview();
-  else if (currentView === 'grove') renderGrove();
-});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { syncStatusBar(); repaintAll(); });
 
 document.querySelectorAll('#nav button').forEach(b =>
   b.onclick = () => { if (!DB.active) show(b.dataset.view); });
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('touchend', unlockAudio, {once:true, passive:true});
+let lastW = 0;
 new ResizeObserver(() => {
+  const w = $('#app').clientWidth;
   if (currentView === 'home') paintPreview();
   else if (currentView === 'session') lastDrawP = -1;   /* let the next tick repaint at the new size */
+  else if (currentView === 'forest' && w !== lastW) renderForest();
+  lastW = w;
 }).observe($('#app'));
 
-/* labels are drawn on canvas, so wait for the webfont before the first paint */
-if (document.fonts && document.fonts.ready)
-  document.fonts.ready.then(() => { if (currentView === 'home') paintPreview(); else if (currentView === 'grove') renderGrove(); });
-
 paintDial();
-if (DB.active && SP[DB.active.sp]){
+if (DB.active){
   const now = Date.now(), a = DB.active;
+  if (!TREE[a.tree]){ a.tree = 'oak'; a.seed = a.seed || newSeed(); }   /* started before the trees */
   a.pausedMs = a.pausedMs || 0;
   /* cold restart: everything since the last heartbeat was time off the app */
   if (a.awayAt == null) a.awayAt = a.seen || now;
   const r = resolve(a, now, DB.prefs.grace*1000, DB.prefs.away);
-  applySubjectColor(a.subject);
-  $('#sesCode').textContent = SUB[a.subject].code;
-  $('#sesName').textContent = SP[a.sp].name;
+  applyTreeColor(a.tree);
+  setSessionChip(a.tree);
   if (r.kind === 'lost') endSession('escaped', r.at, r.studied, now - a.awayAt);
   else {
     const gap = now - a.awayAt;
@@ -3195,7 +2164,7 @@ if (DB.active && SP[DB.active.sp]){
     if (after.kind === 'done'){ save(); endSession('done', after.at, after.studied, gap); }
     else {
       save();
-      ORG = buildOrganism(a.sp, a.seed);
+      ORG = buildTree(a.tree, a.seed);
       show('session'); requestWakeLock(); loop();
     }
   }

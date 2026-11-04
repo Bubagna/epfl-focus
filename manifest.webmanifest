@@ -1,13 +1,13 @@
 {
-  "name": "EPFL Focus",
-  "short_name": "EPFL Focus",
-  "description": "Study timer: a specimen from your own courses gains a part every 20 minutes, and dies if you leave the app.",
+  "name": "Grove",
+  "short_name": "Grove",
+  "description": "Focus timer: pick a tree, it grows while you stay on it, and gets planted in your forest.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#e9ede3",
-  "theme_color": "#e9ede3",
+  "background_color": "#d6eeff",
+  "theme_color": "#d6eeff",
   "lang": "en",
   "icons": [
     {

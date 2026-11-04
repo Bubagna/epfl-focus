@@ -1,26 +1,17 @@
-# EPFL Focus
+# Grove
 
-A study timer that builds something from your own course material while you stay on it.
+A focus timer that grows a tree while you stay on it.
 
-Pick a course, turn the dial, and a specimen starts growing: a silicon unit cell, a five-stage
-pipeline, a CMOS inverter layout, a current mirror, an oak. **Every 20 minutes of study adds one
-new, named part** — the app tells you which one, so the progress bar doubles as a revision aid.
-A specimen is finished after 180–300 minutes and goes to your collection.
+Pick a tree, turn the dial, tap Start. The tree grows from a seed (sprout, sapling, trunk,
+branches, crown, then flowers or fruit), and when the time is up it is planted in your forest.
+The longer the session, the bigger the tree. Stop early, or leave the app, and that session
+plants nothing; nothing already in the forest is ever lost.
 
-Whenever the app is not on screen the clock stops, so there is nothing to gain by leaving.
+## Trees
 
-## Courses
-
-| Code | Course | Specimens |
-|---|---|---|
-| CS-473 | System programming for SoC | 5-stage pipeline · GECKO5 SoC |
-| CS-472 | Design technologies for integrated systems | AND-inverter graph · Binary decision diagram |
-| EE-411 | Fundamentals of inference and learning | Central limit theorem · Gradient descent |
-| EE-557 | Semiconductor devices I | Silicon crystal · MOSFET cross-section |
-| EE-429 | Fundamentals of VLSI design | CMOS inverter layout · Clock H-tree |
-| EE-424 | Fundamentals of analog VLSI design | Current mirror · Two-stage OTA |
-| HUM-428 | Science, technology and environment | Oak · Wind farm |
-| — | Anything else | Bonsai · Fern |
+Oak, Pine, Cherry blossom, Birch and Palm are there from the start. Apple tree, Maple, Willow and
+Jacaranda cost 300 coins each, and every focused minute is one coin. **Surprise me** picks a
+different tree for every session.
 
 ## Install it
 
@@ -31,22 +22,14 @@ For the app to actually stop you leaving, turn on **Guided Access**
 (Settings → Accessibility → Guided Access), then triple-click the side button once the session
 has started. No app on iOS can block another one by itself.
 
-## Leaderboard
-
-The Ranking tab is optional. Sign up with your **name, surname and a password** — no email, no
-confirmation link — and your **daily minutes** join a shared board: today, this week, all time.
-Nothing else leaves the phone: sessions, specimens and the collection stay local.
-
-Backed by Supabase; `supabase/schema.sql` is the whole server side. Row level security means a
-signed-in user can read everyone's totals and write only their own rows.
-
 ## What it stores
 
-Sessions, specimens, coins and settings live in `localStorage` on your phone. Only the per-day
-minute totals are uploaded, and only if you sign in. Settings → Backup copies everything as JSON.
+Sessions, the forest, coins and settings live in `localStorage` on your phone and never leave it.
+Settings → Backup copies everything as JSON.
 
 ## Hacking on it
 
-One file, no dependencies, no build step: `index.html`. A species is a function that emits
-primitives tagged with the stage they belong to — see `spSiCrystal` for the pattern, and add a
-row to `SPECIES`. Bump `CACHE` in `sw.js` whenever a file changes, or phones keep the old copy.
+One file, no dependencies, no build step: `index.html`. A tree is a function that emits
+primitives tagged with the stage they belong to — see `trOak` for the pattern, and add a row to
+`TREES`. Bump `CACHE` in `sw.js` and `BUILD` in `index.html` whenever a file changes, or phones
+keep the old copy.
